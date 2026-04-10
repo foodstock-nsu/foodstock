@@ -1,6 +1,6 @@
 CREATE TABLE locations (
     id UUID PRIMARY KEY,
-    slug TEXT UNIQUE,           
+    slug TEXT UNIQUE NOT NULL,           
     name TEXT NOT NULL,           
     address TEXT NOT NULL,   
     is_active BOOLEAN NOT NULL DEFAULT TRUE,         
