@@ -20,7 +20,7 @@ type LocationItem struct {
 	stockAmount int
 }
 
-func NewItemPrice(
+func NewLocationItem(
 	itemID, locID uuid.UUID,
 	price int64,
 	isAvailable bool,
@@ -52,7 +52,7 @@ func NewItemPrice(
 	}, nil
 }
 
-func RestoreItemPrice(
+func RestoreLocationItem(
 	id, itemID, locID uuid.UUID,
 	price int64,
 	isAvailable bool,
@@ -89,6 +89,36 @@ func (li *LocationItem) ReduceStock(amount int) error {
 	if li.stockAmount-amount < 0 {
 		return ErrCannotReduceStock
 	}
+
 	li.stockAmount -= amount
+	if li.stockAmount == 0 {
+		li.isAvailable = false
+	}
+
+	return nil
+}
+
+func (li *LocationItem) Update(
+	price *int64,
+	stockAmount *int,
+) error {
+	if price != nil && *price < 0 {
+		return pkgerrs.NewValueInvalidError("price")
+	}
+	if stockAmount != nil && *stockAmount < 0 {
+		return pkgerrs.NewValueInvalidError("stock_amount")
+	}
+
+	if price != nil {
+		li.price = *price
+	}
+	if stockAmount != nil {
+		li.stockAmount = *stockAmount
+	}
+
+	if li.stockAmount == 0 {
+		li.isAvailable = false
+	}
+
 	return nil
 }

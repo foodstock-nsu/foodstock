@@ -60,6 +60,27 @@ func (n Nutrition) Proteins() float64 { return n.proteins }
 func (n Nutrition) Fats() float64     { return n.fats }
 func (n Nutrition) Carbs() float64    { return n.carbs }
 
+func (n Nutrition) Update(cal *int, p, f, c *float64) error {
+	if (cal != nil && *cal < 0) || (p != nil && *p < 0) || (f != nil && *f < 0) || (c != nil && *c < 0) {
+		return pkgerrs.NewValueInvalidError("nutrition")
+	}
+
+	if cal != nil {
+		n.calories = *cal
+	}
+	if p != nil {
+		n.proteins = *p
+	}
+	if f != nil {
+		n.fats = *f
+	}
+	if c != nil {
+		n.carbs = *c
+	}
+
+	return nil
+}
+
 // ================ Rich model for Item ================
 
 type Item struct {
@@ -128,10 +149,57 @@ func RestoreItem(
 
 // ================ Read-Only ================
 
-func (p *Item) ID() uuid.UUID          { return p.id }
-func (p *Item) Name() string           { return p.name }
-func (p *Item) Description() *string   { return p.description }
-func (p *Item) Category() ItemCategory { return p.category }
-func (p *Item) PhotoURL() *string      { return p.photoUrl }
-func (p *Item) Nutrition() Nutrition   { return p.nutrition }
-func (p *Item) CreatedAt() time.Time   { return p.createdAt }
+func (i *Item) ID() uuid.UUID          { return i.id }
+func (i *Item) Name() string           { return i.name }
+func (i *Item) Description() *string   { return i.description }
+func (i *Item) Category() ItemCategory { return i.category }
+func (i *Item) PhotoURL() *string      { return i.photoUrl }
+func (i *Item) Nutrition() Nutrition   { return i.nutrition }
+func (i *Item) CreatedAt() time.Time   { return i.createdAt }
+
+// ================ Mutation ================
+
+func (i *Item) Update(
+	name, desc, cat, photo *string,
+	nutrition *Nutrition,
+) error {
+	if name != nil && len(*name) < 5 {
+		return pkgerrs.NewValueInvalidError("name")
+	}
+	if desc != nil && len(*desc) < 10 {
+		return pkgerrs.NewValueInvalidError("description")
+	}
+
+	var (
+		catMapped ItemCategory
+		ok        bool
+	)
+	if cat != nil {
+		catMapped, ok = categoryMap[*cat]
+		if !ok {
+			return pkgerrs.NewValueInvalidError("category")
+		}
+	}
+
+	if photo != nil && len(*photo) < 10 {
+		return pkgerrs.NewValueInvalidError("photo_url")
+	}
+
+	if name != nil {
+		i.name = *name
+	}
+	if desc != nil {
+		i.description = desc
+	}
+	if cat != nil {
+		i.category = catMapped
+	}
+	if photo != nil {
+		i.photoUrl = photo
+	}
+	if nutrition != nil {
+		i.nutrition = *nutrition
+	}
+
+	return nil
+}

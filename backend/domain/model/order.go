@@ -135,13 +135,13 @@ func (o *Order) PaidAt() *time.Time    { return o.paidAt }
 func (o *Order) calculateTotal() {
 	var total int64
 	for i := range o.items {
-		total += o.items[i].priceAtPurchase
+		total += o.items[i].priceAtPurchase * int64(o.items[i].itemAmount)
 	}
 	o.totalPrice = total
 }
 
 func (o *Order) AddItem(locationItem LocationItem, quantity int) error {
-	if !locationItem.CanBeSold() {
+	if locationItem.LocationID() != o.locationID || !locationItem.CanBeSold() {
 		return ErrItemNotAvailable
 	}
 
@@ -164,6 +164,10 @@ func (o *Order) Pay() error {
 		return ErrOrderCannotBePaid
 	}
 	o.status = OrderPaid
+
+	now := time.Now().UTC()
+	o.paidAt = &now
+
 	return nil
 }
 
