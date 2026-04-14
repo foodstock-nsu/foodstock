@@ -77,8 +77,12 @@ func (l *Location) IsOperational() bool {
 	return l.isActive
 }
 
-func (l *Location) ValidateQRCode(code string) bool {
-	return l.slug == code && l.isActive
+func (l *Location) GetQRData(baseURL string) string {
+	return baseURL + "?location_id=" + l.slug
+}
+
+func (l *Location) ValidateQRCode(slug string) bool {
+	return l.slug == slug && l.isActive
 }
 
 // ================ Mutation ================
