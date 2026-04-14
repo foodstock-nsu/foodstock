@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrItemNotAvailable  = errors.New("item not available")
-	ErrOrderCannotBePaid = errors.New("order is either already paid or cancelled")
+	ErrItemNotAvailable       = errors.New("item not available")
+	ErrOrderCannotBePaid      = errors.New("order is either already paid or cancelled")
+	ErrOrderCannotBeCancelled = errors.New("order is either already cancelled or paid")
 )
 
 // ================ Value Objects ================
@@ -163,5 +164,13 @@ func (o *Order) Pay() error {
 		return ErrOrderCannotBePaid
 	}
 	o.status = OrderPaid
+	return nil
+}
+
+func (o *Order) Cancel() error {
+	if o.status != OrderPending {
+		return ErrOrderCannotBeCancelled
+	}
+	o.status = OrderCancelled
 	return nil
 }
