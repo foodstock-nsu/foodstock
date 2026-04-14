@@ -1,0 +1,193 @@
+/* Culinary Sanctuary theme tokens and base component styles */
+
+:root {
+  /* Typography */
+  --font-display: "Manrope", "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+
+  /* Core colors */
+  --color-primary: #006c49;
+  --color-primary-container: #10b981;
+  --color-on-primary: #ffffff;
+  --color-primary-fixed-dim: #34d399;
+  --color-background: #f8f9fa;
+  --color-surface: #f8f9fa;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #eceff1;
+  --color-surface-bright: #f8f9fa;
+  --color-on-background: #191c1d;
+  --color-on-surface: #191c1d;
+  --color-outline-variant: #bbcabf;
+  --color-secondary-container: #dcefe6;
+  --color-on-secondary-container: #14372a;
+
+  /* Elevation */
+  --shadow-soft: 0 12px 32px rgb(25 28 29 / 4%);
+  --ghost-border: rgb(187 202 191 / 20%);
+  --ghost-border-focus: rgb(187 202 191 / 40%);
+
+  /* Radii */
+  --radius-md: 1rem;
+  --radius-lg: 2rem;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-container-sm: 24px;
+  --space-container-lg: 32px;
+
+  /* Type scale */
+  --display-lg-size: clamp(2.75rem, 7vw, 4.75rem);
+  --headline-lg-size: clamp(2rem, 4.6vw, 3rem);
+  --headline-md-size: clamp(1.5rem, 3.2vw, 2.125rem);
+  --body-md-size: 1rem;
+}
+
+@theme {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --color-primary: var(--color-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-on-background: var(--color-on-background);
+  --color-on-surface: var(--color-on-surface);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+html,
+body {
+  background: radial-gradient(130% 100% at 100% 0%, #eef6f2 0%, var(--color-background) 42%);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
+
+.display-lg,
+.headline-lg,
+.headline-md {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--color-on-surface);
+}
+
+.display-lg {
+  font-size: var(--display-lg-size);
+  line-height: 0.98;
+}
+
+.headline-lg {
+  font-size: var(--headline-lg-size);
+  line-height: 1.05;
+}
+
+.headline-md {
+  font-size: var(--headline-md-size);
+  line-height: 1.12;
+}
+
+.body-md {
+  font-family: var(--font-body);
+  font-size: var(--body-md-size);
+  line-height: 1.55;
+}
+
+.surface-base {
+  background: var(--color-surface);
+}
+
+.surface-section {
+  background: var(--color-surface-container-low);
+}
+
+.surface-card {
+  background: var(--color-surface-container-lowest);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-overlay {
+  background: var(--color-surface-bright);
+}
+
+.glass-nav {
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(20px);
+}
+
+.btn-primary {
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  background: linear-gradient(120deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-secondary {
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-on-secondary-container);
+  background: var(--color-secondary-container);
+  font-weight: 600;
+}
+
+.btn-tertiary {
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  background: transparent;
+  font-weight: 600;
+}
+
+.input-minimal {
+  border: 1px solid var(--ghost-border);
+  border-radius: 1.25rem;
+  background: var(--color-surface-container-lowest);
+  box-shadow: none;
+}
+
+.input-minimal:focus,
+.input-minimal:focus-visible {
+  outline: none;
+  border-color: var(--ghost-border-focus);
+  box-shadow: var(--shadow-soft);
+}
+
+.list-soft > * + * {
+  margin-top: 32px;
+}
+
+.status-ready {
+  background: var(--color-primary-fixed-dim);
+  color: #0c2e22;
+}
+
+.food-image {
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+}
+
+.ingredient-float {
+  position: relative;
+}
+
+.ingredient-float > img {
+  transform: translateY(-20px);
+}
+
+.container-pad {
+  padding: var(--space-container-sm);
+}
+
+@media (width >= 768px) {
+  .container-pad {
+    padding: var(--space-container-lg);
+  }
+}
