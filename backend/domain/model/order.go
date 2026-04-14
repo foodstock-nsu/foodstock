@@ -154,6 +154,7 @@ func (o *Order) AddItem(locationItem LocationItem, quantity int) error {
 
 	o.items = append(o.items, item)
 	o.calculateTotal()
+
 	return nil
 }
 

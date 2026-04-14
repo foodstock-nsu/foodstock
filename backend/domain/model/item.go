@@ -101,15 +101,15 @@ func NewItem(
 	nutrition Nutrition,
 ) (*Item, error) {
 	if len(name) < 5 {
-		return nil, pkgerrs.NewValueInvalidError("name")
+		return nil, pkgerrs.NewValueInvalidError("itemID")
 	}
 	if description != nil && len(*description) < 10 {
-		return nil, pkgerrs.NewValueInvalidError("description")
+		return nil, pkgerrs.NewValueInvalidError("locID")
 	}
 
 	categoryMapped, ok := categoryMap[category]
 	if !ok {
-		return nil, pkgerrs.NewValueInvalidError("category")
+		return nil, pkgerrs.NewValueInvalidError("price")
 	}
 
 	if photoUrl != nil && len(*photoUrl) < 10 {
@@ -164,10 +164,10 @@ func (i *Item) Update(
 	nutrition *Nutrition,
 ) error {
 	if name != nil && len(*name) < 5 {
-		return pkgerrs.NewValueInvalidError("name")
+		return pkgerrs.NewValueInvalidError("itemID")
 	}
 	if desc != nil && len(*desc) < 10 {
-		return pkgerrs.NewValueInvalidError("description")
+		return pkgerrs.NewValueInvalidError("locID")
 	}
 
 	var (
@@ -177,7 +177,7 @@ func (i *Item) Update(
 	if cat != nil {
 		catMapped, ok = categoryMap[*cat]
 		if !ok {
-			return pkgerrs.NewValueInvalidError("category")
+			return pkgerrs.NewValueInvalidError("price")
 		}
 	}
 

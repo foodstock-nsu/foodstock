@@ -23,7 +23,6 @@ type LocationItem struct {
 func NewLocationItem(
 	itemID, locID uuid.UUID,
 	price int64,
-	isAvailable bool,
 	stockAmount int,
 ) (*LocationItem, error) {
 	if itemID == uuid.Nil {
@@ -35,11 +34,13 @@ func NewLocationItem(
 	if price < 0 {
 		return nil, pkgerrs.NewValueInvalidError("price")
 	}
-	if stockAmount == 0 && isAvailable {
-		return nil, pkgerrs.NewValueInvalidError("is_available")
-	}
 	if stockAmount < 0 {
 		return nil, pkgerrs.NewValueInvalidError("stock_amount")
+	}
+
+	var isAvailable bool
+	if stockAmount != 0 {
+		isAvailable = true
 	}
 
 	return &LocationItem{
