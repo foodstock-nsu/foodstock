@@ -19,7 +19,7 @@ transition(name="cart-bar")
       div.cart-bar-icon
         u-icon(name="i-heroicons-shopping-bag" class="cart-icon-svg")
         span.cart-bar-count {{ totalQuantity }}
-      span.cart-bar-label View Cart
+      span.cart-bar-label Корзина
 
     span.cart-bar-total {{ formatNumber(totalPrice / 100) }} ₽
 

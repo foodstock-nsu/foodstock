@@ -29,9 +29,9 @@ export interface Location {
 const MOCK_ITEMS: CatalogItem[] = [
   {
     id: "1",
-    name: "Green Sanctuary Bowl",
-    description: "A vibrant mix of quinoa, avocado, roast chicken, and fresh greens with a citrus zest dressing.",
-    category: "lunch",
+    name: "Боул «Зелёный рай»",
+    description: "Яркое сочетание киноа, авокадо, запечённой курицы и свежей зелени с цитрусовой заправкой.",
+    category: "ужины",
     photo_url: "/images/food-placeholder.png",
     price: 45000,
     stock_amount: 5,
@@ -39,9 +39,9 @@ const MOCK_ITEMS: CatalogItem[] = [
   },
   {
     id: "2",
-    name: "Morning Vigor Bowl",
-    description: "Overnight oats with chia seeds, fresh berries, and a touch of organic honey.",
-    category: "breakfast",
+    name: "Боул «Утренний заряд»",
+    description: "Ночная овсянка с семенами чиа, свежими ягодами и лёгкой ноткой органического мёда.",
+    category: "завтраки",
     photo_url: "/images/food-placeholder.png",
     price: 32000,
     stock_amount: 8,
@@ -49,9 +49,9 @@ const MOCK_ITEMS: CatalogItem[] = [
   },
   {
     id: "3",
-    name: "Emerald Smoothie",
-    description: "Cold-pressed spinach, apple, kale, and ginger for a refreshing energy boost.",
-    category: "drinks",
+    name: "Смузи «Изумрудный»",
+    description: "Холодный отжим из шпината, яблока, кейла и имбиря для освежающего заряда энергии.",
+    category: "напитки",
     photo_url: "/images/food-placeholder.png",
     price: 28000,
     stock_amount: 12,
@@ -59,9 +59,9 @@ const MOCK_ITEMS: CatalogItem[] = [
   },
   {
     id: "4",
-    name: "Almond Vitality Bar",
-    description: "Raw almonds with dark chocolate and sea salt. The perfect high-protein snack.",
-    category: "snacks",
+    name: "Батончик «Миндальная энергия»",
+    description: "Сырые миндальные орехи с тёмным шоколадом и морской солью. Идеальный высокобелковый перекус.",
+    category: "закуски",
     photo_url: "/images/food-placeholder.png",
     price: 15000,
     stock_amount: 20,
@@ -72,8 +72,8 @@ const MOCK_ITEMS: CatalogItem[] = [
 const MOCK_LOCATIONS: Record<string, Location> = {
   "550e8400-e29b-41d4-a716-446655440000": {
     id: "550e8400-e29b-41d4-a716-446655440000",
-    name: "Central Avenue Vending",
-    address: "123 Business St, Suite 100",
+    name: "Торговый автомат на Центральной",
+    address: "ул. Деловая, 123, офис 100",
     slug: "central-ave",
   },
 }
@@ -81,11 +81,11 @@ const MOCK_LOCATIONS: Record<string, Location> = {
 export const useCatalog = (locationId: string) => {
   const items = ref<CatalogItem[]>(MOCK_ITEMS)
   const location = ref<Location | null>(MOCK_LOCATIONS[locationId] || null)
-  const categories = computed(() => ["all", ...new Set(items.value.map(item => item.category))])
-  const selectedCategory = ref("all")
+  const categories = computed(() => ["Все", ...new Set(items.value.map(item => item.category))])
+  const selectedCategory = ref("Все")
 
   const filteredItems = computed(() => {
-    if (selectedCategory.value === "all") {
+    if (selectedCategory.value === "Все") {
       return items.value
     }
     return items.value.filter(item => item.category === selectedCategory.value)

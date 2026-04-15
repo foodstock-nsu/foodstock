@@ -8,7 +8,7 @@ const open = defineModel<boolean>("open", { required: true })
 u-drawer(v-model:open="open" direction="bottom" :ui="{ content: 'max-h-[85dvh] flex flex-col --color-surface-container-low' }")
   template(#header)
     div.cart-header
-      span.headline-md.font-bold Cart
+      span.headline-md.font-bold Корзина
       span.cart-badge(v-if="totalQuantity > 0") {{ totalQuantity }}
       u-button(
         id="cart-close-btn"
@@ -22,8 +22,8 @@ u-drawer(v-model:open="open" direction="bottom" :ui="{ content: 'max-h-[85dvh] f
     //- Empty state
     div.cart-empty(v-if="items.length === 0")
       u-icon(name="i-heroicons-shopping-cart" class="cart-empty-icon")
-      p.body-md.cart-empty-text Your cart is empty
-      p.body-md.cart-empty-sub Add something delicious
+      p.body-md.cart-empty-text Ваша корзина пуста
+      p.body-md.cart-empty-sub Добавьте что-нибудь вкусное
 
     //- Item list
     div.cart-item-list(v-else)
@@ -43,9 +43,9 @@ u-drawer(v-model:open="open" direction="bottom" :ui="{ content: 'max-h-[85dvh] f
   template(v-if="items.length > 0" #footer)
     div.cart-footer
       div.cart-total-row
-        span.body-md Total
+        span.body-md Итого
         span.cart-total-price {{ formatNumber(totalPrice / 100) }} ₽
-      button.btn-primary.cart-checkout-btn(id="cart-checkout-btn") Checkout
+      button.btn-primary.cart-checkout-btn(id="cart-checkout-btn") Оформить заказ
 </template>
 
 <style scoped>

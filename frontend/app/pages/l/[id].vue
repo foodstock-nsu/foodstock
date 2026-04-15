@@ -12,9 +12,9 @@ const {
 } = useCatalog(locationId)
 
 useHead({
-  title: location.value ? `Order from ${location.value.name}` : "Foodstock | Vending",
+  title: location.value ? `Заказ из ${location.value.name}` : "Foodstock | Вендинг",
   meta: [
-    { name: "description", content: "Fresh organic food from our premium vending sanctuaries." },
+    { name: "description", content: "Свежая еда из наших вендинговых точек." },
   ],
 })
 </script>
@@ -22,7 +22,6 @@ useHead({
 <template lang="pug">
 div(class="flex flex-col gap-10")
   section(v-if="location" class="flex flex-col gap-2")
-    div(class="text-xs font-bold uppercase tracking-widest text-primary opacity-80") Foodstock
     h1(class="display-lg font-extrabold") {{ location.name }}
     p(class="body-md opacity-60 flex items-center gap-2")
       u-icon(name="i-heroicons-map-pin" class="w-4 h-4")
@@ -30,8 +29,8 @@ div(class="flex flex-col gap-10")
 
   section(v-else class="flex flex-col gap-4 py-20 items-center text-center")
     u-icon(name="i-heroicons-exclamation-triangle" class="w-12 h-12 text-primary opacity-20")
-    h1(class="headline-lg") Machine Not Found
-    p(class="body-md") The QR code might be outdated or incorrect.
+    h1(class="headline-lg") Автомат не найден
+    p(class="body-md") QR код возможно устарел или неверный. Пожалуйста, попробуйте отсканировать другой код.
 
   div(v-if="location" class="flex flex-col gap-8")
     catalog-category-tabs(

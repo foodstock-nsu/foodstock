@@ -17,7 +17,7 @@ function addToCart() {
 
 const addLabel = computed(() => {
   const cartItem = items.value.find((ci: CartItem) => ci.item.id === props.item.id)
-  return cartItem ? `In cart (${cartItem.quantity})` : "Add"
+  return cartItem ? `В корзине (${cartItem.quantity})` : "Добавить"
 })
 </script>
 
@@ -40,8 +40,8 @@ div(class="surface-card p-4 flex flex-col gap-4 relative transition-all duration
   div(class="mt-auto flex items-center justify-between")
     div(v-if="item.stock_amount > 0" class="flex items-center gap-2")
       div(class="w-2 h-2 rounded-full bg-primary")
-      span(class="text-xs font-medium uppercase tracking-wider text-on-surface opacity-60") {{ item.stock_amount }} in stock
-    div(v-else class="text-xs font-medium uppercase text-red-500") Out of stock
+      span(class="text-xs font-medium uppercase tracking-wider text-on-surface opacity-60") {{ item.stock_amount }} в наличии
+    div(v-else class="text-xs font-medium uppercase text-red-500") Нет в наличии
 
     button(
       :id="`add-to-cart-${item.id}`"
