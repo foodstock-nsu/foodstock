@@ -10,13 +10,15 @@ function fixTsConfig(tsConfig: VueTSConfig) {
 }
 
 export default defineNuxtConfig({
-  compatibilityDate: "2026-02-18",
+  compatibilityDate: "2026-04-14",
 
   //
   // Build, imports, language
   //
 
   ssr: false,
+
+  devtools: false,
 
   typescript: {
     tsConfig: {
