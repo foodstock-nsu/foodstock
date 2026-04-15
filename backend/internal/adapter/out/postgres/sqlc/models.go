@@ -17,6 +17,9 @@ const (
 	ItemCategoryLunch     ItemCategory = "lunch"
 	ItemCategoryBreakfast ItemCategory = "breakfast"
 	ItemCategoryDrinks    ItemCategory = "drinks"
+	ItemCategorySnacks    ItemCategory = "snacks"
+	ItemCategoryDesserts  ItemCategory = "desserts"
+	ItemCategoryOther     ItemCategory = "other"
 )
 
 func (e *ItemCategory) Scan(src interface{}) error {
@@ -149,6 +152,7 @@ type Item struct {
 	Calories    int32
 	Proteins    pgtype.Numeric
 	Fats        pgtype.Numeric
+	Carbs       pgtype.Numeric
 	CreatedAt   pgtype.Timestamptz
 }
 

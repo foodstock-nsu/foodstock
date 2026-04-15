@@ -9,12 +9,15 @@ import (
 
 type ItemCategory string
 
+func (ic ItemCategory) String() string { return string(ic) }
+
 const (
 	ItemLunch     ItemCategory = "lunch"
 	ItemBreakfast ItemCategory = "breakfast"
 	ItemDrinks    ItemCategory = "drinks"
 	ItemSnacks    ItemCategory = "snacks"
 	ItemDesserts  ItemCategory = "desserts"
+	ItemOther     ItemCategory = "other"
 )
 
 var categoryMap = map[string]ItemCategory{
@@ -23,6 +26,7 @@ var categoryMap = map[string]ItemCategory{
 	"drinks":    ItemDrinks,
 	"snacks":    ItemSnacks,
 	"desserts":  ItemDesserts,
+	"other":     ItemOther,
 }
 
 // ================ Value Object - Nutrition ================

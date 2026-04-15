@@ -258,7 +258,7 @@ func TestNewItem(t *testing.T) {
 				if tt.description != nil {
 					assert.Equal(t, tt.description, item.Description())
 				}
-				assert.Equal(t, tt.category, string(item.Category()))
+				assert.Equal(t, tt.category, item.Category().String())
 				if tt.photoURL != nil {
 					assert.Equal(t, tt.photoURL, item.PhotoURL())
 				}
@@ -352,7 +352,7 @@ func TestItem_Update(t *testing.T) {
 					assert.Equal(t, tt.description, item.Description())
 				}
 				if tt.category != nil {
-					assert.Equal(t, *tt.category, string(item.Category()))
+					assert.Equal(t, *tt.category, item.Category().String())
 				}
 				if tt.photoURL != nil {
 					assert.Equal(t, tt.photoURL, item.PhotoURL())

@@ -23,7 +23,7 @@ import (
 type LocationRepoSuite struct {
 	suite.Suite
 	dbClient     *pkgpostgres.Client
-	repo         *adapterpostgres.LocationRepository
+	repo         *adapterpostgres.ItemRepository
 	ctx          context.Context
 	migrate      *migrate.Migrate
 	testLocation *model.Location
