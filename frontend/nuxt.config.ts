@@ -46,6 +46,7 @@ export default defineNuxtConfig({
 
   experimental: {
     typescriptPlugin: true,
+    serverAppConfig: false,
   },
 
   //
