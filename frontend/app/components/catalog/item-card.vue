@@ -3,11 +3,16 @@ const props = defineProps<{
   item: CatalogItem
 }>()
 
+const emit = defineEmits<{
+  (e: "select", item: CatalogItem): void
+}>()
+
 const { items, addItem } = useCartStore()
 
 const adding = ref(false)
 
-function addToCart() {
+function addToCart(e: Event) {
+  e.stopPropagation()
   addItem(props.item)
   adding.value = true
   setTimeout(() => {
@@ -22,7 +27,10 @@ const addLabel = computed(() => {
 </script>
 
 <template lang="pug">
-div(class="surface-card p-4 flex flex-col gap-4 relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl")
+div(
+  class="surface-card p-4 flex flex-col gap-4 relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+  @click="emit('select', item)"
+)
   div(class="ingredient-float aspect-square overflow-hidden rounded-md bg-surface-container-low")
     img(
       :src="item.photo_url"

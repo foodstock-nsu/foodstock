@@ -8,8 +8,16 @@ const {
   location,
   categories,
   selectedCategory,
+  selectedItem,
   filteredItems,
 } = useCatalog(locationId)
+
+const isDetailOpen = ref(false)
+
+function openDetails(item: CatalogItem) {
+  selectedItem.value = item
+  isDetailOpen.value = true
+}
 
 useHead({
   title: location.value ? `Заказ из ${location.value.name}` : "Foodstock | Вендинг",
@@ -43,5 +51,11 @@ div(class="flex flex-col gap-10")
           v-for="item in filteredItems"
           :key="item.id"
           :item="item"
+          @select="openDetails"
         )
+
+  catalog-details-drawer(
+    v-model:open="isDetailOpen"
+    :item="selectedItem"
+  )
 </template>

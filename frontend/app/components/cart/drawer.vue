@@ -14,7 +14,7 @@ u-drawer(v-model:open="open" direction="bottom" :ui="{ content: 'max-h-[85dvh] f
         id="cart-close-btn"
         icon="i-heroicons-x-mark"
         variant="ghost"
-        color="neutral"
+        color="primary"
         @click="open = false"
       )
 

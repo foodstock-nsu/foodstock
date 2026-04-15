@@ -83,6 +83,7 @@ export const useCatalog = (locationId: string) => {
   const location = ref<Location | null>(MOCK_LOCATIONS[locationId] || null)
   const categories = computed(() => ["Все", ...new Set(items.value.map(item => item.category))])
   const selectedCategory = ref("Все")
+  const selectedItem = ref<CatalogItem | null>(null)
 
   const filteredItems = computed(() => {
     if (selectedCategory.value === "Все") {
@@ -96,6 +97,7 @@ export const useCatalog = (locationId: string) => {
     location,
     categories,
     selectedCategory,
+    selectedItem,
     filteredItems,
   }
 }
