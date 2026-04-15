@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router"
 
-import CategoryTabs from "~/components/catalog/category-tabs.vue"
-import CatalogItemCard from "~/components/catalog/item-card.vue"
-
 const route = useRoute()
 const locationId = route.params.id as string
 
@@ -37,29 +34,15 @@ div(class="flex flex-col gap-10")
     p(class="body-md") The QR code might be outdated or incorrect.
 
   div(v-if="location" class="flex flex-col gap-8")
-    category-tabs(
+    catalog-category-tabs(
       v-model="selectedCategory"
       :categories="categories"
     )
 
     div(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8")
-      transition-group(name="list")
         catalog-item-card(
           v-for="item in filteredItems"
           :key="item.id"
           :item="item"
         )
 </template>
-
-<style scoped>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
-
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-</style>

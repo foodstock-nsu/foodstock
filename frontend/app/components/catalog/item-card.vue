@@ -1,7 +1,24 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   item: CatalogItem
 }>()
+
+const { items, addItem } = useCartStore()
+
+const adding = ref(false)
+
+function addToCart() {
+  addItem(props.item)
+  adding.value = true
+  setTimeout(() => {
+    adding.value = false
+  }, 400)
+}
+
+const addLabel = computed(() => {
+  const cartItem = items.value.find((ci: CartItem) => ci.item.id === props.item.id)
+  return cartItem ? `In cart (${cartItem.quantity})` : "Add"
+})
 </script>
 
 <template lang="pug">
@@ -26,7 +43,13 @@ div(class="surface-card p-4 flex flex-col gap-4 relative transition-all duration
       span(class="text-xs font-medium uppercase tracking-wider text-on-surface opacity-60") {{ item.stock_amount }} in stock
     div(v-else class="text-xs font-medium uppercase text-red-500") Out of stock
 
-    button(class="btn-primary px-6 py-2 text-sm") Add
+    button(
+      :id="`add-to-cart-${item.id}`"
+      class="btn-primary px-6 py-2 text-sm add-btn"
+      :class="{ 'add-btn--bounce': adding }"
+      :disabled="item.stock_amount === 0"
+      @click="addToCart"
+    ) {{ addLabel }}
 </template>
 
 <style scoped>
@@ -42,5 +65,28 @@ div(class="surface-card p-4 flex flex-col gap-4 relative transition-all duration
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.add-btn {
+  transition:
+    background 0.2s,
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.add-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes add-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  75% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.add-btn--bounce {
+  animation: add-bounce 0.35s ease;
 }
 </style>
