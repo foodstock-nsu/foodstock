@@ -1,0 +1,451 @@
+openapi: 3.0.3
+info:
+  title: Micromarket API
+  version: 1.0.2
+
+servers:
+  - url: /api/v1
+
+paths:
+  # ==========================================
+  # 1. CLIENT API (Для PWA)
+  # ==========================================
+  /client/locations/{location_id}/catalog:
+    get:
+      summary: Получить каталог товаров и список категорий
+      tags:
+        - Client
+      parameters:
+        - in: path
+          name: location_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+
+  /client/orders:
+    post:
+      summary: Создать заказ и получить ссылку на оплату
+      tags:
+        - Client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Заказ создан, возвращена ссылка СБП
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+
+  /client/orders/{order_id}/status:
+    get:
+      summary: Получить статус заказа (Polling)
+      description: Фронтенд периодически вызывает этот метод, ожидая оплату.
+      tags:
+        - Client
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Актуальный статус заказа
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - PENDING
+                      - PAID
+                      - CANCELLED
+
+  # ==========================================
+  # 2. WEBHOOKS (Для Банка/СБП)
+  # ==========================================
+  /webhooks/sbp:
+    post:
+      summary: Вебхук от банка (СБП)
+      description: Сюда банк присылает уведомление об успешной или неуспешной оплате.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sbp_transaction_id:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                    - SUCCESS
+                    - FAILED
+      responses:
+        '200':
+          description: Уведомление успешно обработано
+
+  # ==========================================
+  # 3. ADMIN API (Для управления)
+  # ==========================================
+  /admin/auth/login:
+    post:
+      summary: Авторизация администратора
+      tags:
+        - Admin Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  # --- Управление точками (Locations) ---
+  /admin/locations:
+    get:
+      summary: Список всех точек
+      tags:
+        - Admin Locations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список всех доступных локаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+    post:
+      summary: Создать новую точку
+      tags:
+        - Admin Locations
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        '201':
+          description: Точка создана
+
+  /admin/locations/{id}:
+    put:
+      summary: Обновить данные точки
+      tags:
+        - Admin Locations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        '200':
+          description: Данные обновлены
+    delete:
+      summary: Удалить точку
+      tags:
+        - Admin Locations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Точка удалена
+
+  # --- Управление инвентарем точки ---
+  /admin/locations/{location_id}/inventory:
+    put:
+      summary: Обновить остатки и цены для конкретной точки
+      tags:
+        - Admin Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: location_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/InventoryUpdate'
+      responses:
+        '200':
+          description: Инвентарь успешно обновлен
+
+  # --- Управление справочником товаров (Items) ---
+  /admin/items:
+    get:
+      summary: Справочник товаров
+      tags:
+        - Admin Items
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список всех товаров из справочника
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    post:
+      summary: Создать товар
+      tags:
+        - Admin Items
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '201':
+          description: Товар создан
+
+  /admin/items/{id}:
+    put:
+      summary: Редактировать товар
+      tags:
+        - Admin Items
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '200':
+          description: Товар обновлен
+    delete:
+      summary: Удалить товар из справочника
+      tags:
+        - Admin Items
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Товар удален
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CatalogResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: string
+          example:
+            - lunch
+            - breakfast
+            - drinks
+            - snacks
+            - desserts
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogItem'
+
+    CatalogItem:
+      allOf:
+        - $ref: '#/components/schemas/Item'
+        - type: object
+          properties:
+            price:
+              type: integer
+              description: Цена в копейках
+            stock_amount:
+              type: integer
+
+    Location:
+      type: object
+      required:
+        - slug
+        - name
+        - address
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        slug:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+
+    Item:
+      type: object
+      required:
+        - name
+        - category
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum:
+            - lunch
+            - breakfast
+            - drinks
+            - snacks
+            - desserts
+        photo_url:
+          type: string
+        nutrition:
+          type: object
+          properties:
+            calories:
+              type: integer
+            proteins:
+              type: number
+              format: float
+            fats:
+              type: number
+              format: float
+            carbs:
+              type: number
+              format: float
+
+    InventoryUpdate:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+        price:
+          type: integer
+          description: Цена в копейках
+        stock_amount:
+          type: integer
+        is_available:
+          type: boolean
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - location_id
+        - items
+      properties:
+        location_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - item_id
+              - quantity
+            properties:
+              item_id:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+
+    CreateOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        total_price:
+          type: integer
+          description: Сумма в копейках
+        payment_url:
+          type: string
+          description: Ссылка на оплату (СБП)
