@@ -82,7 +82,7 @@ func (r *ItemRepository) Update(ctx context.Context, item *model.Item) error {
 
 func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteLocation(
+	return r.q.DeleteItem(
 		ctx,
 		db,
 		pgtype.UUID{
