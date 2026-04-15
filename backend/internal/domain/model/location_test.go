@@ -1,7 +1,7 @@
 package model_test
 
 import (
-	"backend/domain/model"
+	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	"backend/pkg/utils"
 	"testing"

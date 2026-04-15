@@ -1,7 +1,7 @@
 package model_test
 
 import (
-	"backend/domain/model"
+	model2 "backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	"testing"
 	"time"
@@ -56,7 +56,7 @@ func TestNewOrderItem(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.testName, func(t *testing.T) {
-			orderItem, err := model.NewOrderItem(
+			orderItem, err := model2.NewOrderItem(
 				tt.itemID, tt.amount, tt.price,
 			)
 			if tt.expect != nil {
@@ -80,20 +80,20 @@ func TestNewOrder(t *testing.T) {
 	var (
 		testLocID = uuid.New()
 		testPrice = int64(10000)
-		testItems = []*model.OrderItem{
-			model.RestoreOrderItem(
+		testItems = []*model2.OrderItem{
+			model2.RestoreOrderItem(
 				uuid.New(),
 				testLocID,
 				1,
 				testPrice/3,
 			),
-			model.RestoreOrderItem(
+			model2.RestoreOrderItem(
 				uuid.New(),
 				testLocID,
 				1,
 				testPrice/3,
 			),
-			model.RestoreOrderItem(
+			model2.RestoreOrderItem(
 				uuid.New(),
 				testLocID,
 				1,
@@ -105,7 +105,7 @@ func TestNewOrder(t *testing.T) {
 	type testCase struct {
 		testName   string
 		locID      uuid.UUID
-		items      []*model.OrderItem
+		items      []*model2.OrderItem
 		totalPrice int64
 		expect     error
 	}
@@ -140,7 +140,7 @@ func TestNewOrder(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.testName, func(t *testing.T) {
-			order, err := model.NewOrder(
+			order, err := model2.NewOrder(
 				tt.locID, tt.items, tt.totalPrice,
 			)
 			if tt.expect != nil {
@@ -154,7 +154,7 @@ func TestNewOrder(t *testing.T) {
 				assert.NotEmpty(t, order.ID())
 				assert.Equal(t, tt.locID, order.LocationID())
 				assert.ElementsMatch(t, tt.items, order.Items())
-				assert.Equal(t, model.OrderPending, order.Status())
+				assert.Equal(t, model2.OrderPending, order.Status())
 				assert.Equal(t, tt.totalPrice, order.TotalPrice())
 				assert.False(t, order.CreatedAt().After(time.Now().UTC()))
 				assert.Nil(t, order.PaidAt())
@@ -172,18 +172,18 @@ func TestOrder_AddItem(t *testing.T) {
 		err       error
 	)
 
-	order := model.RestoreOrder(
+	order := model2.RestoreOrder(
 		uuid.New(),
 		testLocID,
-		[]*model.OrderItem{},
-		model.OrderPending,
+		[]*model2.OrderItem{},
+		model2.OrderPending,
 		int64(0),
 		time.Now().UTC(),
 		nil,
 	)
 
 	// First case - success
-	locItem, _ := model.NewLocationItem(
+	locItem, _ := model2.NewLocationItem(
 		uuid.New(),
 		testLocID,
 		testPrice,
@@ -220,7 +220,7 @@ func TestOrder_AddItem(t *testing.T) {
 	assert.Len(t, order.Items(), currLen)
 
 	// Fourth case - item isn't available (different location)
-	locItem, _ = model.NewLocationItem(
+	locItem, _ = model2.NewLocationItem(
 		uuid.New(),
 		uuid.New(), // specify different location
 		testPrice,
@@ -232,7 +232,7 @@ func TestOrder_AddItem(t *testing.T) {
 	assert.Len(t, order.Items(), currLen)
 
 	// Fifth case - item isn't available (sold out)
-	locItem, _ = model.NewLocationItem(
+	locItem, _ = model2.NewLocationItem(
 		uuid.New(),
 		testLocID,
 		testPrice,
@@ -245,10 +245,10 @@ func TestOrder_AddItem(t *testing.T) {
 
 func TestOrder_Pay(t *testing.T) {
 	// Successful case firstly
-	order, _ := model.NewOrder(
+	order, _ := model2.NewOrder(
 		uuid.New(),
-		[]*model.OrderItem{
-			model.RestoreOrderItem(
+		[]*model2.OrderItem{
+			model2.RestoreOrderItem(
 				uuid.New(),
 				uuid.New(),
 				1,
@@ -260,7 +260,7 @@ func TestOrder_Pay(t *testing.T) {
 
 	err := order.Pay()
 	assert.NoError(t, err)
-	assert.Equal(t, model.OrderPaid, order.Status())
+	assert.Equal(t, model2.OrderPaid, order.Status())
 
 	// Try to pay again
 	err = order.Pay()
@@ -269,10 +269,10 @@ func TestOrder_Pay(t *testing.T) {
 
 func TestOrder_Cancel(t *testing.T) {
 	// Successful case firstly
-	order, _ := model.NewOrder(
+	order, _ := model2.NewOrder(
 		uuid.New(),
-		[]*model.OrderItem{
-			model.RestoreOrderItem(
+		[]*model2.OrderItem{
+			model2.RestoreOrderItem(
 				uuid.New(),
 				uuid.New(),
 				1,
@@ -284,7 +284,7 @@ func TestOrder_Cancel(t *testing.T) {
 
 	err := order.Cancel()
 	assert.NoError(t, err)
-	assert.Equal(t, model.OrderCancelled, order.Status())
+	assert.Equal(t, model2.OrderCancelled, order.Status())
 
 	// Try to cancel again
 	err = order.Cancel()
