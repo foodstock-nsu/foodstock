@@ -1,5 +1,4 @@
 <template lang="pug">
-div
-  nuxt-route-announcer
-  nuxt-welcome
+nuxt-layout
+  nuxt-page
 </template>
