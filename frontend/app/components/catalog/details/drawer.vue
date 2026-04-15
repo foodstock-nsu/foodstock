@@ -24,7 +24,7 @@ u-drawer(
       )
 
   template(#body)
-    div(v-if="item" class="flex flex-col gap-6 pb-12")
+    div(v-if="item" class="flex flex-col gap-6 pb-4")
       div(class="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface-container-low shadow-inner")
         img(
           :src="item.photo_url"
