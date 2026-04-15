@@ -32,7 +32,7 @@ func NewLocationItem(
 		return nil, pkgerrs.NewValueInvalidError("location_id")
 	}
 	if price < 0 {
-		return nil, pkgerrs.NewValueInvalidError("price")
+		return nil, pkgerrs.NewValueInvalidError("totalPrice")
 	}
 	if stockAmount < 0 {
 		return nil, pkgerrs.NewValueInvalidError("stock_amount")
@@ -87,7 +87,7 @@ func (li *LocationItem) CanBeSold() bool {
 // ================ Mutation ================
 
 func (li *LocationItem) ReduceStock(amount int) error {
-	if li.stockAmount-amount < 0 {
+	if li.stockAmount-amount < 0 || amount <= 0 {
 		return ErrCannotReduceStock
 	}
 
@@ -104,7 +104,7 @@ func (li *LocationItem) Update(
 	stockAmount *int,
 ) error {
 	if price != nil && *price < 0 {
-		return pkgerrs.NewValueInvalidError("price")
+		return pkgerrs.NewValueInvalidError("totalPrice")
 	}
 	if stockAmount != nil && *stockAmount < 0 {
 		return pkgerrs.NewValueInvalidError("stock_amount")

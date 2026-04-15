@@ -39,25 +39,25 @@ func TestNewNutrition(t *testing.T) {
 			expect:   nil,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid calories",
 			calories: -1,
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid locID",
+			testName: "Failure - invalid proteins",
 			calories: testCalories,
 			proteins: float64(-1),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid price",
+			testName: "Failure - invalid fats",
 			calories: testCalories,
 			proteins: testProteins,
 			fats:     float64(-1),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid stockAmount",
+			testName: "Failure - invalid carbs",
 			calories: testCalories,
 			proteins: testProteins,
 			fats:     testFats,
@@ -113,22 +113,22 @@ func TestNutrition_Update(t *testing.T) {
 			expect:   nil,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid calories",
 			calories: utils.VPtr(-10),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid locID",
+			testName: "Failure - invalid proteins",
 			proteins: utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid price",
+			testName: "Failure - invalid fats",
 			fats:     utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid stockAmount",
+			testName: "Failure - invalid carbs",
 			carbs:    utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
@@ -209,25 +209,25 @@ func TestNewItem(t *testing.T) {
 			expect:      nil,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid name",
 			name:     "inv",
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid locID",
+			testName:    "Failure - invalid description",
 			name:        testItemName,
 			description: utils.VPtr("new desc"), // too short
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid price",
+			testName:    "Failure - invalid category",
 			name:        testItemName,
 			description: testDesc,
 			category:    "unexisting",
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid stockAmount",
+			testName:    "Failure - invalid photo url",
 			name:        testItemName,
 			description: testDesc,
 			category:    testCategory,
@@ -301,22 +301,22 @@ func TestItem_Update(t *testing.T) {
 			expect:      nil,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid name",
 			name:     utils.VPtr("inv"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid locID",
+			testName:    "Failure - invalid description",
 			description: utils.VPtr("new desc"),
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid price",
+			testName: "Failure - invalid category",
 			category: utils.VPtr("unexisting"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid stockAmount",
+			testName: "Failure - invalid photo url",
 			photoURL: utils.VPtr("photo.jpg"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
@@ -346,7 +346,6 @@ func TestItem_Update(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				if tt.name != nil {
-
 					assert.Equal(t, *tt.name, item.Name())
 				}
 				if tt.description != nil {

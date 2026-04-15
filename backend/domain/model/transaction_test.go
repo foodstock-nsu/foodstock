@@ -46,7 +46,7 @@ func TestNewTransaction(t *testing.T) {
 			expect:           pkgerrs.ErrValueIsRequired,
 		},
 		{
-			testName:         "Failure - invalid amount",
+			testName:         "Failure - invalid items",
 			orderID:          testOrderID,
 			sbpTransactionID: testSBP,
 			amount:           int64(-10000), // too short

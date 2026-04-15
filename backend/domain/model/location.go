@@ -30,7 +30,7 @@ func NewLocation(slug, name, address string) (*Location, error) {
 		return nil, pkgerrs.NewValueInvalidError("slug")
 	}
 	if len(name) < 4 {
-		return nil, pkgerrs.NewValueInvalidError("itemID")
+		return nil, pkgerrs.NewValueInvalidError("locID")
 	}
 	if len(address) < 20 {
 		return nil, pkgerrs.NewValueInvalidError("address")
@@ -92,7 +92,7 @@ func (l *Location) Update(slug, name, address *string) error {
 		return pkgerrs.NewValueInvalidError("slug")
 	}
 	if name != nil && len(*name) < 4 {
-		return pkgerrs.NewValueInvalidError("itemID")
+		return pkgerrs.NewValueInvalidError("locID")
 	}
 	if address != nil && len(*address) < 20 {
 		return pkgerrs.NewValueInvalidError("address")

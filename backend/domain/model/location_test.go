@@ -41,7 +41,7 @@ func TestNewLocation(t *testing.T) {
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid locID",
 			slug:     testSlug,
 			locName:  "inv", // too short
 			expect:   pkgerrs.ErrValueIsInvalid,
@@ -119,7 +119,7 @@ func TestLocation_Update(t *testing.T) {
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid itemID",
+			testName: "Failure - invalid location name",
 			locName:  utils.VPtr("inv"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},

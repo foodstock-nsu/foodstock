@@ -67,19 +67,24 @@ func RestoreOrderItem(
 	}
 }
 
+func (oi *OrderItem) ID() uuid.UUID          { return oi.id }
+func (oi *OrderItem) ItemID() uuid.UUID      { return oi.itemID }
+func (oi *OrderItem) ItemAmount() int        { return oi.itemAmount }
+func (oi *OrderItem) PriceAtPurchase() int64 { return oi.priceAtPurchase }
+
 // ================ Rich model for Order ================
 
 type Order struct {
 	id         uuid.UUID
 	locationID uuid.UUID
-	items      []OrderItem
+	items      []*OrderItem
 	status     OrderStatus
 	totalPrice int64
 	createdAt  time.Time
 	paidAt     *time.Time
 }
 
-func NewOrder(locID uuid.UUID, items []OrderItem, totalPrice int64) (*Order, error) {
+func NewOrder(locID uuid.UUID, items []*OrderItem, totalPrice int64) (*Order, error) {
 	if locID == uuid.Nil {
 		return nil, pkgerrs.NewValueInvalidError("location_id")
 	}
@@ -103,7 +108,7 @@ func NewOrder(locID uuid.UUID, items []OrderItem, totalPrice int64) (*Order, err
 func RestoreOrder(
 	id uuid.UUID,
 	locationID uuid.UUID,
-	items []OrderItem,
+	items []*OrderItem,
 	status OrderStatus,
 	totalPrice int64,
 	createdAt time.Time,
@@ -124,7 +129,7 @@ func RestoreOrder(
 
 func (o *Order) ID() uuid.UUID         { return o.id }
 func (o *Order) LocationID() uuid.UUID { return o.locationID }
-func (o *Order) Items() []OrderItem    { return o.items }
+func (o *Order) Items() []*OrderItem   { return o.items }
 func (o *Order) Status() OrderStatus   { return o.status }
 func (o *Order) TotalPrice() int64     { return o.totalPrice }
 func (o *Order) CreatedAt() time.Time  { return o.createdAt }
@@ -140,12 +145,20 @@ func (o *Order) calculateTotal() {
 	o.totalPrice = total
 }
 
-func (o *Order) AddItem(locationItem LocationItem, quantity int) error {
+func (o *Order) AddItem(locationItem *LocationItem, quantity int) error {
+	if locationItem == nil {
+		return pkgerrs.NewValueRequiredError("location_item")
+	}
+
+	if quantity == 0 {
+		return pkgerrs.NewValueInvalidError("quantity")
+	}
+
 	if locationItem.LocationID() != o.locationID || !locationItem.CanBeSold() {
 		return ErrItemNotAvailable
 	}
 
-	item := OrderItem{
+	item := &OrderItem{
 		id:              uuid.New(),
 		itemID:          locationItem.ItemID(),
 		itemAmount:      quantity,
