@@ -5,9 +5,9 @@
   "scripts": {
     "prepare": "husky",
     "check": "pnpm run lint && pnpm run types",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev frontend",
     "lint": "eslint --fix . && stylelint --fix '**/*.{css,scss,vue}'",
-    "types": "nuxt typecheck"
+    "types": "nuxt typecheck frontend"
   },
   "dependencies": {
     "@nuxt/icon": "^2.2.1",
