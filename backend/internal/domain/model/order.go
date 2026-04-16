@@ -18,6 +18,8 @@ var (
 
 type OrderStatus string
 
+func (os OrderStatus) String() string { return string(os) }
+
 const (
 	OrderPending   OrderStatus = "PENDING"
 	OrderPaid      OrderStatus = "PAID"
