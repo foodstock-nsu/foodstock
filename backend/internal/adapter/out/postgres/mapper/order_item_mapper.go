@@ -45,12 +45,30 @@ func MapOrderItemsToSQLCCreateBatch(orderID uuid.UUID, orderItems []*model.Order
 				Valid: true,
 			},
 			ItemID: pgtype.UUID{
-				Bytes: orderItem.ID(),
+				Bytes: orderItem.ItemID(),
 				Valid: true,
 			},
 			ItemAmount:      int32(orderItem.ItemAmount()),
 			PriceAtPurchase: price,
 		}
+	}
+	return res
+}
+
+func MapSQLCToOrderItem(raw sqlc.OrderItem) *model.OrderItem {
+	price, _ := pkgpostgres.NumericToInt64(raw.PriceAtPurchase, -2)
+	return model.RestoreOrderItem(
+		raw.ID.Bytes,
+		raw.ItemID.Bytes,
+		int(raw.ItemAmount),
+		price,
+	)
+}
+
+func MapSQLCToOrderItems(raw []sqlc.OrderItem) []*model.OrderItem {
+	res := make([]*model.OrderItem, len(raw))
+	for i := range res {
+		res[i] = MapSQLCToOrderItem(raw[i])
 	}
 	return res
 }
