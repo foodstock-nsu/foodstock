@@ -5,4 +5,4 @@ CREATE TABLE order_items (
     item_amount INT NOT NULL DEFAULT 0,
     price_at_purchase NUMERIC(10, 2) NOT NULL 
         CHECK (price_at_purchase >= 0) DEFAULT 0
-); 
+);
