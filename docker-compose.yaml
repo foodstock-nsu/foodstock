@@ -22,7 +22,7 @@ services:
     image: migrate/migrate:latest
     container_name: foodstock-migrations
     volumes:
-      - ./migrations:/migrations
+      - ./backend/migrations:/migrations
     command:
       - -path=/migrations/
       - -database=postgres://${DB_USER}:${DB_PASSWORD}@foodstock-db:5432/${DB_NAME}?sslmode=disable
