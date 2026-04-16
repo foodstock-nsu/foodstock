@@ -2,7 +2,20 @@ import { DEFAULT_FILTERS, MOCK_ITEMS, MOCK_LOCATIONS } from "~/data/mock"
 import type { CatalogItem, Filters, Location } from "~/types/catalog"
 import { areFiltersActive, cloneFilters, itemMatchesCatalogFilters } from "~/utils/filter"
 
+export const CATEGORY_LABELS: Record<string, string> = {
+  Все: "Все",
+  lunch: "Обеды",
+  breakfast: "Завтраки",
+  drinks: "Напитки",
+  snacks: "Закуски",
+  desserts: "Десерты",
+}
+
 export const useCatalog = (locationId: string) => {
+  // В будущем тут будет:
+  // const { data } = await useApiFetch(`/client/locations/${locationId}/catalog`)
+  // const items = computed(() => data.value?.items ?? [])
+
   const items = ref<CatalogItem[]>(MOCK_ITEMS)
   const location = ref<Location | null>(MOCK_LOCATIONS[locationId] || null)
   const categories = computed(() => ["Все", ...new Set(items.value.map(item => item.category))])

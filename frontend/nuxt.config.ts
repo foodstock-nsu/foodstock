@@ -62,7 +62,16 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/icon",
     "@nuxt/ui",
+    "nuxt-open-fetch",
   ],
+
+  openFetch: {
+    clients: {
+      api: {
+        schema: "../openapi.yaml",
+      },
+    },
+  },
 
   router: {
     options: {

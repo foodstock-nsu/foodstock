@@ -30,6 +30,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",
     "nuxt": "^4.3.1",
+    "nuxt-open-fetch": "^0.13.9",
     "pug": "^3.0.3",
     "stylelint": "^16.25.0",
     "typescript": "^5.9.2",

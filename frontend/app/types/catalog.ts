@@ -1,29 +1,12 @@
+import type { components } from "#open-fetch-schemas/api"
+
 export type Range = [number, number]
 
-export interface Nutrition {
-  calories: number
-  proteins: number
-  fats: number
-  carbs: number
-}
+export type Nutrition = NonNullable<components["schemas"]["Item"]["nutrition"]>
 
-export interface CatalogItem {
-  id: string
-  name: string
-  description?: string
-  category: string
-  photo_url: string
-  price: number
-  stock_amount: number
-  nutrition?: Nutrition
-}
+export type CatalogItem = components["schemas"]["CatalogItem"]
 
-export interface Location {
-  id: string
-  name: string
-  address: string
-  slug: string
-}
+export type Location = components["schemas"]["Location"]
 
 export interface Filters {
   calories: Range

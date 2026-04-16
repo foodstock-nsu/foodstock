@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { CATEGORY_LABELS } from "~/composables/catalog"
+
 defineProps<{
   categories: string[]
   modelValue: string
@@ -18,7 +20,7 @@ div(class="flex gap-3 overflow-x-auto no-scrollbar py-2 -mx-4 px-4 md:mx-0 md:px
     :class="modelValue === category ? 'btn-primary' : 'btn-secondary'"
     @click="emit('update:modelValue', category)"
   )
-    | {{ category.charAt(0).toUpperCase() + category.slice(1) }}
+    | {{ CATEGORY_LABELS[category] || category }}
 </template>
 
 <style scoped>
