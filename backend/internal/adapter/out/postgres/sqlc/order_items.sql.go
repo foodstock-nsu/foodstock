@@ -54,7 +54,7 @@ type CreateOrderItemsBatchParams struct {
 	PriceAtPurchase pgtype.Numeric
 }
 
-const listOrderItemsByOrderID = `-- name: ListOrderItemsByOrderID :many
+const listOrderItems = `-- name: ListOrderItems :many
 SELECT
     id,
     order_id,
@@ -65,8 +65,8 @@ FROM order_items
 WHERE order_id = $1
 `
 
-func (q *Queries) ListOrderItemsByOrderID(ctx context.Context, db DBTX, orderID pgtype.UUID) ([]OrderItem, error) {
-	rows, err := db.Query(ctx, listOrderItemsByOrderID, orderID)
+func (q *Queries) ListOrderItems(ctx context.Context, db DBTX, orderID pgtype.UUID) ([]OrderItem, error) {
+	rows, err := db.Query(ctx, listOrderItems, orderID)
 	if err != nil {
 		return nil, err
 	}

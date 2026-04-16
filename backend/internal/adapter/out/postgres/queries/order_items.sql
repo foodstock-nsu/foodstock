@@ -28,7 +28,7 @@ INSERT INTO order_items (
     @price_at_purchase
 );
 
--- name: ListOrderItemsByOrderID :many
+-- name: ListOrderItems :many
 SELECT
     id,
     order_id,
