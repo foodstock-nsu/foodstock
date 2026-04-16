@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { CatalogItem } from "~/types/catalog"
+
 const props = defineProps<{
   item: CatalogItem
 }>()

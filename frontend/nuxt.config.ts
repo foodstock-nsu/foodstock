@@ -20,6 +20,10 @@ export default defineNuxtConfig({
 
   devtools: false,
 
+  imports: {
+    dirs: ["stores"],
+  },
+
   typescript: {
     tsConfig: {
       vueCompilerOptions: {

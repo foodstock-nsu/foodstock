@@ -1,9 +1,8 @@
 import { createGlobalState, useLocalStorage } from "@vueuse/core"
 
-export interface CartItem {
-  item: CatalogItem
-  quantity: number
-}
+import type { CartItem, CatalogItem } from "~/types/catalog"
+
+export type { CartItem }
 
 export const useCartStore = createGlobalState(() => {
   const items = useLocalStorage<CartItem[]>("foodstock-cart", [])

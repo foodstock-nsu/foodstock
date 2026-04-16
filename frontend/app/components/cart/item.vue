@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CartItem } from "~/composables/cart"
+import type { CartItem } from "~/types/catalog"
 
 defineProps<{
   item: CartItem
