@@ -3,6 +3,7 @@ package mapper
 import (
 	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
+	pkgpostgres "backend/pkg/postgres"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -26,6 +27,10 @@ func MapItemToSQLCCreate(item *model.Item) sqlc.CreateItemParams {
 		}
 	}
 
+	proteins, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Proteins(), 1)
+	fats, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Fats(), 1)
+	carbs, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Carbs(), 1)
+
 	return sqlc.CreateItemParams{
 		ID: pgtype.UUID{
 			Bytes: item.ID(),
@@ -36,9 +41,9 @@ func MapItemToSQLCCreate(item *model.Item) sqlc.CreateItemParams {
 		Category:    sqlc.ItemCategory(item.Category()),
 		PhotoUrl:    photo,
 		Calories:    int32(item.Nutrition().Calories()),
-		Proteins:    toNumeric(item.Nutrition().Proteins(), 1),
-		Fats:        toNumeric(item.Nutrition().Fats(), 1),
-		Carbs:       toNumeric(item.Nutrition().Carbs(), 1),
+		Proteins:    proteins,
+		Fats:        fats,
+		Carbs:       carbs,
 		CreatedAt: pgtype.Timestamptz{
 			Time:             item.CreatedAt(),
 			InfinityModifier: 0,
@@ -60,6 +65,10 @@ func MapSQLCToItem(raw sqlc.Item) *model.Item {
 		photo = &raw.PhotoUrl.String
 	}
 
+	proteins, _ := pkgpostgres.NumericToFloat64(raw.Proteins)
+	fats, _ := pkgpostgres.NumericToFloat64(raw.Fats)
+	carbs, _ := pkgpostgres.NumericToFloat64(raw.Carbs)
+
 	return model.RestoreItem(
 		raw.ID.Bytes,
 		raw.Name,
@@ -68,9 +77,9 @@ func MapSQLCToItem(raw sqlc.Item) *model.Item {
 		photo,
 		model.RestoreNutrition(
 			int(raw.Calories),
-			numericToFloat(raw.Proteins),
-			numericToFloat(raw.Fats),
-			numericToFloat(raw.Carbs),
+			proteins,
+			fats,
+			carbs,
 		),
 		raw.CreatedAt.Time,
 	)
@@ -95,6 +104,10 @@ func MapItemToSQLCUpdate(item *model.Item) sqlc.UpdateItemParams {
 		}
 	}
 
+	proteins, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Proteins(), 1)
+	fats, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Fats(), 1)
+	carbs, _ := pkgpostgres.Float64ToNumeric(item.Nutrition().Carbs(), 1)
+
 	return sqlc.UpdateItemParams{
 		ID: pgtype.UUID{
 			Bytes: item.ID(),
@@ -105,9 +118,9 @@ func MapItemToSQLCUpdate(item *model.Item) sqlc.UpdateItemParams {
 		Category:    sqlc.ItemCategory(item.Category()),
 		PhotoUrl:    photo,
 		Calories:    int32(item.Nutrition().Calories()),
-		Proteins:    toNumeric(item.Nutrition().Proteins(), 1),
-		Fats:        toNumeric(item.Nutrition().Fats(), 1),
-		Carbs:       toNumeric(item.Nutrition().Carbs(), 1),
+		Proteins:    proteins,
+		Fats:        fats,
+		Carbs:       carbs,
 	}
 }
 
