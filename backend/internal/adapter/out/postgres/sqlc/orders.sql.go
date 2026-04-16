@@ -76,7 +76,7 @@ func (q *Queries) GetOrder(ctx context.Context, db DBTX, id pgtype.UUID) (Order,
 	return i, err
 }
 
-const listOrdersByLocation = `-- name: ListOrdersByLocation :many
+const listOrdersByLocationID = `-- name: ListOrdersByLocationID :many
 SELECT
     id,
     location_id,
@@ -86,10 +86,17 @@ SELECT
     paid_at
 FROM orders
 WHERE location_id = $1
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) ListOrdersByLocation(ctx context.Context, db DBTX, locationID pgtype.UUID) ([]Order, error) {
-	rows, err := db.Query(ctx, listOrdersByLocation, locationID)
+type ListOrdersByLocationIDParams struct {
+	LocationID pgtype.UUID
+	Limit      int32
+	Offset     int32
+}
+
+func (q *Queries) ListOrdersByLocationID(ctx context.Context, db DBTX, arg ListOrdersByLocationIDParams) ([]Order, error) {
+	rows, err := db.Query(ctx, listOrdersByLocationID, arg.LocationID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -125,10 +132,17 @@ SELECT
     paid_at
 FROM orders
 WHERE status = $1
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) ListOrdersByStatus(ctx context.Context, db DBTX, status OrderStatus) ([]Order, error) {
-	rows, err := db.Query(ctx, listOrdersByStatus, status)
+type ListOrdersByStatusParams struct {
+	Status OrderStatus
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListOrdersByStatus(ctx context.Context, db DBTX, arg ListOrdersByStatusParams) ([]Order, error) {
+	rows, err := db.Query(ctx, listOrdersByStatus, arg.Status, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

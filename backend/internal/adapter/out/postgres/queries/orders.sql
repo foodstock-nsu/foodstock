@@ -34,7 +34,7 @@ SET
     paid_at = @paid_at
 WHERE id = @id;
 
--- name: ListOrdersByLocation :many
+-- name: ListOrdersByLocationID :many
 SELECT
     id,
     location_id,
@@ -43,7 +43,8 @@ SELECT
     created_at,
     paid_at
 FROM orders
-WHERE location_id = @location_id;
+WHERE location_id = $1
+LIMIT $2 OFFSET $3;
 
 -- name: ListOrdersByStatus :many
 SELECT
@@ -54,4 +55,5 @@ SELECT
     created_at,
     paid_at
 FROM orders
-WHERE status = @status;
+WHERE status = $1
+LIMIT $2 OFFSET $3;
