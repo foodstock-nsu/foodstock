@@ -5,7 +5,7 @@ CREATE TABLE transactions (
     order_id UUID REFERENCES orders(id),           
     sbp_transaction_id TEXT NOT NULL,           
     amount NUMERIC(10, 2) NOT NULL,   
-    status transaction_status DEFAULT 'PENDING',         
+    status transaction_status NOT NULL DEFAULT 'PENDING',
     paid_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL 
         DEFAULT CURRENT_TIMESTAMP

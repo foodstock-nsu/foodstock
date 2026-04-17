@@ -196,7 +196,7 @@ type Transaction struct {
 	OrderID          pgtype.UUID
 	SbpTransactionID string
 	Amount           pgtype.Numeric
-	Status           NullTransactionStatus
+	Status           TransactionStatus
 	PaidAt           pgtype.Timestamptz
 	CreatedAt        pgtype.Timestamptz
 }

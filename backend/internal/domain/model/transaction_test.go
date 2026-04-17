@@ -72,7 +72,7 @@ func TestNewTransaction(t *testing.T) {
 				assert.Equal(t, tt.sbpTransactionID, tr.SBPTransactionID())
 				assert.Equal(t, tt.amount, tr.Amount())
 				assert.Equal(t, model.TransactionPending, tr.Status())
-				assert.Nil(t, tr.WebhookReceivedAt())
+				assert.Nil(t, tr.PaidAt())
 				assert.False(t, tr.CreatedAt().After(time.Now().UTC()))
 			}
 		})

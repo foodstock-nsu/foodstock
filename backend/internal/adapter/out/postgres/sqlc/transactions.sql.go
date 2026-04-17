@@ -36,7 +36,7 @@ type CreateTransactionParams struct {
 	OrderID          pgtype.UUID
 	SbpTransactionID string
 	Amount           pgtype.Numeric
-	Status           NullTransactionStatus
+	Status           TransactionStatus
 	PaidAt           pgtype.Timestamptz
 	CreatedAt        pgtype.Timestamptz
 }
@@ -160,7 +160,7 @@ WHERE id = $3
 `
 
 type UpdateTransactionParams struct {
-	Status NullTransactionStatus
+	Status TransactionStatus
 	PaidAt pgtype.Timestamptz
 	ID     pgtype.UUID
 }

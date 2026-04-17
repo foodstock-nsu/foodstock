@@ -26,13 +26,13 @@ const (
 // ================ Rich model for Transaction ================
 
 type Transaction struct {
-	id                uuid.UUID
-	orderID           uuid.UUID
-	sbpTransactionID  string
-	amount            int64
-	status            TransactionStatus
-	webhookReceivedAt *time.Time
-	createdAt         time.Time
+	id               uuid.UUID
+	orderID          uuid.UUID
+	sbpTransactionID string
+	amount           int64
+	status           TransactionStatus
+	paidAt           *time.Time
+	createdAt        time.Time
 }
 
 func NewTransaction(
@@ -51,13 +51,13 @@ func NewTransaction(
 	}
 
 	return &Transaction{
-		id:                uuid.New(),
-		orderID:           orderID,
-		sbpTransactionID:  sbpTransactionID,
-		amount:            amount,
-		status:            TransactionPending,
-		webhookReceivedAt: nil,
-		createdAt:         time.Now().UTC(),
+		id:               uuid.New(),
+		orderID:          orderID,
+		sbpTransactionID: sbpTransactionID,
+		amount:           amount,
+		status:           TransactionPending,
+		paidAt:           nil,
+		createdAt:        time.Now().UTC(),
 	}, nil
 }
 
@@ -67,29 +67,29 @@ func RestoreTransaction(
 	sbpTransactionID string,
 	amount int64,
 	status TransactionStatus,
-	webhookReceivedAt *time.Time,
+	paidAt *time.Time,
 	createdAt time.Time,
 ) *Transaction {
 	return &Transaction{
-		id:                id,
-		orderID:           orderID,
-		sbpTransactionID:  sbpTransactionID,
-		amount:            amount,
-		status:            status,
-		webhookReceivedAt: webhookReceivedAt,
-		createdAt:         createdAt,
+		id:               id,
+		orderID:          orderID,
+		sbpTransactionID: sbpTransactionID,
+		amount:           amount,
+		status:           status,
+		paidAt:           paidAt,
+		createdAt:        createdAt,
 	}
 }
 
 // ================ Read-Only ================
 
-func (t *Transaction) ID() uuid.UUID                 { return t.id }
-func (t *Transaction) OrderID() uuid.UUID            { return t.orderID }
-func (t *Transaction) SBPTransactionID() string      { return t.sbpTransactionID }
-func (t *Transaction) Amount() int64                 { return t.amount }
-func (t *Transaction) Status() TransactionStatus     { return t.status }
-func (t *Transaction) WebhookReceivedAt() *time.Time { return t.webhookReceivedAt }
-func (t *Transaction) CreatedAt() time.Time          { return t.createdAt }
+func (t *Transaction) ID() uuid.UUID             { return t.id }
+func (t *Transaction) OrderID() uuid.UUID        { return t.orderID }
+func (t *Transaction) SBPTransactionID() string  { return t.sbpTransactionID }
+func (t *Transaction) Amount() int64             { return t.amount }
+func (t *Transaction) Status() TransactionStatus { return t.status }
+func (t *Transaction) PaidAt() *time.Time        { return t.paidAt }
+func (t *Transaction) CreatedAt() time.Time      { return t.createdAt }
 
 // ================ Mutation ================
 
@@ -100,7 +100,7 @@ func (t *Transaction) Confirm() error {
 	t.status = TransactionSuccess
 
 	now := time.Now().UTC()
-	t.webhookReceivedAt = &now
+	t.paidAt = &now
 
 	return nil
 }
