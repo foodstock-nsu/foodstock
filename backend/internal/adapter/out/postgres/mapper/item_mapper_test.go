@@ -4,6 +4,7 @@ import (
 	"backend/internal/adapter/out/postgres/mapper"
 	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
+	"backend/pkg/utils"
 	"testing"
 	"time"
 
@@ -16,14 +17,19 @@ import (
 func TestMapItemToSQLCCreate(t *testing.T) {
 	desc := "Test Description"
 	photo := "https://example.com/photo.jpg"
-	nutrition := model.RestoreNutrition(100, 10.5, 5.5, 20.5)
+	nutrition := model.RestoreNutrition(
+		utils.VPtr(100),
+		utils.VPtr(10.5),
+		utils.VPtr(5.5),
+		utils.VPtr(20.5),
+	)
 
 	item := model.RestoreItem(
 		uuid.New(),
 		"Test Item",
 		&desc,
 		model.ItemLunch,
-		&photo,
+		photo,
 		nutrition,
 		time.Now().UTC(),
 	)
@@ -33,14 +39,14 @@ func TestMapItemToSQLCCreate(t *testing.T) {
 	require.True(t, mapped.ID.Valid)
 	require.True(t, mapped.CreatedAt.Valid)
 	require.True(t, mapped.Description.Valid)
-	require.True(t, mapped.PhotoUrl.Valid)
+	require.True(t, mapped.Calories.Valid)
 
 	assert.Equal(t, [16]byte(item.ID()), mapped.ID.Bytes)
 	assert.Equal(t, item.Name(), mapped.Name)
 	assert.Equal(t, *item.Description(), mapped.Description.String)
 	assert.Equal(t, string(item.Category()), string(mapped.Category))
-	assert.Equal(t, *item.PhotoURL(), mapped.PhotoUrl.String)
-	assert.Equal(t, int32(item.Nutrition().Calories()), mapped.Calories)
+	assert.Equal(t, item.PhotoURL(), mapped.PhotoUrl)
+	assert.Equal(t, int32(*item.Nutrition().Calories()), mapped.Calories.Int32)
 	assert.Equal(t, item.CreatedAt(), mapped.CreatedAt.Time)
 }
 
@@ -56,11 +62,11 @@ func TestMapSQLCToItem(t *testing.T) {
 			Valid:  true,
 		},
 		Category: sqlc.ItemCategory("breakfast"),
-		PhotoUrl: pgtype.Text{
-			String: "https://example.com/photo.jpg",
-			Valid:  true,
+		PhotoUrl: "https://example.com/photo.jpg",
+		Calories: pgtype.Int4{
+			Int32: 100,
+			Valid: true,
 		},
-		Calories: 200,
 		Proteins: pgtype.Numeric{Valid: true},
 		Fats:     pgtype.Numeric{Valid: true},
 		Carbs:    pgtype.Numeric{Valid: true},
@@ -75,22 +81,27 @@ func TestMapSQLCToItem(t *testing.T) {
 	assert.Equal(t, raw.ID.Bytes, [16]byte(mapped.ID()))
 	assert.Equal(t, raw.Name, mapped.Name())
 	assert.Equal(t, raw.Description.String, *mapped.Description())
-	assert.Equal(t, string(raw.Category), string(mapped.Category()))
-	assert.Equal(t, raw.PhotoUrl.String, *mapped.PhotoURL())
-	assert.Equal(t, int(raw.Calories), mapped.Nutrition().Calories())
+	assert.Equal(t, string(raw.Category), mapped.Category().String())
+	assert.Equal(t, raw.PhotoUrl, mapped.PhotoURL())
+	assert.Equal(t, int(raw.Calories.Int32), *mapped.Nutrition().Calories())
 	assert.Equal(t, raw.CreatedAt.Time, mapped.CreatedAt())
 }
 
 func TestMapItemToSQLCUpdate(t *testing.T) {
 	desc := "Update Description"
-	nutrition := model.RestoreNutrition(150, 12.0, 6.0, 25.0)
+	nutrition := model.RestoreNutrition(
+		utils.VPtr(150),
+		utils.VPtr(12.0),
+		utils.VPtr(6.0),
+		utils.VPtr(25.0),
+	)
 
 	item := model.RestoreItem(
 		uuid.New(),
 		"Update Item",
 		&desc,
 		model.ItemDrinks,
-		nil,
+		"https://example.com/photo.jpg",
 		nutrition,
 		time.Now().UTC(),
 	)
@@ -101,8 +112,8 @@ func TestMapItemToSQLCUpdate(t *testing.T) {
 	assert.Equal(t, [16]byte(item.ID()), mapped.ID.Bytes)
 	assert.Equal(t, item.Name(), mapped.Name)
 	assert.Equal(t, *item.Description(), mapped.Description.String)
-	assert.False(t, mapped.PhotoUrl.Valid)
-	assert.Equal(t, int32(item.Nutrition().Calories()), mapped.Calories)
+	assert.True(t, mapped.Calories.Valid)
+	assert.Equal(t, int32(*item.Nutrition().Calories()), mapped.Calories.Int32)
 }
 
 func TestMapSQLCToItems(t *testing.T) {
@@ -126,5 +137,5 @@ func TestMapSQLCToItems(t *testing.T) {
 	assert.Equal(t, raw[0].ID.Bytes, [16]byte(mapped[0].ID()))
 	assert.Equal(t, raw[1].ID.Bytes, [16]byte(mapped[1].ID()))
 	assert.Equal(t, raw[0].Name, mapped[0].Name())
-	assert.Equal(t, string(raw[1].Category), string(mapped[1].Category()))
+	assert.Equal(t, string(raw[1].Category), mapped[1].Category().String())
 }
