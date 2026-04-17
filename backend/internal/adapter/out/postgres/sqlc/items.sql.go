@@ -42,8 +42,8 @@ type CreateItemParams struct {
 	Name        string
 	Description pgtype.Text
 	Category    ItemCategory
-	PhotoUrl    pgtype.Text
-	Calories    int32
+	PhotoUrl    string
+	Calories    pgtype.Int4
 	Proteins    pgtype.Numeric
 	Fats        pgtype.Numeric
 	Carbs       pgtype.Numeric
@@ -181,8 +181,8 @@ type UpdateItemParams struct {
 	Name        string
 	Description pgtype.Text
 	Category    ItemCategory
-	PhotoUrl    pgtype.Text
-	Calories    int32
+	PhotoUrl    string
+	Calories    pgtype.Int4
 	Proteins    pgtype.Numeric
 	Fats        pgtype.Numeric
 	Carbs       pgtype.Numeric

@@ -32,54 +32,81 @@ var categoryMap = map[string]ItemCategory{
 // ================ Value Object - Nutrition ================
 
 type Nutrition struct {
-	calories int
-	proteins float64
-	fats     float64
-	carbs    float64
+	calories *int
+	proteins *float64
+	fats     *float64
+	carbs    *float64
 }
 
-func NewNutrition(cal int, p, f, c float64) (Nutrition, error) {
-	if cal < 0 || p < 0 || f < 0 || c < 0 {
-		return Nutrition{}, pkgerrs.NewValueInvalidError("nutrition")
+func NewNutrition(calories *int, proteins, fats, carbs *float64) (*Nutrition, error) {
+	if calories == nil && proteins == nil && fats == nil && carbs == nil {
+		return nil, nil
 	}
-	return Nutrition{
-		calories: cal,
-		proteins: p,
-		fats:     f,
-		carbs:    c,
+
+	if calories != nil && *calories < 0 {
+		return nil, pkgerrs.NewValueInvalidError("calories")
+	}
+	if proteins != nil && *proteins < 0 {
+		return nil, pkgerrs.NewValueInvalidError("proteins")
+	}
+	if fats != nil && *fats < 0 {
+		return nil, pkgerrs.NewValueInvalidError("fats")
+	}
+	if carbs != nil && *carbs < 0 {
+		return nil, pkgerrs.NewValueInvalidError("carbs")
+	}
+
+	return &Nutrition{
+		calories: calories,
+		proteins: proteins,
+		fats:     fats,
+		carbs:    carbs,
 	}, nil
 }
 
-func RestoreNutrition(cal int, p, f, c float64) Nutrition {
-	return Nutrition{
-		calories: cal,
-		proteins: p,
-		fats:     f,
-		carbs:    c,
+func RestoreNutrition(calories *int, proteins, fats, carbs *float64) *Nutrition {
+	if calories == nil && proteins == nil && fats == nil && carbs == nil {
+		return nil
+	}
+
+	return &Nutrition{
+		calories: calories,
+		proteins: proteins,
+		fats:     fats,
+		carbs:    carbs,
 	}
 }
 
-func (n Nutrition) Calories() int     { return n.calories }
-func (n Nutrition) Proteins() float64 { return n.proteins }
-func (n Nutrition) Fats() float64     { return n.fats }
-func (n Nutrition) Carbs() float64    { return n.carbs }
+func (n Nutrition) Calories() *int     { return n.calories }
+func (n Nutrition) Proteins() *float64 { return n.proteins }
+func (n Nutrition) Fats() *float64     { return n.fats }
+func (n Nutrition) Carbs() *float64    { return n.carbs }
 
-func (n Nutrition) Update(cal *int, p, f, c *float64) error {
-	if (cal != nil && *cal < 0) || (p != nil && *p < 0) || (f != nil && *f < 0) || (c != nil && *c < 0) {
-		return pkgerrs.NewValueInvalidError("nutrition")
+func (n Nutrition) Update(calories *int, proteins, fats, carbs *float64) error {
+	if calories != nil && *calories < 0 {
+		return pkgerrs.NewValueInvalidError("calories")
+	}
+	if proteins != nil && *proteins < 0 {
+		return pkgerrs.NewValueInvalidError("proteins")
+	}
+	if fats != nil && *fats < 0 {
+		return pkgerrs.NewValueInvalidError("fats")
+	}
+	if carbs != nil && *carbs < 0 {
+		return pkgerrs.NewValueInvalidError("carbs")
 	}
 
-	if cal != nil {
-		n.calories = *cal
+	if calories != nil {
+		n.calories = calories
 	}
-	if p != nil {
-		n.proteins = *p
+	if proteins != nil {
+		n.proteins = proteins
 	}
-	if f != nil {
-		n.fats = *f
+	if fats != nil {
+		n.fats = fats
 	}
-	if c != nil {
-		n.carbs = *c
+	if carbs != nil {
+		n.carbs = carbs
 	}
 
 	return nil
@@ -92,8 +119,8 @@ type Item struct {
 	name        string
 	description *string
 	category    ItemCategory
-	photoUrl    *string
-	nutrition   Nutrition
+	photoUrl    string
+	nutrition   *Nutrition
 	createdAt   time.Time
 }
 
@@ -101,8 +128,8 @@ func NewItem(
 	name string,
 	description *string,
 	category string,
-	photoUrl *string,
-	nutrition Nutrition,
+	photoUrl string,
+	nutrition *Nutrition,
 ) (*Item, error) {
 	if len(name) < 5 {
 		return nil, pkgerrs.NewValueInvalidError("locID")
@@ -116,7 +143,7 @@ func NewItem(
 		return nil, pkgerrs.NewValueInvalidError("totalPrice")
 	}
 
-	if photoUrl != nil && len(*photoUrl) < 10 {
+	if len(photoUrl) < 10 {
 		return nil, pkgerrs.NewValueInvalidError("photo_url")
 	}
 
@@ -136,8 +163,8 @@ func RestoreItem(
 	name string,
 	description *string,
 	category ItemCategory,
-	photoUrl *string,
-	nutrition Nutrition,
+	photoUrl string,
+	nutrition *Nutrition,
 	createdAt time.Time,
 ) *Item {
 	return &Item{
@@ -157,8 +184,8 @@ func (i *Item) ID() uuid.UUID          { return i.id }
 func (i *Item) Name() string           { return i.name }
 func (i *Item) Description() *string   { return i.description }
 func (i *Item) Category() ItemCategory { return i.category }
-func (i *Item) PhotoURL() *string      { return i.photoUrl }
-func (i *Item) Nutrition() Nutrition   { return i.nutrition }
+func (i *Item) PhotoURL() string       { return i.photoUrl }
+func (i *Item) Nutrition() *Nutrition  { return i.nutrition }
 func (i *Item) CreatedAt() time.Time   { return i.createdAt }
 
 // ================ Mutation ================
@@ -199,10 +226,10 @@ func (i *Item) Update(
 		i.category = catMapped
 	}
 	if photo != nil {
-		i.photoUrl = photo
+		i.photoUrl = *photo
 	}
 	if nutrition != nil {
-		i.nutrition = *nutrition
+		i.nutrition = nutrition
 	}
 
 	return nil
