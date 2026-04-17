@@ -192,11 +192,11 @@ type OrderItem struct {
 }
 
 type Transaction struct {
-	ID                pgtype.UUID
-	OrderID           pgtype.UUID
-	SbpTransactionID  string
-	Amount            pgtype.Numeric
-	Status            NullTransactionStatus
-	WebhookReceivedAt pgtype.Timestamptz
-	CreatedAt         pgtype.Timestamptz
+	ID               pgtype.UUID
+	OrderID          pgtype.UUID
+	SbpTransactionID string
+	Amount           pgtype.Numeric
+	Status           TransactionStatus
+	PaidAt           pgtype.Timestamptz
+	CreatedAt        pgtype.Timestamptz
 }
