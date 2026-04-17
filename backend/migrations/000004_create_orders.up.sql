@@ -4,7 +4,7 @@ CREATE TABLE orders (
     id UUID PRIMARY KEY, 
     location_id UUID REFERENCES locations(id),           
     status order_status NOT NULL DEFAULT 'PENDING',           
-    total_price NUMERIC(10, 2) CHECK (total_price >= 0),   
+    total_price NUMERIC(10, 2) CHECK (total_price >= 0) NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,         
     paid_at TIMESTAMP WITH TIME ZONE
 );  
