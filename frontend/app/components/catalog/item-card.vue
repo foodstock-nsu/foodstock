@@ -6,7 +6,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: "select", item: CatalogItem): void
+  select: [item: CatalogItem]
 }>()
 
 const { items, addItem } = useCartStore()
