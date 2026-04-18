@@ -21,6 +21,16 @@ export const MOCK_ITEMS: CatalogItem[] = [
     nutrition: { calories: 450, proteins: 28, fats: 18, carbs: 42 },
   },
   {
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    name: "Боул «Зелёный рай»",
+    description: "Яркое сочетание киноа, авокадо, запечённой курицы и свежей зелени с цитрусовой заправкой.",
+    category: "lunch",
+    photo_url: "/images/food-placeholder.png",
+    price: 45000,
+    stock_amount: 0,
+    nutrition: { calories: 450, proteins: 28, fats: 18, carbs: 42 },
+  },
+  {
     id: "550e8400-e29b-41d4-a716-446655440002",
     name: "Боул «Утренний заряд»",
     description: "Ночная овсянка с семенами чиа, свежими ягодами и лёгкой ноткой органического мёда.",
