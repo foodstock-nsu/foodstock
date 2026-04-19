@@ -6,6 +6,7 @@ import (
 	"backend/migrations"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
+	"backend/pkg/utils"
 	"context"
 	"errors"
 	"testing"
@@ -81,14 +82,17 @@ func (s *ItemRepoSuite) SetupSuite() {
 	)
 
 	desc := "Delicious test item description long enough"
-	photo := "https://example.com/photo.jpg"
 	s.testItem = model.RestoreItem(
 		uuid.New(),
 		"Test Item",
 		&desc,
 		model.ItemLunch,
-		&photo,
-		model.RestoreNutrition(100, 10, 5, 15),
+		"https://example.com/photo.jpg",
+		model.RestoreNutrition(
+			utils.VPtr(100),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(5)),
+			utils.VPtr(float64(15))),
 		time.Now().UTC().Truncate(time.Microsecond),
 	)
 }
@@ -148,7 +152,11 @@ func (s *ItemRepoSuite) TestUpdate() {
 		&newDesc,
 		model.ItemBreakfast,
 		s.testItem.PhotoURL(),
-		model.RestoreNutrition(200, 20, 10, 30),
+		model.RestoreNutrition(
+			utils.VPtr(100),
+			utils.VPtr(float64(20)),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(30))),
 		s.testItem.CreatedAt(),
 	)
 
@@ -159,7 +167,7 @@ func (s *ItemRepoSuite) TestUpdate() {
 	s.Require().NoError(err)
 	s.Require().Equal(newName, res.Name())
 	s.Require().Equal(model.ItemCategory("breakfast"), res.Category())
-	s.Require().Equal(200, res.Nutrition().Calories())
+	s.Require().Equal(100, *res.Nutrition().Calories())
 }
 
 func (s *ItemRepoSuite) TestDelete() {
@@ -186,8 +194,12 @@ func (s *ItemRepoSuite) TestList() {
 		"Item 2",
 		&desc2,
 		model.ItemDrinks,
-		nil,
-		model.RestoreNutrition(50, 0, 0, 12),
+		"https://example.com/photo.jpg",
+		model.RestoreNutrition(
+			utils.VPtr(100),
+			utils.VPtr(float64(20)),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(30))),
 		time.Now().UTC(),
 	)
 	err = s.repo.Create(s.ctx, item2)

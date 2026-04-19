@@ -88,7 +88,20 @@ func (s *OrderItemRepoSuite) SetupSuite() {
 
 	s.testItemID = uuid.New()
 	itemRepo := adapterpostgres.NewItemRepository(s.dbClient, trmpgx.DefaultCtxGetter)
-	_ = itemRepo.Create(s.ctx, model.RestoreItem(s.testItemID, "Coke", utils.VPtr("Drink"), model.ItemDrinks, nil, model.RestoreNutrition(1, 1, 1, 1), time.Now().UTC()))
+	_ = itemRepo.Create(
+		s.ctx,
+		model.RestoreItem(
+			s.testItemID,
+			"Coke",
+			utils.VPtr("Drink"),
+			model.ItemDrinks,
+			"https://example.com/photo.jpg",
+			model.RestoreNutrition(
+				utils.VPtr(1),
+				utils.VPtr(float64(1)),
+				utils.VPtr(float64(1)),
+				utils.VPtr(float64(1))),
+			time.Now().UTC()))
 
 	s.testOrderID = uuid.New()
 	orderRepo := adapterpostgres.NewOrderRepository(s.dbClient, trmpgx.DefaultCtxGetter)

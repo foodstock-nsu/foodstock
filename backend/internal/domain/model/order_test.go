@@ -155,6 +155,7 @@ func TestNewOrder(t *testing.T) {
 				assert.Equal(t, tt.locID, order.LocationID())
 				assert.ElementsMatch(t, tt.items, order.Items())
 				assert.Equal(t, model.OrderPending, order.Status())
+				assert.Equal(t, string(model.OrderPending), order.Status().String())
 				assert.Equal(t, tt.totalPrice, order.TotalPrice())
 				assert.False(t, order.CreatedAt().After(time.Now().UTC()))
 				assert.Nil(t, order.PaidAt())

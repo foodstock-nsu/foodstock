@@ -115,10 +115,12 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 			"Chicken Sandwich",
 			utils.VPtr("Chicken sandwich with fresh vegetables"),
 			model.ItemLunch,
-			nil,
+			"https://example.com/photo.jpg",
 			model.RestoreNutrition(
-				1000, float64(10), float64(10), float64(10),
-			),
+				utils.VPtr(100),
+				utils.VPtr(float64(20)),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(30))),
 			time.Now().UTC(),
 		),
 	)
@@ -129,10 +131,12 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 			"Beef Sandwich",
 			utils.VPtr("Beef sandwich with fresh vegetables"),
 			model.ItemLunch,
-			nil,
+			"https://example.com/photo.jpg",
 			model.RestoreNutrition(
-				1000, float64(10), float64(10), float64(10),
-			),
+				utils.VPtr(100),
+				utils.VPtr(float64(20)),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(30))),
 			time.Now().UTC(),
 		),
 	)

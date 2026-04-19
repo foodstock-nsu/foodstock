@@ -53,7 +53,7 @@ func TestMapSQLCToOrder(t *testing.T) {
 		Status:     sqlc.OrderStatusPENDING,
 		TotalPrice: pkgpostgres.Int64ToNumeric(2500, -2),
 		CreatedAt:  pgtype.Timestamptz{Time: now, Valid: true},
-		PaidAt:     pgtype.Timestamptz{Valid: false},
+		PaidAt:     pgtype.Timestamptz{Time: now.Add(time.Second), Valid: true},
 	}
 
 	mapped := mapper.MapSQLCToOrder(raw)
@@ -63,7 +63,8 @@ func TestMapSQLCToOrder(t *testing.T) {
 	assert.Equal(t, string(raw.Status), mapped.Status().String())
 	assert.Equal(t, int64(2500), mapped.TotalPrice())
 	assert.Equal(t, raw.CreatedAt.Time, mapped.CreatedAt())
-	assert.Nil(t, mapped.PaidAt())
+	assert.True(t, raw.PaidAt.Valid)
+	assert.Equal(t, raw.PaidAt.Time, *mapped.PaidAt())
 }
 
 func TestMapOrderToSQLCUpdate(t *testing.T) {
