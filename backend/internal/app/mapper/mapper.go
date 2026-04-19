@@ -16,6 +16,14 @@ func MapDomainToLocationDTO(location *model.Location) dto.Location {
 	}
 }
 
+func MapDomainToLocationListDTO(locations []*model.Location) []dto.Location {
+	res := make([]dto.Location, len(locations))
+	for i := range res {
+		res[i] = MapDomainToLocationDTO(locations[i])
+	}
+	return res
+}
+
 func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.ItemNutrition {
 	if nutrition == nil {
 		return nil

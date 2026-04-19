@@ -42,7 +42,7 @@ var (
 	ErrGetBookingDB                     = errors.New("failed to get booking using db")
 	ErrUpdateBookingStatusDB            = errors.New("failed to update booking status using db")
 	ErrListItemsByIDsDB                 = errors.New("failed to get a list of items by ids using db")
-	ErrListMyBookingsDB                 = errors.New("failed to get a list of bookings by user id using db")
+	ErrListLocationsDB                  = errors.New("failed to get a list of locations using db")
 
 	ErrLocationNotFound = errors.New("location not found")
 	ErrScheduleNotFound = errors.New("schedule not found")
