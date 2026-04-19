@@ -111,13 +111,25 @@ func (r *LocationItemRepository) Update(ctx context.Context, locItem *model.Loca
 	return r.q.UpdateLocationItem(ctx, db, params)
 }
 
-func (r *LocationItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *LocationItemRepository) DeleteByID(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteLocationItem(
+	return r.q.DeleteLocationItemByID(
 		ctx,
 		db,
 		pgtype.UUID{
 			Bytes: id,
+			Valid: true,
+		},
+	)
+}
+
+func (r *LocationItemRepository) DeleteByLocationID(ctx context.Context, locationID uuid.UUID) error {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+	return r.q.DeleteLocationItemsByLocationID(
+		ctx,
+		db,
+		pgtype.UUID{
+			Bytes: locationID,
 			Valid: true,
 		},
 	)

@@ -199,7 +199,7 @@ func (s *LocationRepoSuite) TestDelete() {
 	// Create the location in advance
 	_ = s.repo.Create(s.ctx, s.testLocation)
 
-	// Delete it
+	// DeleteByID it
 	err := s.repo.Delete(s.ctx, s.testLocation.ID())
 	s.Require().NoError(err)
 

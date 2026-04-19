@@ -50,13 +50,23 @@ func (q *Queries) CreateLocationItem(ctx context.Context, db DBTX, arg CreateLoc
 	return err
 }
 
-const deleteLocationItem = `-- name: DeleteLocationItem :exec
+const deleteLocationItemByID = `-- name: DeleteLocationItemByID :exec
 DELETE FROM location_items
 WHERE id = $1
 `
 
-func (q *Queries) DeleteLocationItem(ctx context.Context, db DBTX, id pgtype.UUID) error {
-	_, err := db.Exec(ctx, deleteLocationItem, id)
+func (q *Queries) DeleteLocationItemByID(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteLocationItemByID, id)
+	return err
+}
+
+const deleteLocationItemsByLocationID = `-- name: DeleteLocationItemsByLocationID :exec
+DELETE FROM location_items
+WHERE location_id = $1
+`
+
+func (q *Queries) DeleteLocationItemsByLocationID(ctx context.Context, db DBTX, locationID pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteLocationItemsByLocationID, locationID)
 	return err
 }
 
