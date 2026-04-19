@@ -5,6 +5,17 @@ import (
 	"backend/internal/domain/model"
 )
 
+func MapDomainToLocationDTO(location *model.Location) dto.Location {
+	return dto.Location{
+		ID:        location.ID(),
+		Slug:      location.Slug(),
+		Name:      location.Name(),
+		Address:   location.Address(),
+		IsActive:  location.IsActive(),
+		CreatedAt: location.CreatedAt(),
+	}
+}
+
 func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.ItemNutrition {
 	if nutrition == nil {
 		return nil

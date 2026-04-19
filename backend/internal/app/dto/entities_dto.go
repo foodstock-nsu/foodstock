@@ -1,6 +1,19 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Location struct {
+	ID        uuid.UUID
+	Slug      string
+	Name      string
+	Address   string
+	IsActive  bool
+	CreatedAt time.Time
+}
 
 type ItemCategory string
 
