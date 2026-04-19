@@ -17,7 +17,7 @@ func TestTokenGenerator_Success(t *testing.T) {
 		testAdminID = uuid.New()
 	)
 
-	gen := jwt.NewTokenGenerator(secret, ttl)
+	gen := jwt.NewGenerator(secret, ttl)
 
 	// Generate a token
 	token, err := gen.Generate(testAdminID)
@@ -36,7 +36,7 @@ func TestTokenGenerator_Expired(t *testing.T) {
 		ttl    = time.Millisecond // Set the too short time
 	)
 
-	gen := jwt.NewTokenGenerator(secret, ttl)
+	gen := jwt.NewGenerator(secret, ttl)
 
 	// Generate a token
 	token, _ := gen.Generate(uuid.New())
@@ -57,8 +57,8 @@ func TestTokenGenerator_InvalidSecret(t *testing.T) {
 		ttl           = time.Hour
 	)
 
-	genValid := jwt.NewTokenGenerator(validSecret, ttl)
-	genInvalid := jwt.NewTokenGenerator(invalidSecret, ttl)
+	genValid := jwt.NewGenerator(validSecret, ttl)
+	genInvalid := jwt.NewGenerator(invalidSecret, ttl)
 
 	// Create a token using the first generator
 	token, _ := genValid.Generate(uuid.New())
@@ -75,7 +75,7 @@ func TestTokenGenerator_RandomString(t *testing.T) {
 		ttl    = time.Hour
 	)
 
-	gen := jwt.NewTokenGenerator(secret, ttl)
+	gen := jwt.NewGenerator(secret, ttl)
 
 	// Validate a random string (not a token)
 	adminID, err := gen.Validate("not-a-token")
