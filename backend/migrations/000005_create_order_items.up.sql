@@ -1,5 +1,5 @@
 CREATE TABLE order_items (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID REFERENCES orders(id),           
     item_id UUID REFERENCES items(id),           
     item_amount INT NOT NULL DEFAULT 0,
