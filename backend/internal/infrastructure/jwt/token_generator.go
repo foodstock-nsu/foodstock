@@ -10,19 +10,19 @@ import (
 
 const leewayVal = 5 * time.Second
 
-type TokenGenerator struct {
+type Generator struct {
 	secret []byte
 	ttl    time.Duration
 }
 
-func NewTokenGenerator(secret string, ttl time.Duration) *TokenGenerator {
-	return &TokenGenerator{
+func NewGenerator(secret string, ttl time.Duration) *Generator {
+	return &Generator{
 		secret: []byte(secret),
 		ttl:    ttl,
 	}
 }
 
-func (gen *TokenGenerator) Generate(adminID uuid.UUID) (string, error) {
+func (gen *Generator) Generate(adminID uuid.UUID) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Subject:   adminID.String(),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(gen.ttl).UTC()),
@@ -32,7 +32,7 @@ func (gen *TokenGenerator) Generate(adminID uuid.UUID) (string, error) {
 	return token.SignedString(gen.secret)
 }
 
-func (gen *TokenGenerator) parseToken(token string) (*jwt.RegisteredClaims, error) {
+func (gen *Generator) parseToken(token string) (*jwt.RegisteredClaims, error) {
 	claims := &jwt.RegisteredClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
@@ -50,7 +50,7 @@ func (gen *TokenGenerator) parseToken(token string) (*jwt.RegisteredClaims, erro
 	return claims, nil
 }
 
-func (gen *TokenGenerator) Validate(token string) (uuid.UUID, error) {
+func (gen *Generator) Validate(token string) (uuid.UUID, error) {
 	claims, err := gen.parseToken(token)
 	if err != nil {
 		return uuid.Nil, err
