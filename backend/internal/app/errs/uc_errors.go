@@ -6,9 +6,10 @@ import "errors"
 ================ Validation failures ================
 */
 var (
-	ErrInvalidCredentials  = errors.New("invalid login or password")
-	ErrCannotCreateBooking = errors.New("specified slot is in the past")
-	ErrCannotCancelBooking = errors.New("booking can be cancelled only by owner")
+	ErrInvalidCredentials      = errors.New("invalid login or password")
+	ErrCannotGetLocationQRCode = errors.New("location is not operational")
+	ErrCannotCreateBooking     = errors.New("specified slot is in the past")
+	ErrCannotCancelBooking     = errors.New("booking can be cancelled only by owner")
 
 	ErrInvalidInput = errors.New("invalid input") // for rich models
 )
@@ -17,9 +18,9 @@ var (
 ================ Infrastructure failures ================
 */
 var (
-	ErrHashPassword  = errors.New("failed to hash password")
-	ErrGenerateToken = errors.New("failed to generate token")
-	ErrCreateMeeting = errors.New("failed to create conference link")
+	ErrHashPassword   = errors.New("failed to hash password")
+	ErrGenerateToken  = errors.New("failed to generate token")
+	ErrGenerateQRCode = errors.New("failed to generate qr code")
 )
 
 /*
@@ -31,7 +32,7 @@ var (
 	ErrDeleteLocationDB                 = errors.New("failed to delete location using db")
 	ErrDeleteLocationItemByLocationIDDB = errors.New("failed to delete location items by location id using db")
 	ErrCreateRoomDB                     = errors.New("failed to create room using db")
-	ErrGetRoomDB                        = errors.New("failed to get room using db")
+	ErrGetLocationByIDDB                = errors.New("failed to get location by id using db")
 	ErrListRoomsDB                      = errors.New("failed to get a list of rooms using db")
 	ErrCreateScheduleDB                 = errors.New("failed to create schedule using db")
 	ErrGetScheduleDB                    = errors.New("failed to get schedule using db")
