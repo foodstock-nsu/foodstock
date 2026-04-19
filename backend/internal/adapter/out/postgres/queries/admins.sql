@@ -23,7 +23,7 @@ INSERT INTO admins (
     @password_hash,
     @created_at
 )
-ON CONFLICT DO UPDATE
+ON CONFLICT (login) DO UPDATE
 SET password_hash = EXCLUDED.password_hash;
 
 -- name: GetAdminByID :one

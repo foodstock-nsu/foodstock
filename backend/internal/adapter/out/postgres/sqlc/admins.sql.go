@@ -98,7 +98,7 @@ INSERT INTO admins (
     $3,
     $4
 )
-ON CONFLICT DO UPDATE
+ON CONFLICT (login) DO UPDATE
 SET password_hash = EXCLUDED.password_hash
 `
 

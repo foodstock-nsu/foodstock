@@ -32,6 +32,25 @@ func TestMapAdminToSQLCCreate(t *testing.T) {
 	assert.Equal(t, admin.CreatedAt(), mapped.CreatedAt.Time)
 }
 
+func TestMapAdminToSQLCUpsert(t *testing.T) {
+	admin := model.RestoreAdmin(
+		uuid.New(),
+		"admin",
+		"hash",
+		time.Now().UTC(),
+	)
+
+	mapped := mapper.MapAdminToSQLCUpsert(admin)
+
+	require.True(t, mapped.ID.Valid)
+	require.True(t, mapped.CreatedAt.Valid)
+
+	assert.Equal(t, [16]byte(admin.ID()), mapped.ID.Bytes)
+	assert.Equal(t, admin.Login(), mapped.Login)
+	assert.Equal(t, admin.PasswordHash(), mapped.PasswordHash)
+	assert.Equal(t, admin.CreatedAt(), mapped.CreatedAt.Time)
+}
+
 func TestMapSQLCToAdmin(t *testing.T) {
 	raw := sqlc.Admin{
 		ID: pgtype.UUID{

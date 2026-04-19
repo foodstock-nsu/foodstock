@@ -23,6 +23,22 @@ func MapAdminToSQLCCreate(admin *model.Admin) sqlc.CreateAdminParams {
 	}
 }
 
+func MapAdminToSQLCUpsert(admin *model.Admin) sqlc.UpsertAdminParams {
+	return sqlc.UpsertAdminParams{
+		ID: pgtype.UUID{
+			Bytes: admin.ID(),
+			Valid: true,
+		},
+		Login:        admin.Login(),
+		PasswordHash: admin.PasswordHash(),
+		CreatedAt: pgtype.Timestamptz{
+			Time:             admin.CreatedAt(),
+			InfinityModifier: 0,
+			Valid:            true,
+		},
+	}
+}
+
 func MapSQLCToAdmin(raw sqlc.Admin) *model.Admin {
 	return model.RestoreAdmin(
 		raw.ID.Bytes,
