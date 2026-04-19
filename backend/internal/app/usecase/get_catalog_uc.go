@@ -42,11 +42,16 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 		return dto.GetCatalogOutput{}, nil
 	}
 
+	itemIDs := make([]uuid.UUID, len(inventory))
+	for i, invItem := range inventory {
+		itemIDs[i] = invItem.ItemID()
+	}
+
 	// Get a list of all items
-	allItems, err := uc.item.List(ctx)
+	allItems, err := uc.item.ListByIDs(ctx, itemIDs)
 	if err != nil {
 		return dto.GetCatalogOutput{}, ucerrs.Wrap(
-			ucerrs.ErrListItemsDB, err,
+			ucerrs.ErrListItemsByIDsDB, err,
 		)
 	}
 

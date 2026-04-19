@@ -110,7 +110,7 @@ func (q *Queries) GetItem(ctx context.Context, db DBTX, id pgtype.UUID) (Item, e
 	return i, err
 }
 
-const listItems = `-- name: ListItems :many
+const listAllItems = `-- name: ListAllItems :many
 SELECT
     id,
     name,
@@ -123,10 +123,64 @@ SELECT
     carbs,
     created_at
 FROM items
+LIMIT $1
+OFFSET $2
 `
 
-func (q *Queries) ListItems(ctx context.Context, db DBTX) ([]Item, error) {
-	rows, err := db.Query(ctx, listItems)
+type ListAllItemsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListAllItems(ctx context.Context, db DBTX, arg ListAllItemsParams) ([]Item, error) {
+	rows, err := db.Query(ctx, listAllItems, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Item
+	for rows.Next() {
+		var i Item
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Category,
+			&i.PhotoUrl,
+			&i.Calories,
+			&i.Proteins,
+			&i.Fats,
+			&i.Carbs,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listItemsByIDs = `-- name: ListItemsByIDs :many
+SELECT
+    id,
+    name,
+    description,
+    category,
+    photo_url,
+    calories,
+    proteins,
+    fats,
+    carbs,
+    created_at
+FROM items
+WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) ListItemsByIDs(ctx context.Context, db DBTX, ids []pgtype.UUID) ([]Item, error) {
+	rows, err := db.Query(ctx, listItemsByIDs, ids)
 	if err != nil {
 		return nil, err
 	}

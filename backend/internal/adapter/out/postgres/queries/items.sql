@@ -55,7 +55,7 @@ WHERE id = @id;
 DELETE FROM items
 WHERE id = @id;
 
--- name: ListItems :many
+-- name: ListAllItems :many
 SELECT
     id,
     name,
@@ -67,4 +67,21 @@ SELECT
     fats,
     carbs,
     created_at
-FROM items;
+FROM items
+LIMIT $1
+OFFSET $2;
+
+-- name: ListItemsByIDs :many
+SELECT
+    id,
+    name,
+    description,
+    category,
+    photo_url,
+    calories,
+    proteins,
+    fats,
+    carbs,
+    created_at
+FROM items
+WHERE id = ANY(@ids::uuid[]);

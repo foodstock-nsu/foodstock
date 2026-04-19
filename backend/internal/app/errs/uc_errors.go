@@ -40,7 +40,7 @@ var (
 	ErrCreateBookingDB       = errors.New("failed to create booking using db")
 	ErrGetBookingDB          = errors.New("failed to get booking using db")
 	ErrUpdateBookingStatusDB = errors.New("failed to update booking status using db")
-	ErrListItemsDB           = errors.New("failed to get a list of items using db")
+	ErrListItemsByIDsDB      = errors.New("failed to get a list of items by ids using db")
 	ErrListMyBookingsDB      = errors.New("failed to get a list of bookings by user id using db")
 
 	ErrRoomNotFound     = errors.New("room not found")
