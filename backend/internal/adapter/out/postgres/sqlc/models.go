@@ -143,6 +143,13 @@ func (ns NullTransactionStatus) Value() (driver.Value, error) {
 	return string(ns.TransactionStatus), nil
 }
 
+type Admin struct {
+	ID           pgtype.UUID
+	Login        string
+	PasswordHash string
+	CreatedAt    pgtype.Timestamptz
+}
+
 type Item struct {
 	ID          pgtype.UUID
 	Name        string
