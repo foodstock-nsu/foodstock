@@ -67,6 +67,4 @@ SELECT
     fats,
     carbs,
     created_at
-FROM items
-LIMIT $1
-OFFSET $2;
+FROM items;

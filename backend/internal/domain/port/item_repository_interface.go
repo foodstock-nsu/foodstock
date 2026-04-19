@@ -12,5 +12,5 @@ type ItemRepository interface {
 	Get(ctx context.Context, id uuid.UUID) (*model.Item, error)
 	Update(ctx context.Context, item *model.Item) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, limit, offset int) ([]*model.Item, error)
+	List(ctx context.Context) ([]*model.Item, error)
 }
