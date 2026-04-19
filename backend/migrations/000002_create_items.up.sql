@@ -4,7 +4,7 @@ CREATE TYPE item_category AS ENUM(
 );
 
 CREATE TABLE items (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,           
     description TEXT,           
     category item_category NOT NULL,   
