@@ -10,6 +10,7 @@ import (
 	"backend/internal/adapter/out/postgres"
 	"backend/internal/domain/model"
 	"backend/internal/infrastructure/password" // Твой BcryptHasher
+
 	"github.com/google/uuid"
 )
 

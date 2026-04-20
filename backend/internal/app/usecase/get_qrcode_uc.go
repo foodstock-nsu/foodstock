@@ -12,6 +12,17 @@ type GetQRCodeUC struct {
 	qrcode   port.QRCodeGenerator
 }
 
+func NewGetQRCodeUC(
+	location port.LocationRepository,
+	qrcode port.QRCodeGenerator,
+) *GetQRCodeUC {
+	return &GetQRCodeUC{
+		location: location,
+		qrcode:   qrcode,
+	}
+
+}
+
 func (uc *GetQRCodeUC) Execute(ctx context.Context, in dto.GetQRCodeInput) (dto.GetQRCodeOutput, error) {
 	// Get a location by id
 	location, err := uc.location.GetByID(ctx, in.LocationID)
