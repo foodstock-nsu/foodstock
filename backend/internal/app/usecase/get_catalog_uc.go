@@ -79,7 +79,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 		// Add the category of the item if it's not there yet
 		var found bool
 		for _, category := range categories {
-			if item.Category().String() == string(category) {
+			if item.Category().String() == category {
 				found = true
 				break
 			}

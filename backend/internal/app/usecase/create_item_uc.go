@@ -26,6 +26,7 @@ func NewCreateItemUC(
 ) *CreateItemUC {
 	return &CreateItemUC{
 		trManager:    trManager,
+		location:     location,
 		item:         item,
 		locationItem: locationItem,
 	}
@@ -33,14 +34,22 @@ func NewCreateItemUC(
 
 func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dto.CreateItemOutput, error) {
 	// Create rich model for item with validation
-	nutrition, err := model.NewNutrition(
-		in.Nutrition.Calories,
-		in.Nutrition.Proteins,
-		in.Nutrition.Fats,
-		in.Nutrition.Carbs,
+	var (
+		nutrition *model.Nutrition
+		err       error
 	)
-	if err != nil {
-		return dto.CreateItemOutput{}, ucerrs.ErrInvalidInput
+	if in.Nutrition != nil {
+		nutrition, err = model.NewNutrition(
+			in.Nutrition.Calories,
+			in.Nutrition.Proteins,
+			in.Nutrition.Fats,
+			in.Nutrition.Carbs,
+		)
+		if err != nil {
+			return dto.CreateItemOutput{}, ucerrs.ErrInvalidInput
+		}
+	} else {
+		nutrition = nil
 	}
 
 	item, err := model.NewItem(
