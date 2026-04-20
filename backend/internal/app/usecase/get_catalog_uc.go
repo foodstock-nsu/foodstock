@@ -62,7 +62,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 
 	// ========== Make the catalog ==========
 
-	categories := make([]dto.ItemCategory, 0)
+	categories := make([]string, 0)
 	items := make([]dto.CatalogItem, len(inventory))
 
 	for i := range inventory {
@@ -85,7 +85,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 			}
 		}
 		if !found {
-			categories = append(categories, dto.ItemCategory(item.Category()))
+			categories = append(categories, item.Category().String())
 		}
 	}
 

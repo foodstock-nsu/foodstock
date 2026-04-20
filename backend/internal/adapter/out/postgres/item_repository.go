@@ -102,17 +102,10 @@ func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *ItemRepository) ListAll(ctx context.Context, limit, offset int) ([]*model.Item, error) {
+func (r *ItemRepository) ListAll(ctx context.Context) ([]*model.Item, error) {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	rawItems, err := r.q.ListAllItems(
-		ctx,
-		db,
-		sqlc.ListAllItemsParams{
-			Limit:  int32(limit),
-			Offset: int32(offset),
-		},
-	)
+	rawItems, err := r.q.ListAllItems(ctx, db)
 	if err != nil {
 		return nil, err
 	}

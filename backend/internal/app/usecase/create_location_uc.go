@@ -9,10 +9,29 @@ import (
 	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
+
+	"github.com/avito-tech/go-transaction-manager/trm/v2"
 )
 
 type CreateLocationUC struct {
-	location port.LocationRepository
+	trManager    trm.Manager
+	location     port.LocationRepository
+	item         port.ItemRepository
+	locationItem port.LocationItemRepository
+}
+
+func NewCreateLocationUC(
+	trManager trm.Manager,
+	location port.LocationRepository,
+	item port.ItemRepository,
+	locationItem port.LocationItemRepository,
+) *CreateLocationUC {
+	return &CreateLocationUC{
+		trManager:    trManager,
+		location:     location,
+		item:         item,
+		locationItem: locationItem,
+	}
 }
 
 func (uc *CreateLocationUC) Execute(ctx context.Context, in dto.CreateLocationInput) (dto.CreateLocationOutput, error) {
@@ -24,15 +43,44 @@ func (uc *CreateLocationUC) Execute(ctx context.Context, in dto.CreateLocationIn
 		)
 	}
 
-	// Save it into database
-	err = uc.location.Create(ctx, location)
-	if err != nil {
-		if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
-			return dto.CreateLocationOutput{}, ucerrs.ErrLocationAlreadyExists
+	err = uc.trManager.Do(ctx, func(ctx context.Context) error {
+		// Save the location into database
+		err = uc.location.Create(ctx, location)
+		if err != nil {
+			if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
+				return ucerrs.ErrLocationAlreadyExists
+			}
+			return ucerrs.Wrap(ucerrs.ErrCreateLocationDB, err)
 		}
-		return dto.CreateLocationOutput{}, ucerrs.Wrap(
-			ucerrs.ErrCreateLocationDB, err,
-		)
+
+		// Get all items and create catalog for this location
+		items, listErr := uc.item.ListAll(ctx)
+		if listErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrListAllItemsDB, err)
+		}
+
+		for _, item := range items {
+			locationItem, locItemErr := model.NewLocationItem(
+				item.ID(),
+				location.ID(),
+				0,
+				0,
+			)
+			if locItemErr != nil {
+				return ucerrs.ErrInvalidInput
+			}
+
+			createErr := uc.locationItem.Create(ctx, locationItem)
+			if createErr != nil {
+				return ucerrs.Wrap(ucerrs.ErrCreateLocationItemDB, err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return dto.CreateLocationOutput{}, err
 	}
 
 	return dto.CreateLocationOutput{

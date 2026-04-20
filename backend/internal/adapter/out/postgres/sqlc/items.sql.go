@@ -126,17 +126,10 @@ SELECT
     carbs,
     created_at
 FROM items
-LIMIT $1
-OFFSET $2
 `
 
-type ListAllItemsParams struct {
-	Limit  int32
-	Offset int32
-}
-
-func (q *Queries) ListAllItems(ctx context.Context, db DBTX, arg ListAllItemsParams) ([]Item, error) {
-	rows, err := db.Query(ctx, listAllItems, arg.Limit, arg.Offset)
+func (q *Queries) ListAllItems(ctx context.Context, db DBTX) ([]Item, error) {
+	rows, err := db.Query(ctx, listAllItems)
 	if err != nil {
 		return nil, err
 	}
