@@ -5,8 +5,8 @@ import (
 	"backend/internal/domain/model"
 )
 
-func MapDomainToLocationDTO(location *model.Location) dto.Location {
-	return dto.Location{
+func MapDomainToLocationDTO(location *model.Location) dto.LocationOutput {
+	return dto.LocationOutput{
 		ID:        location.ID(),
 		Slug:      location.Slug(),
 		Name:      location.Name(),
@@ -16,20 +16,20 @@ func MapDomainToLocationDTO(location *model.Location) dto.Location {
 	}
 }
 
-func MapDomainToLocationListDTO(locations []*model.Location) []dto.Location {
-	res := make([]dto.Location, len(locations))
+func MapDomainToLocationListDTO(locations []*model.Location) []dto.LocationOutput {
+	res := make([]dto.LocationOutput, len(locations))
 	for i := range res {
 		res[i] = MapDomainToLocationDTO(locations[i])
 	}
 	return res
 }
 
-func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.ItemNutrition {
+func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.NutritionOutput {
 	if nutrition == nil {
 		return nil
 	}
 
-	return &dto.ItemNutrition{
+	return &dto.NutritionOutput{
 		Calories: nutrition.Calories(),
 		Proteins: nutrition.Proteins(),
 		Fats:     nutrition.Fats(),
@@ -37,8 +37,8 @@ func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.ItemNutrition 
 	}
 }
 
-func MapDomainToItemDTO(item *model.Item) dto.Item {
-	return dto.Item{
+func MapDomainToItemDTO(item *model.Item) dto.ItemOutput {
+	return dto.ItemOutput{
 		ID:          item.ID(),
 		Name:        item.Name(),
 		Description: item.Description(),
@@ -48,8 +48,8 @@ func MapDomainToItemDTO(item *model.Item) dto.Item {
 	}
 }
 
-func MapDomainToCatalogItemDTO(locItem *model.LocationItem, item *model.Item) dto.CatalogItem {
-	return dto.CatalogItem{
+func MapDomainToCatalogItemDTO(locItem *model.LocationItem, item *model.Item) dto.CatalogItemOutput {
+	return dto.CatalogItemOutput{
 		ID:          locItem.ID(),
 		Name:        item.Name(),
 		Description: item.Description(),

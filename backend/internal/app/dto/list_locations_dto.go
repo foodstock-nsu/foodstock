@@ -1,5 +1,5 @@
 package dto
 
 type ListLocationsOutput struct {
-	Locations []Location
+	Locations []LocationOutput
 }

@@ -31,7 +31,7 @@ func TestGetQRCodeUC_Execute(t *testing.T) {
 	testID := uuid.New()
 	testLocationOperational, _ := model.NewLocation(
 		"test-slug",
-		"Test Location for mall",
+		"Test LocationOutput for mall",
 		"Brooklyn, st. main Avenue, 2378",
 	)
 	testLocationNonOperational := &model.Location{}

@@ -39,8 +39,6 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 			name: "Success - catalog with multiple items and categories",
 			input: dto.GetCatalogInput{
 				LocationID: testLocationID,
-				Limit:      10,
-				Offset:     0,
 			},
 			mockBehaviour: func(a adapter) {
 				locationItems := []*model.LocationItem{
@@ -83,22 +81,18 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 					),
 				}
 
-				a.locationItem.EXPECT().List(mock.Anything, testLocationID, 10, 0).Return(locationItems, nil)
+				a.locationItem.EXPECT().List(mock.Anything, testLocationID).Return(locationItems, nil)
 				a.item.EXPECT().ListByIDs(mock.Anything, []uuid.UUID{testItemID1, testItemID2}).Return(items, nil)
 			},
 			expectOutput: dto.GetCatalogOutput{
 				Categories: []string{"Lunch", "Breakfast"},
-				Items:      []dto.CatalogItem{{}, {}},
+				Items:      []dto.CatalogItemOutput{{}, {}},
 			},
 			expectErr: nil,
 		},
 		{
-			name: "Success - catalog with items from same category",
-			input: dto.GetCatalogInput{
-				LocationID: testLocationID,
-				Limit:      10,
-				Offset:     0,
-			},
+			name:  "Success - catalog with items from same category",
+			input: dto.GetCatalogInput{LocationID: testLocationID},
 			mockBehaviour: func(a adapter) {
 				locationItems := []*model.LocationItem{
 					model.RestoreLocationItem(
@@ -140,48 +134,36 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 					),
 				}
 
-				a.locationItem.EXPECT().List(mock.Anything, testLocationID, 10, 0).Return(locationItems, nil)
+				a.locationItem.EXPECT().List(mock.Anything, testLocationID).Return(locationItems, nil)
 				a.item.EXPECT().ListByIDs(mock.Anything, []uuid.UUID{testItemID1, testItemID2}).Return(items, nil)
 			},
 			expectOutput: dto.GetCatalogOutput{
 				Categories: []string{"Lunch"},
-				Items:      []dto.CatalogItem{{}, {}},
+				Items:      []dto.CatalogItemOutput{{}, {}},
 			},
 			expectErr: nil,
 		},
 		{
-			name: "Success - empty inventory",
-			input: dto.GetCatalogInput{
-				LocationID: testLocationID,
-				Limit:      10,
-				Offset:     0,
-			},
+			name:  "Success - empty inventory",
+			input: dto.GetCatalogInput{LocationID: testLocationID},
 			mockBehaviour: func(a adapter) {
-				a.locationItem.EXPECT().List(mock.Anything, testLocationID, 10, 0).Return([]*model.LocationItem{}, nil)
+				a.locationItem.EXPECT().List(mock.Anything, testLocationID).Return([]*model.LocationItem{}, nil)
 			},
 			expectOutput: dto.GetCatalogOutput{},
 			expectErr:    nil,
 		},
 		{
-			name: "Failure - list location items db error",
-			input: dto.GetCatalogInput{
-				LocationID: testLocationID,
-				Limit:      10,
-				Offset:     0,
-			},
+			name:  "Failure - list location items db error",
+			input: dto.GetCatalogInput{LocationID: testLocationID},
 			mockBehaviour: func(a adapter) {
-				a.locationItem.EXPECT().List(mock.Anything, testLocationID, 10, 0).Return(nil, errors.New("db error"))
+				a.locationItem.EXPECT().List(mock.Anything, testLocationID).Return(nil, errors.New("db error"))
 			},
 			expectOutput: dto.GetCatalogOutput{},
 			expectErr:    ucerrs.ErrListLocationItemsDB,
 		},
 		{
-			name: "Failure - list items by IDs db error",
-			input: dto.GetCatalogInput{
-				LocationID: testLocationID,
-				Limit:      10,
-				Offset:     0,
-			},
+			name:  "Failure - list items by IDs db error",
+			input: dto.GetCatalogInput{LocationID: testLocationID},
 			mockBehaviour: func(a adapter) {
 				locationItems := []*model.LocationItem{
 					model.RestoreLocationItem(
@@ -194,7 +176,7 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 					),
 				}
 
-				a.locationItem.EXPECT().List(mock.Anything, testLocationID, 10, 0).Return(locationItems, nil)
+				a.locationItem.EXPECT().List(mock.Anything, testLocationID).Return(locationItems, nil)
 				a.item.EXPECT().ListByIDs(mock.Anything, []uuid.UUID{testItemID1}).Return(nil, errors.New("db error"))
 			},
 			expectOutput: dto.GetCatalogOutput{},

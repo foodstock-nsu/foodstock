@@ -137,17 +137,10 @@ SELECT
     stock_amount
 FROM location_items
 WHERE location_id = $1
-LIMIT $2 OFFSET $3
 `
 
-type ListLocationItemsParams struct {
-	LocationID pgtype.UUID
-	Limit      int32
-	Offset     int32
-}
-
-func (q *Queries) ListLocationItems(ctx context.Context, db DBTX, arg ListLocationItemsParams) ([]LocationItem, error) {
-	rows, err := db.Query(ctx, listLocationItems, arg.LocationID, arg.Limit, arg.Offset)
+func (q *Queries) ListLocationItems(ctx context.Context, db DBTX, locationID pgtype.UUID) ([]LocationItem, error) {
+	rows, err := db.Query(ctx, listLocationItems, locationID)
 	if err != nil {
 		return nil, err
 	}

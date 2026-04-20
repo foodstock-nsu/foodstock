@@ -28,9 +28,7 @@ func NewAuthHandler(
 func (h *AuthHandler) AdminAuth(c echo.Context) error {
 	var req httpdto.AdminAuthRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid json",
-		})
+		return h.returnErr(c, "invalid json", err)
 	}
 
 	out, err := h.adminAuthUC.Execute(

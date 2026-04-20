@@ -14,5 +14,5 @@ type LocationItemRepository interface {
 	Update(ctx context.Context, locationItem *model.LocationItem) error
 	DeleteByItemID(ctx context.Context, itemID uuid.UUID) error
 	DeleteByLocationID(ctx context.Context, locationID uuid.UUID) error
-	List(ctx context.Context, locationID uuid.UUID, limit, offset int) ([]*model.LocationItem, error)
+	List(ctx context.Context, locationID uuid.UUID) ([]*model.LocationItem, error)
 }
