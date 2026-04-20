@@ -183,7 +183,13 @@ func (s *ItemRepoSuite) TestDelete() {
 	s.Require().Nil(res)
 }
 
-func (s *ItemRepoSuite) TestList() {
+func (s *ItemRepoSuite) TestDelete_NotFound() {
+	err := s.repo.Delete(s.ctx, uuid.New())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+}
+
+func (s *ItemRepoSuite) TestListAll() {
 	err := s.repo.Create(s.ctx, s.testItem)
 	s.Require().NoError(err)
 
@@ -205,12 +211,47 @@ func (s *ItemRepoSuite) TestList() {
 	err = s.repo.Create(s.ctx, item2)
 	s.Require().NoError(err)
 
-	items, err := s.repo.List(s.ctx, 10, 0)
+	items, err := s.repo.ListAll(s.ctx)
+	s.Require().NoError(err)
+	s.Require().Len(items, 2)
+}
+
+func (s *ItemRepoSuite) TestListByIDs() {
+	err := s.repo.Create(s.ctx, s.testItem)
+	s.Require().NoError(err)
+
+	// Second item
+	desc2 := "Another description"
+	item2 := model.RestoreItem(
+		uuid.New(),
+		"Item 2",
+		&desc2,
+		model.ItemDrinks,
+		"https://example.com/photo.jpg",
+		model.RestoreNutrition(
+			utils.VPtr(100),
+			utils.VPtr(float64(20)),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(30))),
+		time.Now().UTC(),
+	)
+	err = s.repo.Create(s.ctx, item2)
+	s.Require().NoError(err)
+
+	items, err := s.repo.ListByIDs(
+		s.ctx, []uuid.UUID{s.testItem.ID(), item2.ID()},
+	)
 	s.Require().NoError(err)
 	s.Require().Len(items, 2)
 
-	// Test pagination
-	itemsPaged, err := s.repo.List(s.ctx, 1, 1)
+	// Test if only one specified
+	items, err = s.repo.ListByIDs(s.ctx, []uuid.UUID{item2.ID()})
 	s.Require().NoError(err)
-	s.Require().Len(itemsPaged, 1)
+	s.Require().Len(items, 1)
+
+	// Test if no single id is specified
+	items, err = s.repo.ListByIDs(s.ctx, nil)
+	s.Require().NoError(err)
+	s.Require().Nil(items)
+
 }

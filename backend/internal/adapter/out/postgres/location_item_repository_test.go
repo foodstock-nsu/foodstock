@@ -218,11 +218,24 @@ func (s *LocationItemRepoSuite) TestUpdate() {
 	s.Require().True(res.IsAvailable())
 }
 
-func (s *LocationItemRepoSuite) TestDelete() {
+func (s *LocationItemRepoSuite) TestDeleteByItemID() {
 	err := s.repo.Create(s.ctx, s.testLocItem)
 	s.Require().NoError(err)
 
-	err = s.repo.Delete(s.ctx, s.testLocItem.ID())
+	err = s.repo.DeleteByItemID(s.ctx, s.testLocItem.ItemID())
+	s.Require().NoError(err)
+
+	res, err := s.repo.GetByID(s.ctx, s.testLocItem.ID())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+	s.Require().Nil(res)
+}
+
+func (s *LocationItemRepoSuite) TestDeleteByLocationID() {
+	err := s.repo.Create(s.ctx, s.testLocItem)
+	s.Require().NoError(err)
+
+	err = s.repo.DeleteByLocationID(s.ctx, s.testLocItem.LocationID())
 	s.Require().NoError(err)
 
 	res, err := s.repo.GetByID(s.ctx, s.testLocItem.ID())

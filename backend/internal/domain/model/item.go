@@ -77,12 +77,12 @@ func RestoreNutrition(calories *int, proteins, fats, carbs *float64) *Nutrition 
 	}
 }
 
-func (n Nutrition) Calories() *int     { return n.calories }
-func (n Nutrition) Proteins() *float64 { return n.proteins }
-func (n Nutrition) Fats() *float64     { return n.fats }
-func (n Nutrition) Carbs() *float64    { return n.carbs }
+func (n *Nutrition) Calories() *int     { return n.calories }
+func (n *Nutrition) Proteins() *float64 { return n.proteins }
+func (n *Nutrition) Fats() *float64     { return n.fats }
+func (n *Nutrition) Carbs() *float64    { return n.carbs }
 
-func (n Nutrition) Update(calories *int, proteins, fats, carbs *float64) error {
+func (n *Nutrition) Update(calories *int, proteins, fats, carbs *float64) error {
 	if calories != nil && *calories < 0 {
 		return pkgerrs.NewValueInvalidError("calories")
 	}

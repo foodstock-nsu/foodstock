@@ -3,7 +3,6 @@ package qrcode
 import (
 	"fmt"
 
-	"github.com/google/uuid"
 	goqrcode "github.com/skip2/go-qrcode"
 )
 
@@ -22,8 +21,8 @@ func NewGenerator(baseURL string, size int) *Generator {
 	}
 }
 
-func (g *Generator) Generate(locationID uuid.UUID) ([]byte, error) {
-	url := fmt.Sprintf("%s?location_id=%s", g.baseURL, locationID.String())
+func (g *Generator) Generate(slug string) ([]byte, error) {
+	url := fmt.Sprintf("%s/l/%s", g.baseURL, slug)
 
 	png, err := goqrcode.Encode(url, goqrcode.Medium, g.size)
 	if err != nil {

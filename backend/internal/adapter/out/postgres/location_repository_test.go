@@ -199,7 +199,7 @@ func (s *LocationRepoSuite) TestDelete() {
 	// Create the location in advance
 	_ = s.repo.Create(s.ctx, s.testLocation)
 
-	// Delete it
+	// DeleteByItemID it
 	err := s.repo.Delete(s.ctx, s.testLocation.ID())
 	s.Require().NoError(err)
 
@@ -207,6 +207,12 @@ func (s *LocationRepoSuite) TestDelete() {
 	loc, err := s.repo.GetByID(s.ctx, s.testLocation.ID())
 	s.Require().Error(err)
 	s.Require().Nil(loc)
+}
+
+func (s *LocationRepoSuite) TestDelete_NotFound() {
+	// Delete an unexisting location
+	err := s.repo.Delete(s.ctx, uuid.New())
+	s.Require().Error(err)
 }
 
 func (s *LocationRepoSuite) TestList() {

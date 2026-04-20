@@ -96,7 +96,8 @@ func (r *LocationRepository) Update(ctx context.Context, loc *model.Location) er
 
 func (r *LocationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteLocation(
+
+	rowsAffected, err := r.q.DeleteLocation(
 		ctx,
 		db,
 		pgtype.UUID{
@@ -104,6 +105,15 @@ func (r *LocationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			Valid: true,
 		},
 	)
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return pkgerrs.NewObjectNotFoundError("location", id)
+	}
+
+	return nil
 }
 
 func (r *LocationRepository) List(ctx context.Context) ([]*model.Location, error) {

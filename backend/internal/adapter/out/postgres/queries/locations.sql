@@ -46,7 +46,7 @@ SET
     is_active = @is_active
 WHERE id = @id;
 
--- name: DeleteLocation :exec
+-- name: DeleteLocation :execrows
 DELETE FROM locations
 WHERE id = @id;
 
