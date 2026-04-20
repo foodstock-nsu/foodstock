@@ -2,10 +2,10 @@ package dto
 
 import "github.com/google/uuid"
 
-type GetLocationQRCodeInput struct {
+type GetQRCodeInput struct {
 	LocationID uuid.UUID
 }
 
-type GetLocationQRCodeOutput struct {
+type GetQRCodeOutput struct {
 	QRCode []byte
 }
