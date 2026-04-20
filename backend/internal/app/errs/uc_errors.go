@@ -35,7 +35,8 @@ var (
 	ErrCreateItemDB                     = errors.New("failed to create item using db")
 	ErrGetLocationByIDDB                = errors.New("failed to get location by id using db")
 	ErrListRoomsDB                      = errors.New("failed to get a list of rooms using db")
-	ErrCreateScheduleDB                 = errors.New("failed to create schedule using db")
+	ErrDeleteItemDB                     = errors.New("failed to delete item using db")
+	ErrDeleteLocationItemsByItemIDDB    = errors.New("failed to delete location items by item id using db")
 	ErrGetScheduleDB                    = errors.New("failed to get schedule using db")
 	ErrCreateSlotsDB                    = errors.New("failed to create slots using db")
 	ErrGetSlotDB                        = errors.New("failed to get slot using db")
@@ -47,7 +48,7 @@ var (
 	ErrListLocationsDB                  = errors.New("failed to get a list of locations using db")
 
 	ErrLocationNotFound = errors.New("location not found")
-	ErrScheduleNotFound = errors.New("schedule not found")
+	ErrItemNotFound     = errors.New("item not found")
 	ErrSlotNotFound     = errors.New("slot not found")
 	ErrBookingNotFound  = errors.New("booking not found")
 

@@ -183,6 +183,12 @@ func (s *ItemRepoSuite) TestDelete() {
 	s.Require().Nil(res)
 }
 
+func (s *ItemRepoSuite) TestDelete_NotFound() {
+	err := s.repo.Delete(s.ctx, uuid.New())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+}
+
 func (s *ItemRepoSuite) TestListAll() {
 	err := s.repo.Create(s.ctx, s.testItem)
 	s.Require().NoError(err)

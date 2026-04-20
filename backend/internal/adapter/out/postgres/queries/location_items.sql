@@ -44,9 +44,9 @@ SET
     stock_amount = @stock_amount
 WHERE id = @id;
 
--- name: DeleteLocationItemByID :exec
+-- name: DeleteLocationItemByItemID :exec
 DELETE FROM location_items
-WHERE id = @id;
+WHERE item_id = @item_id;
 
 -- name: DeleteLocationItemsByLocationID :exec
 DELETE FROM location_items

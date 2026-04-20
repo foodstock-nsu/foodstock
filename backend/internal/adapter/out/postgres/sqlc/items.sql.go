@@ -66,14 +66,17 @@ func (q *Queries) CreateItem(ctx context.Context, db DBTX, arg CreateItemParams)
 	return err
 }
 
-const deleteItem = `-- name: DeleteItem :exec
+const deleteItem = `-- name: DeleteItem :execrows
 DELETE FROM items
 WHERE id = $1
 `
 
-func (q *Queries) DeleteItem(ctx context.Context, db DBTX, id pgtype.UUID) error {
-	_, err := db.Exec(ctx, deleteItem, id)
-	return err
+func (q *Queries) DeleteItem(ctx context.Context, db DBTX, id pgtype.UUID) (int64, error) {
+	result, err := db.Exec(ctx, deleteItem, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getItem = `-- name: GetItem :one

@@ -82,7 +82,8 @@ func (r *ItemRepository) Update(ctx context.Context, item *model.Item) error {
 
 func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteItem(
+
+	rowsAffected, err := r.q.DeleteItem(
 		ctx,
 		db,
 		pgtype.UUID{
@@ -90,6 +91,15 @@ func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			Valid: true,
 		},
 	)
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return pkgerrs.NewObjectNotFoundError("item", id)
+	}
+
+	return nil
 }
 
 func (r *ItemRepository) ListAll(ctx context.Context, limit, offset int) ([]*model.Item, error) {

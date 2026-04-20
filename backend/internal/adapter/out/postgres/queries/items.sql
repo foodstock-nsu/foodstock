@@ -51,7 +51,7 @@ SET
     carbs = @carbs
 WHERE id = @id;
 
--- name: DeleteItem :exec
+-- name: DeleteItem :execrows
 DELETE FROM items
 WHERE id = @id;
 
