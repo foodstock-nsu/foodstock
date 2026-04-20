@@ -24,7 +24,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 
 	type testCase struct {
 		name          string
-		input         dto.AdminLoginInput
+		input         dto.AdminAuthInput
 		mockBehaviour func(a adapter)
 		expectErr     error
 	}
@@ -34,7 +34,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 	var tests = []testCase{
 		{
 			name: "Success",
-			input: dto.AdminLoginInput{
+			input: dto.AdminAuthInput{
 				Login:    "admin",
 				Password: "password",
 			},
@@ -47,7 +47,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 		},
 		{
 			name: "Failure - admin not found",
-			input: dto.AdminLoginInput{
+			input: dto.AdminAuthInput{
 				Login:    "unknown",
 				Password: "password",
 			},
@@ -58,7 +58,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 		},
 		{
 			name: "Failure - db error",
-			input: dto.AdminLoginInput{
+			input: dto.AdminAuthInput{
 				Login:    "admin",
 				Password: "password",
 			},
@@ -69,7 +69,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 		},
 		{
 			name: "Failure - invalid password",
-			input: dto.AdminLoginInput{
+			input: dto.AdminAuthInput{
 				Login:    "admin",
 				Password: "wrong",
 			},
@@ -81,7 +81,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 		},
 		{
 			name: "Failure - token generation error",
-			input: dto.AdminLoginInput{
+			input: dto.AdminAuthInput{
 				Login:    "admin",
 				Password: "password",
 			},
@@ -106,7 +106,7 @@ func TestAdminLoginUC_Execute(t *testing.T) {
 				token:    tokenGen,
 			})
 
-			uc := usecase.NewAdminLoginUC(adminRepo, passwordHasher, tokenGen)
+			uc := usecase.NewAdminAuthUC(adminRepo, passwordHasher, tokenGen)
 
 			out, err := uc.Execute(context.Background(), tt.input)
 

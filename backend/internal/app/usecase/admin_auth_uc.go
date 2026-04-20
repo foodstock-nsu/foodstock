@@ -9,48 +9,48 @@ import (
 	"errors"
 )
 
-type AdminLoginUC struct {
+type AdminAuthUC struct {
 	admin    port.AdminRepository
 	password port.PasswordHasher
 	token    port.TokenGenerator
 }
 
-func NewAdminLoginUC(
+func NewAdminAuthUC(
 	admin port.AdminRepository,
 	password port.PasswordHasher,
 	token port.TokenGenerator,
-) *AdminLoginUC {
-	return &AdminLoginUC{
+) *AdminAuthUC {
+	return &AdminAuthUC{
 		admin:    admin,
 		password: password,
 		token:    token,
 	}
 }
 
-func (uc *AdminLoginUC) Execute(ctx context.Context, in dto.AdminLoginInput) (dto.AdminLoginOutput, error) {
+func (uc *AdminAuthUC) Execute(ctx context.Context, in dto.AdminAuthInput) (dto.AdminAuthOutput, error) {
 	// Find the admin
 	admin, err := uc.admin.GetByLogin(ctx, in.Login)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
-			return dto.AdminLoginOutput{}, ucerrs.ErrInvalidCredentials
+			return dto.AdminAuthOutput{}, ucerrs.ErrInvalidCredentials
 		}
-		return dto.AdminLoginOutput{}, ucerrs.Wrap(
+		return dto.AdminAuthOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGetAdminByLoginDB, err,
 		)
 	}
 
 	// Validate password
 	if !uc.password.Compare(admin.PasswordHash(), in.Password) {
-		return dto.AdminLoginOutput{}, ucerrs.ErrInvalidCredentials
+		return dto.AdminAuthOutput{}, ucerrs.ErrInvalidCredentials
 	}
 
 	// Generate the JWT token
 	token, err := uc.token.Generate(admin.ID())
 	if err != nil {
-		return dto.AdminLoginOutput{}, ucerrs.Wrap(
+		return dto.AdminAuthOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGenerateToken, err,
 		)
 	}
 
-	return dto.AdminLoginOutput{Token: token}, nil
+	return dto.AdminAuthOutput{Token: token}, nil
 }

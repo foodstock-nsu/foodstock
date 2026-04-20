@@ -1,10 +1,10 @@
 package dto
 
-type AdminLoginInput struct {
+type AdminAuthInput struct {
 	Login    string
 	Password string
 }
 
-type AdminLoginOutput struct {
+type AdminAuthOutput struct {
 	Token string
 }

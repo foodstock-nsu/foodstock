@@ -46,7 +46,9 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 			in.Nutrition.Carbs,
 		)
 		if err != nil {
-			return dto.CreateItemOutput{}, ucerrs.ErrInvalidInput
+			return dto.CreateItemOutput{}, ucerrs.Wrap(
+				ucerrs.ErrInvalidInput, err,
+			)
 		}
 	} else {
 		nutrition = nil
@@ -60,7 +62,9 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 		nutrition,
 	)
 	if err != nil {
-		return dto.CreateItemOutput{}, ucerrs.ErrInvalidInput
+		return dto.CreateItemOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, err,
+		)
 	}
 
 	err = uc.trManager.Do(ctx, func(ctx context.Context) error {
@@ -85,7 +89,9 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 				0,
 			)
 			if locItemErr != nil {
-				return ucerrs.ErrInvalidInput
+				return ucerrs.Wrap(
+					ucerrs.ErrInvalidInput, locItemErr,
+				)
 			}
 
 			createErr := uc.locationItem.Create(ctx, locationItem)
