@@ -15,8 +15,6 @@ type Location struct {
 	CreatedAt time.Time
 }
 
-type ItemCategory string
-
 type ItemNutrition struct {
 	Calories *int
 	Proteins *float64
@@ -28,7 +26,7 @@ type Item struct {
 	ID          uuid.UUID
 	Name        string
 	Description *string
-	Category    ItemCategory
+	Category    string
 	PhotoURL    string
 	Nutrition   *ItemNutrition
 }
@@ -37,7 +35,7 @@ type CatalogItem struct {
 	ID          uuid.UUID // here is a location item id, not an item id
 	Name        string
 	Description *string
-	Category    ItemCategory
+	Category    string
 	PhotoURL    string
 	Nutrition   *ItemNutrition
 	Price       int64

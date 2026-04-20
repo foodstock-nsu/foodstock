@@ -9,6 +9,6 @@ type GetCatalogInput struct {
 }
 
 type GetCatalogOutput struct {
-	Categories []ItemCategory
+	Categories []string
 	Items      []CatalogItem
 }

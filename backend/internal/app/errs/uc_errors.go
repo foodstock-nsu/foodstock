@@ -32,7 +32,7 @@ var (
 	ErrGetAdminByLoginDB                = errors.New("failed to get admin by login using db")
 	ErrDeleteLocationDB                 = errors.New("failed to delete location using db")
 	ErrDeleteLocationItemByLocationIDDB = errors.New("failed to delete location items by location id using db")
-	ErrCreateRoomDB                     = errors.New("failed to create room using db")
+	ErrCreateItemDB                     = errors.New("failed to create item using db")
 	ErrGetLocationByIDDB                = errors.New("failed to get location by id using db")
 	ErrListRoomsDB                      = errors.New("failed to get a list of rooms using db")
 	ErrCreateScheduleDB                 = errors.New("failed to create schedule using db")
