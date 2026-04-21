@@ -1,4 +1,4 @@
-CREATE TABLE location_items (
+CREATE TABLE IF NOT EXISTS location_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     item_id UUID REFERENCES items(id),
     location_id UUID REFERENCES locations(id),       

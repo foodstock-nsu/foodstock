@@ -48,7 +48,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
+				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
 			},
 			expectErr: nil,
 		},
@@ -70,7 +70,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 				// Деактивируем локацию, чтобы можно было активировать
 				_ = testLocation.Deactivate()
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
+				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
 			},
 			expectErr: nil,
 		},
@@ -90,7 +90,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
+				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
 			},
 			expectErr: nil,
 		},
@@ -186,7 +186,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(errors.New("db error"))
+				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrUpdateLocationDB,
 		},

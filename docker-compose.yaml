@@ -31,18 +31,20 @@ services:
       foodstock-db:
         condition: service_healthy
 
-#  meeting-rooms-server:
-#    build: .
-#    container_name: meeting-rooms-server
-#    depends_on:
-#      meeting-rooms-migrations:
-#        condition: service_completed_successfully
-#    env_file:
-#      - .env
-#    environment:
-#      - DB_HOST=meeting-rooms-db
-#    ports:
-#      - "8080:8080"
+  foodstock-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: foodstock-server
+    depends_on:
+      foodstock-migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=foodstock-db
+    ports:
+      - "${HTTP_PORT}:8080"
 
 volumes:
   foodstock_db_data:
