@@ -68,7 +68,7 @@ export default defineNuxtConfig({
   openFetch: {
     clients: {
       api: {
-        schema: "../openapi.yaml",
+        schema: "../docs/api/openapi.yaml",
       },
     },
   },
