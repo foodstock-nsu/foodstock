@@ -1,6 +1,6 @@
-CREATE TYPE transaction_status AS ENUM('PENDING', 'SUCCESS', 'FAILED'); 
+CREATE TYPE transaction_status AS ENUM('PENDING', 'SUCCESS', 'FAILED');
 
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID REFERENCES orders(id),           
     sbp_transaction_id TEXT NOT NULL,           

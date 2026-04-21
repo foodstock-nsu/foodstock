@@ -98,10 +98,9 @@ func (r *AdminRepository) GetByLogin(ctx context.Context, login string) (*model.
 func (r *AdminRepository) EnsureAdmin(ctx context.Context, login string, passwordHash string) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	// Генерируем детерминированный UUID на основе логина
-	// Это гарантирует, что один и тот же логин всегда будет иметь один и тот же ID
-	adminNamespace := uuid.MustParse("00000000-0000-0000-0000-000000000001") // Можно взять любой случайный валидный UUID как базу
-	id := uuid.NewHash(uuid.NameSpaceDNS, adminNamespace[:], []byte(login), 5)
+	adminNamespace := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+
+	id := uuid.NewSHA1(adminNamespace, []byte(login))
 
 	params := sqlc.UpsertAdminParams{
 		ID:           pgtype.UUID{Bytes: id, Valid: true},

@@ -3,7 +3,7 @@ CREATE TYPE item_category AS ENUM(
     'snacks','desserts','other'
 );
 
-CREATE TABLE items (
+CREATE TABLE IF NOT EXISTS items  (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,           
     description TEXT,           

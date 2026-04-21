@@ -53,7 +53,7 @@ func TestCreateItemUC_Execute(t *testing.T) {
 			name:  "Success",
 			input: validInput,
 			mockBehaviour: func(a adapter) {
-				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.ItemOutput")).Return(nil)
+				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Item")).Return(nil)
 				a.location.EXPECT().List(mock.Anything).Return([]*model.Location{testLocation}, nil)
 				a.locationItem.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationItem")).Return(nil)
 			},
@@ -71,7 +71,7 @@ func TestCreateItemUC_Execute(t *testing.T) {
 			name:  "Failure - item create db error",
 			input: validInput,
 			mockBehaviour: func(a adapter) {
-				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.ItemOutput")).Return(errors.New("db error"))
+				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Item")).Return(errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrCreateItemDB,
 		},
@@ -79,7 +79,7 @@ func TestCreateItemUC_Execute(t *testing.T) {
 			name:  "Failure - list locations db error",
 			input: validInput,
 			mockBehaviour: func(a adapter) {
-				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.ItemOutput")).Return(nil)
+				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Item")).Return(nil)
 				a.location.EXPECT().List(mock.Anything).Return(nil, errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrListLocationsDB,
@@ -88,7 +88,7 @@ func TestCreateItemUC_Execute(t *testing.T) {
 			name:  "Failure - create location item db error",
 			input: validInput,
 			mockBehaviour: func(a adapter) {
-				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.ItemOutput")).Return(nil)
+				a.item.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Item")).Return(nil)
 				a.location.EXPECT().List(mock.Anything).Return([]*model.Location{testLocation}, nil)
 				a.locationItem.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationItem")).Return(errors.New("db error"))
 			},

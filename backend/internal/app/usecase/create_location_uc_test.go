@@ -52,7 +52,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
 				a.item.EXPECT().ListAll(mock.Anything).Return([]*model.Item{testItem}, nil)
 				a.locationItem.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationItem")).Return(nil)
 			},
@@ -76,7 +76,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(pkgerrs.ErrObjectAlreadyExists)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(pkgerrs.ErrObjectAlreadyExists)
 			},
 			expectErr: ucerrs.ErrLocationAlreadyExists,
 		},
@@ -88,7 +88,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(errors.New("db error"))
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrCreateLocationDB,
 		},
@@ -100,7 +100,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
 				a.item.EXPECT().ListAll(mock.Anything).Return(nil, errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrListAllItemsDB,
