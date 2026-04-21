@@ -39,7 +39,7 @@ func (h *AuthHandler) AdminAuth(c echo.Context) error {
 		return h.returnErr(c, "failed to auth admin", err)
 	}
 
-	return c.JSON(http.StatusOK, mapper.MapAdminAuthToResponse(out))
+	return c.JSON(http.StatusOK, mapper.MapOutputToAdminAuth(out))
 }
 
 func (h *AuthHandler) returnErr(c echo.Context, msg string, err error) error {

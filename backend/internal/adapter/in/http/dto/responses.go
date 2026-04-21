@@ -1,7 +1,12 @@
 package dto
 
-type AdminAuthResponse struct {
-	Token string `json:"token"`
+type LocationResponse struct {
+	ID        string `json:"id"`
+	Slug      string `json:"slug"`
+	Name      string `json:"name"`
+	Address   string `json:"address"`
+	IsActive  bool   `json:"is_active"`
+	CreatedAt string `json:"created_at"`
 }
 
 type NutritionResponse struct {
@@ -23,7 +28,23 @@ type CatalogItemResponse struct {
 	StockAmount int                `json:"stock_amount"`
 }
 
+type AdminAuthResponse struct {
+	Token string `json:"token"`
+}
+
 type GetCatalogResponse struct {
 	Categories []string              `json:"categories"`
 	Items      []CatalogItemResponse `json:"items"`
+}
+
+type CreateLocationResponse struct {
+	Location LocationResponse `json:"location"`
+}
+
+type UpdateLocationResponse struct {
+	Location LocationResponse `json:"location"`
+}
+
+type ListLocationsResponse struct {
+	Locations []LocationResponse `json:"locations"`
 }

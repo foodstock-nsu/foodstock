@@ -39,7 +39,7 @@ func (h *ClientHandler) GetCatalog(c echo.Context) error {
 		return h.returnErr(c, "failed to get catalog", err)
 	}
 
-	return c.JSON(http.StatusOK, mapper.MapResponseToGetCatalog(out))
+	return c.JSON(http.StatusOK, mapper.MapOutputToGetCatalog(out))
 }
 
 func (h *ClientHandler) returnErr(c echo.Context, msg string, err error) error {

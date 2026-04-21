@@ -8,3 +8,25 @@ type AdminAuthRequest struct {
 type GetCatalogRequest struct {
 	LocationID string `query:"location_id"`
 }
+
+type CreateLocationRequest struct {
+	Slug    string `json:"slug"`
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
+type UpdateLocationRequest struct {
+	ID       string  `query:"id"`
+	Slug     *string `json:"slug"`
+	Name     *string `json:"name"`
+	Address  *string `json:"address"`
+	IsActive *bool   `json:"is_active"`
+}
+
+type DeleteLocationRequest struct {
+	ID string `query:"id"`
+}
+
+type GetQRCodeRequest struct {
+	ID string `query:"id"`
+}
