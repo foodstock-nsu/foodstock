@@ -10,20 +10,20 @@ import (
 )
 
 type Router struct {
-	jwtGen   *jwtinfra.Generator
+	tokenGen *jwtinfra.Generator
 	Auth     *AuthHandler
 	Client   *ClientHandler
 	Location *LocationHandler
 }
 
 func NewRouter(
-	jwtGen *jwtinfra.Generator,
+	tokenGen *jwtinfra.Generator,
 	auth *AuthHandler,
 	client *ClientHandler,
 	location *LocationHandler,
 ) *Router {
 	return &Router{
-		jwtGen:   jwtGen,
+		tokenGen: tokenGen,
 		Auth:     auth,
 		Client:   client,
 		Location: location,
@@ -53,7 +53,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		}
 
 		adminLocations := admin.Group("/locations")
-		adminLocations.Use(r.withAuth(r.jwtGen))
+		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
 			adminLocations.POST("", r.Location.Create)
 			adminLocations.PUT("/:id", r.Location.Update)

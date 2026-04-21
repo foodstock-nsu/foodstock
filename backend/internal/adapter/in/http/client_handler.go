@@ -12,12 +12,12 @@ import (
 
 type ClientHandler struct {
 	log          *slog.Logger
-	getCatalogUC usecase.GetCatalogUC
+	getCatalogUC *usecase.GetCatalogUC
 }
 
 func NewClientHandler(
 	log *slog.Logger,
-	getCatalogUC usecase.GetCatalogUC,
+	getCatalogUC *usecase.GetCatalogUC,
 ) *ClientHandler {
 	return &ClientHandler{
 		log:          log,

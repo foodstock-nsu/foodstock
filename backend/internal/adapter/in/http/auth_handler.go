@@ -12,12 +12,12 @@ import (
 
 type AuthHandler struct {
 	log         *slog.Logger
-	adminAuthUC usecase.AdminAuthUC
+	adminAuthUC *usecase.AdminAuthUC
 }
 
 func NewAuthHandler(
 	log *slog.Logger,
-	adminAuthUC usecase.AdminAuthUC,
+	adminAuthUC *usecase.AdminAuthUC,
 ) *AuthHandler {
 	return &AuthHandler{
 		log:         log,

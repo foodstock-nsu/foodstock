@@ -12,20 +12,20 @@ import (
 
 type LocationHandler struct {
 	log              *slog.Logger
-	createLocationUC usecase.CreateLocationUC
-	updateLocationUC usecase.UpdateLocationUC
-	deleteLocationUC usecase.DeleteLocationUC
-	listLocationsUC  usecase.ListLocationsUC
-	getQRCodeUC      usecase.GetQRCodeUC
+	createLocationUC *usecase.CreateLocationUC
+	updateLocationUC *usecase.UpdateLocationUC
+	deleteLocationUC *usecase.DeleteLocationUC
+	listLocationsUC  *usecase.ListLocationsUC
+	getQRCodeUC      *usecase.GetQRCodeUC
 }
 
-func NewAdminLocationHandler(
+func NewLocationHandler(
 	log *slog.Logger,
-	createLocationUC usecase.CreateLocationUC,
-	updateLocationUC usecase.UpdateLocationUC,
-	deleteLocationUC usecase.DeleteLocationUC,
-	listLocationsUC usecase.ListLocationsUC,
-	getQRCodeUC usecase.GetQRCodeUC,
+	createLocationUC *usecase.CreateLocationUC,
+	updateLocationUC *usecase.UpdateLocationUC,
+	deleteLocationUC *usecase.DeleteLocationUC,
+	listLocationsUC *usecase.ListLocationsUC,
+	getQRCodeUC *usecase.GetQRCodeUC,
 ) *LocationHandler {
 	return &LocationHandler{
 		log:              log,
