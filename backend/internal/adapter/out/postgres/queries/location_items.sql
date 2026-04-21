@@ -61,5 +61,4 @@ SELECT
     is_available,
     stock_amount
 FROM location_items
-WHERE location_id = $1
-LIMIT $2 OFFSET $3;
+WHERE location_id = @location_id;

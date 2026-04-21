@@ -8,6 +8,7 @@ import (
 	pkgpostgres "backend/pkg/postgres"
 	"context"
 	"errors"
+	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/google/uuid"
@@ -92,4 +93,22 @@ func (r *AdminRepository) GetByLogin(ctx context.Context, login string) (*model.
 	}
 
 	return mapper.MapSQLCToAdmin(rawAdmin), nil
+}
+
+func (r *AdminRepository) EnsureAdmin(ctx context.Context, login string, passwordHash string) error {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	// Генерируем детерминированный UUID на основе логина
+	// Это гарантирует, что один и тот же логин всегда будет иметь один и тот же ID
+	adminNamespace := uuid.MustParse("00000000-0000-0000-0000-000000000001") // Можно взять любой случайный валидный UUID как базу
+	id := uuid.NewHash(uuid.NameSpaceDNS, adminNamespace[:], []byte(login), 5)
+
+	params := sqlc.UpsertAdminParams{
+		ID:           pgtype.UUID{Bytes: id, Valid: true},
+		Login:        login,
+		PasswordHash: passwordHash,
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+	}
+
+	return r.q.UpsertAdmin(ctx, db, params)
 }

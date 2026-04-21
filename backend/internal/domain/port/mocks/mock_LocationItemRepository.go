@@ -284,9 +284,9 @@ func (_c *MockLocationItemRepository_GetByLocationAndItem_Call) RunAndReturn(run
 	return _c
 }
 
-// List provides a mock function with given fields: ctx, locationID, limit, offset
-func (_m *MockLocationItemRepository) List(ctx context.Context, locationID uuid.UUID, limit int, offset int) ([]*model.LocationItem, error) {
-	ret := _m.Called(ctx, locationID, limit, offset)
+// List provides a mock function with given fields: ctx, locationID
+func (_m *MockLocationItemRepository) List(ctx context.Context, locationID uuid.UUID) ([]*model.LocationItem, error) {
+	ret := _m.Called(ctx, locationID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
@@ -294,19 +294,19 @@ func (_m *MockLocationItemRepository) List(ctx context.Context, locationID uuid.
 
 	var r0 []*model.LocationItem
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) ([]*model.LocationItem, error)); ok {
-		return rf(ctx, locationID, limit, offset)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]*model.LocationItem, error)); ok {
+		return rf(ctx, locationID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) []*model.LocationItem); ok {
-		r0 = rf(ctx, locationID, limit, offset)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []*model.LocationItem); ok {
+		r0 = rf(ctx, locationID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.LocationItem)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int) error); ok {
-		r1 = rf(ctx, locationID, limit, offset)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, locationID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -322,15 +322,13 @@ type MockLocationItemRepository_List_Call struct {
 // List is a helper method to define mock.On call
 //   - ctx context.Context
 //   - locationID uuid.UUID
-//   - limit int
-//   - offset int
-func (_e *MockLocationItemRepository_Expecter) List(ctx interface{}, locationID interface{}, limit interface{}, offset interface{}) *MockLocationItemRepository_List_Call {
-	return &MockLocationItemRepository_List_Call{Call: _e.mock.On("List", ctx, locationID, limit, offset)}
+func (_e *MockLocationItemRepository_Expecter) List(ctx interface{}, locationID interface{}) *MockLocationItemRepository_List_Call {
+	return &MockLocationItemRepository_List_Call{Call: _e.mock.On("List", ctx, locationID)}
 }
 
-func (_c *MockLocationItemRepository_List_Call) Run(run func(ctx context.Context, locationID uuid.UUID, limit int, offset int)) *MockLocationItemRepository_List_Call {
+func (_c *MockLocationItemRepository_List_Call) Run(run func(ctx context.Context, locationID uuid.UUID)) *MockLocationItemRepository_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -340,7 +338,7 @@ func (_c *MockLocationItemRepository_List_Call) Return(_a0 []*model.LocationItem
 	return _c
 }
 
-func (_c *MockLocationItemRepository_List_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int) ([]*model.LocationItem, error)) *MockLocationItemRepository_List_Call {
+func (_c *MockLocationItemRepository_List_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]*model.LocationItem, error)) *MockLocationItemRepository_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -7,5 +7,5 @@ type CreateLocationInput struct {
 }
 
 type CreateLocationOutput struct {
-	Location Location
+	Location LocationOutput
 }

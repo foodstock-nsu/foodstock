@@ -260,12 +260,7 @@ func (s *LocationItemRepoSuite) TestList() {
 	err = s.repo.Create(s.ctx, item2)
 	s.Require().NoError(err)
 
-	items, err := s.repo.List(s.ctx, s.testLocID, 10, 0)
+	items, err := s.repo.List(s.ctx, s.testLocID)
 	s.Require().NoError(err)
 	s.Require().Len(items, 2)
-
-	// Test pagination
-	itemsPaged, err := s.repo.List(s.ctx, s.testLocID, 1, 1)
-	s.Require().NoError(err)
-	s.Require().Len(itemsPaged, 1)
 }

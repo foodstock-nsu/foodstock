@@ -48,11 +48,11 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Success",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test Location for mall",
+				Name:    "Test LocationOutput for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
 				a.item.EXPECT().ListAll(mock.Anything).Return([]*model.Item{testItem}, nil)
 				a.locationItem.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationItem")).Return(nil)
 			},
@@ -72,11 +72,11 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - location already exists",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test Location for mall",
+				Name:    "Test LocationOutput for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(pkgerrs.ErrObjectAlreadyExists)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(pkgerrs.ErrObjectAlreadyExists)
 			},
 			expectErr: ucerrs.ErrLocationAlreadyExists,
 		},
@@ -84,11 +84,11 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - create location db error",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test Location for mall",
+				Name:    "Test LocationOutput for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(errors.New("db error"))
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrCreateLocationDB,
 		},
@@ -96,11 +96,11 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - list items db error",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test Location for mall",
+				Name:    "Test LocationOutput for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
-				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
+				a.location.EXPECT().Create(mock.Anything, mock.AnythingOfType("*model.LocationOutput")).Return(nil)
 				a.item.EXPECT().ListAll(mock.Anything).Return(nil, errors.New("db error"))
 			},
 			expectErr: ucerrs.ErrListAllItemsDB,

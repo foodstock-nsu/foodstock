@@ -28,10 +28,7 @@ func NewGetCatalogUC(
 
 func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dto.GetCatalogOutput, error) {
 	// Get an inventory for specified location
-	inventory, err := uc.locationItem.List(
-		ctx, in.LocationID,
-		in.Limit, in.Offset,
-	)
+	inventory, err := uc.locationItem.List(ctx, in.LocationID)
 	if err != nil {
 		return dto.GetCatalogOutput{}, ucerrs.Wrap(
 			ucerrs.ErrListLocationItemsDB, err,
@@ -63,7 +60,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 	// ========== Make the catalog ==========
 
 	categories := make([]string, 0)
-	items := make([]dto.CatalogItem, len(inventory))
+	items := make([]dto.CatalogItemOutput, len(inventory))
 
 	for i := range inventory {
 		item, ok := allItemsMap[inventory[i].ItemID()]

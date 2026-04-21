@@ -67,7 +67,9 @@ func (uc *CreateLocationUC) Execute(ctx context.Context, in dto.CreateLocationIn
 				0,
 			)
 			if locItemErr != nil {
-				return ucerrs.ErrInvalidInput
+				return ucerrs.Wrap(
+					ucerrs.ErrInvalidInput, locItemErr,
+				)
 			}
 
 			createErr := uc.locationItem.Create(ctx, locationItem)
