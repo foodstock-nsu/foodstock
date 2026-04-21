@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AdminLocationHandler struct {
+type LocationHandler struct {
 	log              *slog.Logger
 	createLocationUC usecase.CreateLocationUC
 	updateLocationUC usecase.UpdateLocationUC
@@ -26,8 +26,8 @@ func NewAdminLocationHandler(
 	deleteLocationUC usecase.DeleteLocationUC,
 	listLocationsUC usecase.ListLocationsUC,
 	getQRCodeUC usecase.GetQRCodeUC,
-) *AdminLocationHandler {
-	return &AdminLocationHandler{
+) *LocationHandler {
+	return &LocationHandler{
 		log:              log,
 		createLocationUC: createLocationUC,
 		updateLocationUC: updateLocationUC,
@@ -37,7 +37,7 @@ func NewAdminLocationHandler(
 	}
 }
 
-func (h *AdminLocationHandler) CreateLocation(c echo.Context) error {
+func (h *LocationHandler) Create(c echo.Context) error {
 	var req httpdto.CreateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -55,7 +55,7 @@ func (h *AdminLocationHandler) CreateLocation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateLocation(out))
 }
 
-func (h *AdminLocationHandler) UpdateLocation(c echo.Context) error {
+func (h *LocationHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -73,7 +73,7 @@ func (h *AdminLocationHandler) UpdateLocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateLocation(out))
 }
 
-func (h *AdminLocationHandler) DeleteLocation(c echo.Context) error {
+func (h *LocationHandler) Delete(c echo.Context) error {
 	var req httpdto.DeleteLocationRequest
 
 	err := c.Bind(&req)
@@ -92,7 +92,7 @@ func (h *AdminLocationHandler) DeleteLocation(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *AdminLocationHandler) ListLocations(c echo.Context) error {
+func (h *LocationHandler) List(c echo.Context) error {
 	out, err := h.listLocationsUC.Execute(c.Request().Context())
 	if err != nil {
 		return h.returnErr(c, "failed to get a list of locations", err)
@@ -101,7 +101,7 @@ func (h *AdminLocationHandler) ListLocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, mapper.MapOutputToListLocations(out))
 }
 
-func (h *AdminLocationHandler) GetQRCode(c echo.Context) error {
+func (h *LocationHandler) GetQRCode(c echo.Context) error {
 	var req httpdto.GetQRCodeRequest
 
 	if err := c.Bind(&req); err != nil {
@@ -119,7 +119,7 @@ func (h *AdminLocationHandler) GetQRCode(c echo.Context) error {
 	return c.Blob(http.StatusOK, "image/png", out.QRCode)
 }
 
-func (h *AdminLocationHandler) returnErr(c echo.Context, msg string, err error) error {
+func (h *LocationHandler) returnErr(c echo.Context, msg string, err error) error {
 	outErr := mapper.HttpError(err)
 
 	h.log.ErrorContext(c.Request().Context(), msg,

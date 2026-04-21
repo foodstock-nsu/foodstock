@@ -20,7 +20,7 @@ func MapOutputToAdminAuth(out appdto.AdminAuthOutput) httpdto.AdminAuthResponse 
 
 func MapRequestToGetCatalog(req httpdto.GetCatalogRequest) appdto.GetCatalogInput {
 	return appdto.GetCatalogInput{
-		LocationID: uuid.MustParse(req.LocationID),
+		LocationID: uuid.MustParse(req.ID),
 	}
 }
 

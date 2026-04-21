@@ -28,13 +28,13 @@ type CatalogItemResponse struct {
 	StockAmount int                `json:"stock_amount"`
 }
 
-type AdminAuthResponse struct {
-	Token string `json:"token"`
-}
-
 type GetCatalogResponse struct {
 	Categories []string              `json:"categories"`
 	Items      []CatalogItemResponse `json:"items"`
+}
+
+type AdminAuthResponse struct {
+	Token string `json:"token"`
 }
 
 type CreateLocationResponse struct {
