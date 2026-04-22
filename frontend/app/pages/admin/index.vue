@@ -31,7 +31,7 @@ useHead({
 div(class="flex flex-col gap-8")
   section(class="flex flex-col gap-2")
     h1(class="display-lg font-extrabold") Админка
-    p(class="body-md opacity-70") Управление контентом и витриной с локальным mock API.
+    p(class="body-md opacity-70") Управление контентом и витриной через backend API.
 
   admin-nav(current="dashboard")
 

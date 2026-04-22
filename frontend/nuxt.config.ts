@@ -68,7 +68,7 @@ export default defineNuxtConfig({
   openFetch: {
     clients: {
       api: {
-        schema: "../docs/api/openapi.yaml",
+        schema: "../backend/api/openapi.yaml",
       },
     },
   },
@@ -99,7 +99,7 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
       public: {
-        baseUrl: "https://localhost:3151",
+        baseUrl: "http://localhost:8080",
       },
     },
   },

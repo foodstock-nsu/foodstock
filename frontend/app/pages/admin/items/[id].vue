@@ -62,7 +62,7 @@ useHead({
 div(class="flex flex-col gap-8")
   section(class="flex flex-col gap-2")
     h1(class="headline-lg font-bold") {{ isNew ? "Новый товар" : "Редактирование товара" }}
-    p(class="body-md opacity-70") Форма использует локальный mock API и готова к переключению на backend.
+    p(class="body-md opacity-70") Форма использует заглушки до готовности item-endpoints на backend.
 
   admin-nav(current="items")
 

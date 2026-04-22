@@ -1,6 +1,6 @@
 import { createGlobalState, useLocalStorage } from "@vueuse/core"
 
-import { MOCK_ITEMS, MOCK_LOCATIONS } from "~/data/mock"
+import { MOCK_ITEMS } from "~/data/mock"
 import type { AdminCategory, AdminItem, AdminLocation } from "~/types/admin"
 
 const ALL_CATEGORIES = "all"
@@ -12,13 +12,10 @@ function cloneItems(): AdminItem[] {
   }))
 }
 
-function cloneLocations(): AdminLocation[] {
-  return Object.values(MOCK_LOCATIONS).map(location => ({ ...location }))
-}
-
 export const useAdminStore = createGlobalState(() => {
   const items = useLocalStorage<AdminItem[]>("foodstock-admin-items", cloneItems())
-  const locations = useLocalStorage<AdminLocation[]>("foodstock-admin-locations", cloneLocations())
+  const locations = useLocalStorage<AdminLocation[]>("foodstock-admin-locations", [])
+  const isLocationsLoaded = ref(false)
 
   const itemSearch = useLocalStorage("foodstock-admin-item-search", "")
   const itemCategory = useLocalStorage<AdminCategory | typeof ALL_CATEGORIES>("foodstock-admin-item-category", ALL_CATEGORIES)
@@ -73,6 +70,7 @@ export const useAdminStore = createGlobalState(() => {
   return {
     items,
     locations,
+    isLocationsLoaded,
     itemSearch,
     itemCategory,
     locationSearch,

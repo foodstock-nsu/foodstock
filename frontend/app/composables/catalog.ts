@@ -12,17 +12,41 @@ export const CATEGORY_LABELS: Record<string, string> = {
 }
 
 export const useCatalog = (locationId: string) => {
-  // В будущем тут будет:
-  // const { data } = await useApiFetch(`/client/locations/${locationId}/catalog`)
-  // const items = computed(() => data.value?.items ?? [])
+  const config = useRuntimeConfig()
 
-  const items = ref<CatalogItem[]>(MOCK_ITEMS)
+  const items = ref<CatalogItem[]>([])
   const location = ref<Location | null>(MOCK_LOCATIONS[locationId] || null)
   const categories = computed(() => ["Все", ...new Set(items.value.map(item => item.category))])
   const selectedCategory = ref("Все")
   const selectedItem = ref<CatalogItem | null>(null)
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   const filters = reactive<Filters>(cloneFilters(DEFAULT_FILTERS))
+
+  async function loadCatalog() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ items: CatalogItem[] }>(`/api/v1/client/locations/${locationId}/catalog`, {
+        method: "GET",
+        baseURL: config.public.baseUrl || undefined,
+      })
+
+      items.value = response.items || []
+    } catch {
+      // Endpoint каталога может быть временно недоступен в dev-среде.
+      items.value = MOCK_ITEMS
+      error.value = "Каталог временно недоступен, показаны тестовые данные"
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  if (import.meta.client) {
+    void loadCatalog()
+  }
 
   const resetFilters = () => {
     Object.assign(filters, cloneFilters(DEFAULT_FILTERS))
@@ -40,9 +64,12 @@ export const useCatalog = (locationId: string) => {
     categories,
     selectedCategory,
     selectedItem,
+    isLoading,
+    error,
     filters,
     isFiltersActive,
     resetFilters,
     filteredItems,
+    loadCatalog,
   }
 }
