@@ -35,20 +35,25 @@ div(class="flex flex-col gap-8")
 
   admin-nav(current="dashboard")
 
-  section(class="grid grid-cols-1 lg:grid-cols-2 gap-6")
+  section(class="grid grid-cols-1 lg:grid-cols-2 gap-8")
     nuxt-link(
       v-for="card in cards"
       :key="card.title"
       :to="card.to"
-      class="surface-card container-pad flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1"
+      class="surface-card container-pad flex flex-col gap-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group active:scale-[0.98]"
     )
       div(class="flex items-center justify-between")
-        h2(class="headline-md font-bold") {{ card.title }}
-        u-icon(:name="card.icon" class="w-6 h-6 text-primary")
+        h2(class="headline-md font-extrabold") {{ card.title }}
+        div(class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/10 flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-white")
+          u-icon(:name="card.icon" class="w-6 h-6 text-primary group-hover:text-white transition-colors")
 
-      p(class="body-md opacity-70") {{ card.description }}
+      p(class="body-md opacity-60") {{ card.description }}
 
-      div(class="mt-4 flex items-end justify-between")
-        div(class="text-4xl font-extrabold text-primary") {{ card.value }}
-        p(class="text-sm opacity-65") {{ card.helper }}
+      div(class="mt-4 flex items-end justify-between border-t border-gray-100 dark:border-gray-800 pt-6")
+        div(class="flex flex-col")
+          span(class="text-xs uppercase tracking-wider font-bold opacity-40") Всего
+          div(class="text-5xl font-black text-primary") {{ card.value }}
+        div(class="text-right")
+          p(class="text-sm font-bold opacity-60") {{ card.helper }}
+          p(class="text-xs opacity-40 mt-1") Нажмите для управления &rarr;
 </template>

@@ -27,52 +27,45 @@ function onViewQr() {
 </script>
 
 <template lang="pug">
-article(class="surface-card container-pad relative flex flex-col gap-4")
+article(class="surface-card container-pad relative flex flex-col gap-4 transition-all duration-300 hover:shadow-lg")
   div(class="absolute right-4 top-4")
     u-button(
       color="neutral"
-      size="sm"
-      class="h-9 w-9 !p-0 inline-flex items-center justify-center"
+      variant="ghost"
+      class="h-10 w-10 !p-0 inline-flex items-center justify-center rounded-full transition-all duration-300 transform active:scale-90"
       :loading="isQrLoading"
       :disabled="isBusy"
       :title="`Показать QR-код: ${location.name}`"
       @click="onViewQr"
     )
-      svg(
+      u-icon(
         v-if="!isQrLoading"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        class="h-5 w-5"
-        aria-hidden="true"
+        name="i-heroicons-qr-code"
+        class="h-6 w-6"
       )
-        rect(x="3" y="3" width="6" height="6" rx="1")
-        rect(x="15" y="3" width="6" height="6" rx="1")
-        rect(x="3" y="15" width="6" height="6" rx="1")
-        path(d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z")
 
   div(class="flex flex-col gap-1 pr-12")
-    h3(class="headline-md font-bold") {{ location.name }}
-    p(class="body-md opacity-70") {{ location.address }}
-    p(class="text-sm opacity-55") /l/{{ location.slug }}
+    h3(class="headline-md font-extrabold") {{ location.name }}
+    p(class="body-md opacity-60 flex items-center gap-1.5")
+      u-icon(name="i-heroicons-map-pin" class="w-4 h-4")
+      | {{ location.address }}
+    p(class="text-xs font-mono opacity-40") /l/{{ location.slug }}
 
-  div(class="flex flex-wrap items-center justify-between gap-2")
-    u-badge(:color="statusColor" size="md") {{ statusLabel }}
+  div(class="flex flex-wrap items-center justify-between gap-4 mt-2")
+    u-badge(:color="statusColor" size="md" class="px-3") {{ statusLabel }}
 
-    div(class="flex items-center gap-2")
+    div(class="flex items-center gap-3")
       u-button(
         :to="`/admin/locations/${location.id}`"
-        color="neutral"
-        size="md"
+        variant="ghost"
+        class="btn-secondary px-5 py-2 rounded-full transition-all duration-300 transform active:scale-95"
       )
         | Редактировать
 
       u-button(
-        variant="outline"
+        variant="ghost"
         color="error"
-        size="md"
+        class="hover:bg-red-50 dark:hover:bg-red-900/10 px-5 py-2 rounded-full transition-all duration-300 transform active:scale-95"
         :loading="isDeleting"
         :disabled="isBusy"
         @click="onDelete"
