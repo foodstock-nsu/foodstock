@@ -1,0 +1,27 @@
+/* Для размещения иконок в тексте */
+.iconify {
+  vertical-align: middle;
+}
+
+:root {
+  /* Чтобы слишком длинные слова в тексте переносились
+  и не сжимали соседние флекс-элементы с фикс. размерами. */
+  overflow-wrap: break-word;
+}
+
+/* Hide spinners in input(type="number") */
+input.hide-spinners {
+  /* Firefox (TODO: test this) */
+  appearance: textfield;
+}
+
+input.hide-spinners::-webkit-inner-spin-button,
+input.hide-spinners::-webkit-outer-spin-button {
+  /* WebKit browsers */
+  display: none;
+}
+
+#tc-widget-root {
+  /* Костыль: u-modal выключает pointer-events на body, из-за чего TonConnect модалка не кликается. */
+  pointer-events: auto;
+}
