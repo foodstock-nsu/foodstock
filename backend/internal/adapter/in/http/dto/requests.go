@@ -16,7 +16,7 @@ type CreateLocationRequest struct {
 }
 
 type UpdateLocationRequest struct {
-	ID       string  `query:"id"`
+	ID       string  `param:"id"`
 	Slug     *string `json:"slug"`
 	Name     *string `json:"name"`
 	Address  *string `json:"address"`
@@ -24,9 +24,9 @@ type UpdateLocationRequest struct {
 }
 
 type DeleteLocationRequest struct {
-	ID string `query:"id"`
+	ID string `param:"id"`
 }
 
 type GetQRCodeRequest struct {
-	ID string `query:"id"`
+	ID string `param:"id"`
 }

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -41,7 +42,7 @@ func (h *LocationHandler) Create(c echo.Context) error {
 	var req httpdto.CreateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid query", err)
+		return h.returnErr(c, "invalid json", err)
 	}
 
 	out, err := h.createLocationUC.Execute(
@@ -59,7 +60,11 @@ func (h *LocationHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid query or json", err)
+		return h.returnErr(c, "binding failed", err)
+	}
+
+	if _, err := uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
 	}
 
 	out, err := h.updateLocationUC.Execute(
@@ -78,7 +83,11 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "invalid query", err)
+		return h.returnErr(c, "binding failed", err)
+	}
+
+	if _, err = uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
 	}
 
 	err = h.deleteLocationUC.Execute(
@@ -104,8 +113,13 @@ func (h *LocationHandler) List(c echo.Context) error {
 func (h *LocationHandler) GetQRCode(c echo.Context) error {
 	var req httpdto.GetQRCodeRequest
 
-	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid query", err)
+	err := c.Bind(&req)
+	if err != nil {
+		return h.returnErr(c, "binding failed", err)
+	}
+
+	if _, err = uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
 	}
 
 	out, err := h.getQRCodeUC.Execute(
@@ -120,6 +134,10 @@ func (h *LocationHandler) GetQRCode(c echo.Context) error {
 }
 
 func (h *LocationHandler) returnErr(c echo.Context, msg string, err error) error {
+	if err == nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	outErr := mapper.HttpError(err)
 
 	h.log.ErrorContext(c.Request().Context(), msg,
@@ -128,5 +146,5 @@ func (h *LocationHandler) returnErr(c echo.Context, msg string, err error) error
 		slog.Any("cause", outErr.Reason),
 	)
 
-	return c.JSON(outErr.Code, map[string]string{"error": msg})
+	return c.JSON(outErr.Code, mapper.MapErrorToResponse(outErr.Message))
 }

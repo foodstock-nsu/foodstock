@@ -4,10 +4,17 @@ import (
 	ucerrs "backend/internal/app/errs"
 	pkgerrs "backend/pkg/errs"
 	"errors"
+	"fmt"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 func HttpError(err error) *pkgerrs.OutErr {
+	if err == nil {
+		return nil
+	}
+
 	var w *ucerrs.WrappedError
 	if errors.As(err, &w) {
 		switch {
@@ -29,7 +36,7 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrGenerateQRCode):
 			return pkgerrs.NewOutError(
 				http.StatusInternalServerError,
-				w.Public.Error(),
+				"internal error",
 				w.Reason,
 			)
 
@@ -47,6 +54,21 @@ func HttpError(err error) *pkgerrs.OutErr {
 				w.Reason,
 			)
 		}
+	}
+
+	var echoErr *echo.HTTPError
+	if errors.As(err, &echoErr) {
+		msg := fmt.Sprintf("%v", echoErr.Message)
+
+		if echoErr.Code == http.StatusBadRequest {
+			msg = "invalid json"
+		}
+
+		return pkgerrs.NewOutError(
+			echoErr.Code,
+			msg,
+			err,
+		)
 	}
 
 	switch {
@@ -85,6 +107,6 @@ func HttpError(err error) *pkgerrs.OutErr {
 	return pkgerrs.NewOutError(
 		http.StatusInternalServerError,
 		"internal error",
-		w.Reason,
+		nil,
 	)
 }

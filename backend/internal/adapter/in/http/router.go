@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type Router struct {
@@ -36,6 +37,14 @@ func (r *Router) InitRoutes() *echo.Echo {
 	router.Use(middleware.Recover())
 	router.Use(middleware.RequestLogger())
 
+	router.File("/swagger/doc.json", "api/openapi.yaml")
+
+	router.GET("/swagger", func(c echo.Context) error {
+		return c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	})
+
+	router.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	v1 := router.Group("/api/v1")
 	{
 		client := v1.Group("/client")
@@ -61,6 +70,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 			adminLocations.GET("", r.Location.List)
 			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
 		}
+
 	}
 
 	return router

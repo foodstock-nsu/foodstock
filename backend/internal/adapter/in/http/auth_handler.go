@@ -51,5 +51,5 @@ func (h *AuthHandler) returnErr(c echo.Context, msg string, err error) error {
 		slog.Any("cause", outErr.Reason),
 	)
 
-	return c.JSON(outErr.Code, map[string]string{"error": msg})
+	return c.JSON(outErr.Code, mapper.MapErrorToResponse(outErr.Message))
 }

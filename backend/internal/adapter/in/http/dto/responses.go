@@ -1,5 +1,13 @@
 package dto
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type AdminAuthResponse struct {
+	Token string `json:"token"`
+}
+
 type LocationResponse struct {
 	ID        string `json:"id"`
 	Slug      string `json:"slug"`
@@ -31,10 +39,6 @@ type CatalogItemResponse struct {
 type GetCatalogResponse struct {
 	Categories []string              `json:"categories"`
 	Items      []CatalogItemResponse `json:"items"`
-}
-
-type AdminAuthResponse struct {
-	Token string `json:"token"`
 }
 
 type CreateLocationResponse struct {

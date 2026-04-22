@@ -18,5 +18,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/foodstock-api .
 
+COPY --from=builder /app/api/ ./api/
+
 EXPOSE 8080
 CMD ["/app/foodstock-api"]
