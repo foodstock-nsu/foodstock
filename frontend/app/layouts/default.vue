@@ -1,11 +1,12 @@
 <script setup lang="ts">
 const { totalQuantity } = useCartStore()
+const { logout } = useAdminAuth()
 </script>
 
 <template lang="pug">
 div(class="min-h-screen surface-base")
   header(class="sticky top-0 z-50 glass-nav container-pad py-4 flex items-center justify-between shadow-soft")
-    div(class="headline-md font-bold text-primary") Foodstock
+    div(class="headline-md font-bold text-primary" @click="logout") Foodstock
 
   main(class="container-pad")
     slot

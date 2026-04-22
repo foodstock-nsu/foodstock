@@ -75,11 +75,11 @@ div(class="flex flex-col gap-8")
     div(class="grid grid-cols-1 md:grid-cols-2 gap-4")
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Название
-        input(v-model="form.name" class="input-minimal px-4 py-3" required)
+        u-input(v-model="form.name" size="md" required)
 
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Категория
-        select(v-model="form.category" class="input-minimal px-4 py-3")
+        u-select(v-model="form.category" size="md")
           option(value="lunch") lunch
           option(value="breakfast") breakfast
           option(value="drinks") drinks
@@ -88,43 +88,43 @@ div(class="flex flex-col gap-8")
 
       label(class="md:col-span-2 flex flex-col gap-2")
         span(class="text-sm font-semibold") Описание
-        textarea(v-model="form.description" rows="3" class="input-minimal px-4 py-3 resize-y")
+        u-textarea(v-model="form.description" rows="3" size="md" class="resize-y")
 
       label(class="md:col-span-2 flex flex-col gap-2")
         span(class="text-sm font-semibold") Ссылка на фото
-        input(v-model="form.photo_url" class="input-minimal px-4 py-3")
+        u-input(v-model="form.photo_url" size="md")
 
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Цена, ₽
-        input(v-model.number="form.priceRub" type="number" min="0" class="input-minimal px-4 py-3")
+        u-input(v-model.number="form.priceRub" type="number" min="0" size="md")
 
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Остаток
-        input(v-model.number="form.stock_amount" type="number" min="0" class="input-minimal px-4 py-3")
+        u-input(v-model.number="form.stock_amount" type="number" min="0" size="md")
 
     div(class="surface-section rounded-3xl p-4 flex flex-col gap-4")
       h3(class="headline-md font-bold") КБЖУ
       div(class="grid grid-cols-2 md:grid-cols-4 gap-3")
         label(class="flex flex-col gap-2")
           span(class="text-xs font-semibold uppercase tracking-wider") Calories
-          input(v-model.number="form.nutrition.calories" type="number" min="0" class="input-minimal px-4 py-3")
+          u-input(v-model.number="form.nutrition.calories" type="number" min="0" size="md")
 
         label(class="flex flex-col gap-2")
           span(class="text-xs font-semibold uppercase tracking-wider") Proteins
-          input(v-model.number="form.nutrition.proteins" type="number" min="0" step="0.1" class="input-minimal px-4 py-3")
+          u-input(v-model.number="form.nutrition.proteins" type="number" min="0" step="0.1" size="md")
 
         label(class="flex flex-col gap-2")
           span(class="text-xs font-semibold uppercase tracking-wider") Fats
-          input(v-model.number="form.nutrition.fats" type="number" min="0" step="0.1" class="input-minimal px-4 py-3")
+          u-input(v-model.number="form.nutrition.fats" type="number" min="0" step="0.1" size="md")
 
         label(class="flex flex-col gap-2")
           span(class="text-xs font-semibold uppercase tracking-wider") Carbs
-          input(v-model.number="form.nutrition.carbs" type="number" min="0" step="0.1" class="input-minimal px-4 py-3")
+          u-input(v-model.number="form.nutrition.carbs" type="number" min="0" step="0.1" size="md")
 
     div(class="flex flex-wrap items-center gap-3")
-      button(type="submit" class="btn-primary px-6 py-3" :disabled="isLoading")
-        span(v-if="isLoading") Сохраняем...
-        span(v-else) Сохранить
+      u-button(type="submit" size="xl" :loading="isLoading")
+        | Сохранить
 
-      nuxt-link(to="/admin/items" class="btn-secondary px-6 py-3") Отмена
+      u-button(to="/admin/items" variant="soft" color="neutral" size="xl")
+        | Отмена
 </template>

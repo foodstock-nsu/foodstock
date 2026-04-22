@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { login, isLoggedIn } = useAdminAuth()
+const { login, isLoggedIn, lastError } = useAdminAuth()
 
 const loginValue = ref("")
 const passwordValue = ref("")
@@ -25,7 +25,7 @@ async function handleLogin() {
   if (success) {
     await navigateTo("/admin")
   } else {
-    error.value = "Неверный логин или пароль"
+    error.value = lastError.value || "Не удалось выполнить вход"
   }
 
   loading.value = false
@@ -41,25 +41,26 @@ async function handleLogin() {
     form.space-y-6(@submit.prevent="handleLogin")
       .text-left
         label.block.font-semibold.mb-2(for="login") Логин
-        input#login.input-minimal.w-full.p-4(
+        u-input#login(
           v-model="loginValue"
           type="text"
+          size="xl"
           placeholder="Введите логин"
           required
         )
 
       .text-left
         label.block.font-semibold.mb-2(for="password") Пароль
-        input#password.input-minimal.w-full.p-4(
+        u-input#password(
           v-model="passwordValue"
           type="password"
+          size="xl"
           placeholder="Введите пароль"
           required
         )
 
       p.text-red-500.text-sm(v-if="error") {{ error }}
 
-      button.btn-primary.w-full.p-4.mt-4.transition-all.duration-200(type="submit" :disabled="loading")
-        span(v-if="!loading") Войти
-        span(v-else) Входим...
+      u-button.w-full(type="submit" size="xl" :loading="loading")
+        | Войти
 </template>

@@ -1,15 +1,31 @@
 <script setup lang="ts">
 import type { AdminLocation } from "~/types/admin"
 
-const { store, removeLocation, isLoading } = useAdmin()
+const { store, removeLocation, getLocationQRCode, isLoading, error } = useAdmin()
 
 const deletingId = ref<string | null>(null)
+const qrLoadingId = ref<string | null>(null)
 const locationSearch = ref(store.locationSearch.value)
 const view = reactive<{ locations: AdminLocation[] }>({
   locations: [],
 })
+const qrPreview = reactive({
+  isOpen: false,
+  imageUrl: "",
+  title: "",
+})
 
 watch(locationSearch, value => store.locationSearch.value = value)
+
+watch(() => qrPreview.isOpen, (isOpen) => {
+  if (isOpen || !qrPreview.imageUrl) {
+    return
+  }
+
+  URL.revokeObjectURL(qrPreview.imageUrl)
+  qrPreview.imageUrl = ""
+  qrPreview.title = ""
+})
 
 watchEffect(() => {
   view.locations = [...store.sortedLocations.value]
@@ -24,6 +40,29 @@ async function onDeleteLocation(id: string) {
   }
 }
 
+async function onViewQrCode(location: AdminLocation) {
+  qrLoadingId.value = location.id
+  try {
+    if (qrPreview.imageUrl) {
+      URL.revokeObjectURL(qrPreview.imageUrl)
+      qrPreview.imageUrl = ""
+    }
+
+    const imageUrl = await getLocationQRCode(location.id)
+    qrPreview.imageUrl = imageUrl
+    qrPreview.title = location.name
+    qrPreview.isOpen = true
+  } finally {
+    qrLoadingId.value = null
+  }
+}
+
+onBeforeUnmount(() => {
+  if (qrPreview.imageUrl) {
+    URL.revokeObjectURL(qrPreview.imageUrl)
+  }
+})
+
 useHead({
   title: "Foodstock | Админка локаций",
 })
@@ -37,45 +76,50 @@ div(class="flex flex-col gap-8")
 
   admin-nav(current="locations")
 
-  section(class="surface-section rounded-3xl container-pad flex flex-col gap-4")
+  section(class="rounded-3xl container-pad flex flex-col gap-4")
     div(class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3")
-      input(
+      u-input(
         v-model="locationSearch"
-        class="input-minimal px-4 py-3 w-full"
+        icon="i-heroicons-magnifying-glass"
+        size="xl"
+        class="w-full"
         placeholder="Поиск по имени, slug или адресу"
       )
 
-      nuxt-link(to="/admin/locations/new" class="btn-primary px-6 py-3 text-center") Добавить локацию
+      u-button(to="/admin/locations/new" size="xl" class="justify-center") Добавить локацию
 
   section(v-if="view.locations.length === 0" class="surface-card container-pad text-center flex flex-col gap-2")
     h2(class="headline-md") Локации не найдены
     p(class="body-md opacity-70") Измените фильтр поиска или создайте новую локацию.
 
+  section(v-if="error" class="surface-card container-pad")
+    p(class="text-sm font-semibold text-red-600") {{ error }}
+
   section(v-else class="list-soft")
-    article(
+    admin-location-card(
       v-for="location in view.locations"
       :key="location.id"
-      class="surface-card container-pad flex flex-col gap-4"
+      :location="location"
+      :is-busy="isLoading"
+      :is-deleting="deletingId === location.id"
+      :is-qr-loading="qrLoadingId === location.id"
+      @delete="onDeleteLocation"
+      @view-qr="onViewQrCode"
     )
-      div(class="flex flex-col md:flex-row md:items-start md:justify-between gap-3")
-        div(class="flex flex-col gap-1")
-          h3(class="headline-md font-bold") {{ location.name }}
-          p(class="body-md opacity-70") {{ location.address }}
-          p(class="text-sm opacity-55") /l/{{ location.slug }}
 
-        span(
-          class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
-          :class="location.is_active !== false ? 'status-ready' : 'btn-secondary'"
-        )
-          | {{ location.is_active !== false ? "Активна" : "Отключена" }}
+  u-modal(v-model:open="qrPreview.isOpen")
+    template(#content)
+      div(class="surface-card w-full max-w-md p-6 flex flex-col gap-4")
+        div(class="flex items-start justify-between gap-3")
+          h2(class="headline-md") QR-код: {{ qrPreview.title }}
+          u-button(type="button" variant="soft" color="neutral" @click="qrPreview.isOpen = false") Закрыть
 
-      div(class="flex items-center gap-2")
-        nuxt-link(:to="`/admin/locations/${location.id}`" class="btn-secondary px-4 py-2") Редактировать
-        button(
-          class="btn-tertiary px-4 py-2"
-          :disabled="deletingId === location.id || isLoading"
-          @click="onDeleteLocation(location.id)"
+        img(
+          v-if="qrPreview.imageUrl"
+          :src="qrPreview.imageUrl"
+          :alt="`QR-код локации ${qrPreview.title}`"
+          class="w-full max-w-72 self-center"
         )
-          span(v-if="deletingId === location.id") Удаляем...
-          span(v-else) Удалить
+
+        p(class="text-xs opacity-70 text-center") Отсканируйте код, чтобы открыть страницу локации.
 </template>

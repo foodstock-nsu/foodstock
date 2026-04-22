@@ -2,7 +2,7 @@
 import type { AdminLocationForm } from "~/types/admin"
 
 const route = useRoute()
-const { createLocationForm, getLocationById, saveLocation, isLoading } = useAdmin()
+const { createLocationForm, getLocationById, saveLocation, isLoading, error } = useAdmin()
 
 const locationId = computed(() => String(route.params.id || ""))
 const isNew = computed(() => locationId.value === "new")
@@ -40,8 +40,12 @@ async function onSubmit() {
     return
   }
 
-  await saveLocation(payload, isNew.value ? undefined : locationId.value)
-  await navigateTo("/admin/locations")
+  try {
+    await saveLocation(payload, isNew.value ? undefined : locationId.value)
+    await navigateTo("/admin/locations")
+  } catch {
+    // Ошибка уже нормализована в useAdmin.error
+  }
 }
 
 await loadLocation()
@@ -69,30 +73,32 @@ div(class="flex flex-col gap-8")
   section(v-if="notFound" class="surface-card container-pad flex flex-col gap-2 text-center")
     h2(class="headline-md") Локация не найдена
     p(class="body-md opacity-70") Проверьте ссылку или вернитесь к списку локаций.
-    nuxt-link(to="/admin/locations" class="btn-secondary px-5 py-2.5 self-center") К списку локаций
+    u-button(to="/admin/locations" color="neutral" size="md" class="self-center") К списку локаций
 
   form(v-else class="surface-card container-pad flex flex-col gap-6" @submit.prevent="onSubmit")
+    p(v-if="error" class="text-sm font-semibold text-red-600") {{ error }}
+
     div(class="grid grid-cols-1 md:grid-cols-2 gap-4")
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Slug
-        input(v-model="form.slug" class="input-minimal px-4 py-3" required)
+        u-input(v-model="form.slug" size="md" required)
 
       label(class="flex flex-col gap-2")
         span(class="text-sm font-semibold") Название
-        input(v-model="form.name" class="input-minimal px-4 py-3" required)
+        u-input(v-model="form.name" size="md" required)
 
       label(class="md:col-span-2 flex flex-col gap-2")
         span(class="text-sm font-semibold") Адрес
-        textarea(v-model="form.address" rows="3" class="input-minimal px-4 py-3 resize-y" required)
+        u-textarea(v-model="form.address" rows="3" size="md" class="resize-y" required)
 
     label(class="surface-section rounded-3xl p-4 inline-flex items-center gap-3 w-fit")
       input(v-model="form.is_active" type="checkbox" class="h-5 w-5")
       span(class="font-semibold") Локация активна
 
     div(class="flex flex-wrap items-center gap-3")
-      button(type="submit" class="btn-primary px-6 py-3" :disabled="isLoading")
-        span(v-if="isLoading") Сохраняем...
-        span(v-else) Сохранить
+      u-button(type="submit" size="xl" :loading="isLoading")
+        | Сохранить
 
-      nuxt-link(to="/admin/locations" class="btn-secondary px-6 py-3") Отмена
+      u-button(to="/admin/locations" variant="soft" color="neutral" size="xl")
+        | Отмена
 </template>

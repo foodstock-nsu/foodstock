@@ -44,20 +44,22 @@ div(class="flex flex-col gap-8")
 
   section(class="surface-section rounded-3xl container-pad flex flex-col gap-4")
     div(class="grid grid-cols-1 md:grid-cols-[1fr_220px_auto] gap-3 items-center")
-      input(
+      u-input(
         v-model="itemSearch"
-        class="input-minimal px-4 py-3 w-full"
         placeholder="Поиск по названию или описанию"
+        size="xl"
+        icon="i-heroicons-magnifying-glass"
       )
 
-      select(
+      u-select(
         v-model="itemCategory"
-        class="input-minimal px-4 py-3 w-full"
+        placeholder="Все категории"
+        size="xl"
       )
         option(value="all") Все категории
         option(v-for="category in view.categories" :key="category" :value="category") {{ category }}
 
-      nuxt-link(to="/admin/items/new" class="btn-primary px-6 py-3 text-center") Добавить товар
+      u-button(to="/admin/items/new" size="xl") Добавить товар
 
   section(v-if="view.items.length === 0" class="surface-card container-pad text-center flex flex-col gap-2")
     h2(class="headline-md") Ничего не найдено
@@ -75,21 +77,24 @@ div(class="flex flex-col gap-8")
           p(class="body-md opacity-70 line-clamp-2") {{ item.description || "Без описания" }}
 
         div(class="flex items-center gap-2 text-xs uppercase tracking-wider")
-          span(class="btn-secondary px-3 py-1") {{ item.category }}
-          span(class="btn-secondary px-3 py-1") Остаток: {{ item.stock_amount }}
+          u-badge(variant="soft" color="neutral") {{ item.category }}
+          u-badge(variant="soft" color="neutral") Остаток: {{ item.stock_amount }}
 
       div(class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3")
         div(class="text-xl font-bold text-primary") {{ formatNumber(item.price / 100) }} ₽
 
         div(class="flex items-center gap-2")
-          nuxt-link(:to="`/admin/items/${item.id}`" class="btn-secondary px-4 py-2") Редактировать
-          button(
-            class="btn-tertiary px-4 py-2"
-            :disabled="deletingId === item.id || isLoading"
+          u-button(:to="`/admin/items/${item.id}`" variant="soft" color="neutral")
+            | Редактировать
+
+          u-button(
+            variant="outline"
+            color="primary"
+            :loading="deletingId === item.id"
+            :disabled="isLoading"
             @click="onDeleteItem(item.id)"
           )
-            span(v-if="deletingId === item.id") Удаляем...
-            span(v-else) Удалить
+            | Удалить
 </template>
 
 <style scoped>

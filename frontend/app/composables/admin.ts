@@ -72,7 +72,87 @@ export const useAdmin = () => {
     }
   }
 
+  function extractApiError(err: unknown) {
+    if (!err || typeof err !== "object") {
+      return { statusCode: undefined as number | undefined, errorCode: "" }
+    }
+
+    const maybeError = err as {
+      statusCode?: number
+      response?: { status?: number }
+      data?: { error?: string }
+    }
+
+    const statusCode = maybeError.statusCode ?? maybeError.response?.status
+    const errorCode = String(maybeError.data?.error || "").trim().toLowerCase()
+
+    return { statusCode, errorCode }
+  }
+
+  function mapLocationApiError(err: unknown, fallback: string) {
+    const { statusCode, errorCode } = extractApiError(err)
+
+    if (errorCode === "missing auth header" || errorCode === "invalid or expired token") {
+      return "Сессия истекла. Войдите в админку заново"
+    }
+
+    if (errorCode === "invalid json") {
+      return "Некорректный формат запроса"
+    }
+
+    if (errorCode === "invalid input") {
+      return "Проверьте корректность slug, названия и адреса"
+    }
+
+    if (errorCode === "location with given slug already exists") {
+      return "Локация с таким slug уже существует"
+    }
+
+    if (errorCode === "location not found") {
+      return "Локация не найдена"
+    }
+
+    if (errorCode === "location is already activated") {
+      return "Локация уже активирована"
+    }
+
+    if (errorCode === "location is already deactivated") {
+      return "Локация уже деактивирована"
+    }
+
+    if (errorCode === "internal error") {
+      return "Внутренняя ошибка сервера. Попробуйте позже"
+    }
+
+    if (statusCode === 401) {
+      return "Сессия истекла. Войдите в админку заново"
+    }
+
+    if (statusCode === 404) {
+      return "Локация не найдена"
+    }
+
+    if (statusCode === 409) {
+      return "Конфликт данных при изменении локации"
+    }
+
+    if (statusCode === 400) {
+      return "Проверьте корректность данных"
+    }
+
+    if (statusCode === 500) {
+      return "Внутренняя ошибка сервера. Попробуйте позже"
+    }
+
+    return fallback
+  }
+
   function parseErrorMessage(err: unknown, fallback: string) {
+    const mapped = mapLocationApiError(err, "")
+    if (mapped) {
+      return mapped
+    }
+
     if (err && typeof err === "object" && "data" in err) {
       const data = (err as { data?: { error?: string } }).data
       if (data?.error) {
@@ -281,6 +361,23 @@ export const useAdmin = () => {
     }, "Не удалось удалить локацию")
   }
 
+  async function getLocationQRCode(id: string) {
+    return runApi(async () => {
+      const pngBlob = await $fetch<Blob>(`/api/v1/admin/locations/${id}/qrcode`, {
+        method: "GET",
+        baseURL: getApiBaseUrl(),
+        headers: withAuthHeaders(),
+        responseType: "blob",
+      })
+
+      if (typeof window === "undefined") {
+        throw new Error("Просмотр QR-кода доступен только в браузере")
+      }
+
+      return URL.createObjectURL(pngBlob)
+    }, "Не удалось загрузить QR-код")
+  }
+
   return {
     store,
     isLoading,
@@ -294,6 +391,7 @@ export const useAdmin = () => {
     saveLocation,
     removeItem,
     removeLocation,
+    getLocationQRCode,
     loadLocations,
   }
 }

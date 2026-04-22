@@ -18,6 +18,10 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  colorMode: {
+    preference: "light", // или 'system', но 'light' принудительно выключит 'dark' класс
+  },
+
   devtools: false,
 
   imports: {
