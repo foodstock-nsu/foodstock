@@ -1,5 +1,13 @@
 <script setup lang="ts">
-const { totalPrice } = useCartStore()
+import { useRouter } from "vue-router"
+
+const { totalPrice, clear } = useCartStore()
+const router = useRouter()
+
+function handleCheckout() {
+  clear()
+  router.push("/payment")
+}
 </script>
 
 <template lang="pug">
@@ -7,7 +15,7 @@ div.cart-footer
   div.cart-total-row
     span.body-md Итого
     span.cart-total-price {{ formatNumber(totalPrice / 100) }} ₽
-  button.btn-primary.cart-checkout-btn(id="cart-checkout-btn") Оформить заказ
+  button.btn-primary.cart-checkout-btn(id="cart-checkout-btn" @click="handleCheckout") Оформить заказ
 </template>
 
 <style scoped>

@@ -1,7 +1,14 @@
 <script setup lang="ts">
+import { useRoute } from "vue-router"
+
 const { totalPrice, totalQuantity } = useCartStore()
 
 const drawerOpen = ref(false)
+const route = useRoute()
+
+watch(() => route.path, () => {
+  drawerOpen.value = false
+})
 </script>
 
 <template lang="pug">
