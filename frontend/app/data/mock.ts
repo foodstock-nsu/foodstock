@@ -63,7 +63,7 @@ export const MOCK_ITEMS: CatalogItem[] = [
 ]
 
 export const MOCK_LOCATIONS: Record<string, Location> = {
-  "550e8400-e29b-41d4-a716-446655440000": {
+  "central-ave": {
     id: "550e8400-e29b-41d4-a716-446655440000",
     name: "Торговый автомат на Центральной",
     address: "ул. Деловая, 123, офис 100",

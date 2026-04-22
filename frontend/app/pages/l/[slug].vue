@@ -4,7 +4,7 @@ import { useRoute } from "vue-router"
 import type { CatalogItem } from "~/types/catalog"
 
 const route = useRoute()
-const locationId = route.params.id as string
+const locationSlug = route.params.slug as string
 
 const {
   location,
@@ -15,7 +15,7 @@ const {
   isFiltersActive,
   resetFilters,
   filteredItems,
-} = useCatalog(locationId)
+} = useCatalog(locationSlug)
 
 const isDetailOpen = ref(false)
 const isFilterOpen = ref(false)

@@ -11,11 +11,11 @@ export const CATEGORY_LABELS: Record<string, string> = {
   desserts: "Десерты",
 }
 
-export const useCatalog = (locationId: string) => {
+export const useCatalog = (locationSlug: string) => {
   const config = useRuntimeConfig()
 
   const items = ref<CatalogItem[]>([])
-  const location = ref<Location | null>(MOCK_LOCATIONS[locationId] || null)
+  const location = ref<Location | null>(MOCK_LOCATIONS[locationSlug] || null)
   const categories = computed(() => ["Все", ...new Set(items.value.map(item => item.category))])
   const selectedCategory = ref("Все")
   const selectedItem = ref<CatalogItem | null>(null)
@@ -29,7 +29,9 @@ export const useCatalog = (locationId: string) => {
     error.value = null
 
     try {
-      const response = await $fetch<{ items: CatalogItem[] }>(`/api/v1/client/locations/${locationId}/catalog`, {
+      // Пытаемся загрузить данные по slug или id (бекэнд должен поддерживать оба или мы резолвим это)
+      const identifier = location.value?.id || locationSlug
+      const response = await $fetch<{ items: CatalogItem[] }>(`/api/v1/client/locations/${identifier}/catalog`, {
         method: "GET",
         baseURL: config.public.baseUrl || undefined,
       })
