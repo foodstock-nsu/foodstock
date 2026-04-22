@@ -143,13 +143,20 @@ func (ns NullTransactionStatus) Value() (driver.Value, error) {
 	return string(ns.TransactionStatus), nil
 }
 
+type Admin struct {
+	ID           pgtype.UUID
+	Login        string
+	PasswordHash string
+	CreatedAt    pgtype.Timestamptz
+}
+
 type Item struct {
 	ID          pgtype.UUID
 	Name        string
 	Description pgtype.Text
 	Category    ItemCategory
-	PhotoUrl    pgtype.Text
-	Calories    int32
+	PhotoUrl    string
+	Calories    pgtype.Int4
 	Proteins    pgtype.Numeric
 	Fats        pgtype.Numeric
 	Carbs       pgtype.Numeric
@@ -192,11 +199,11 @@ type OrderItem struct {
 }
 
 type Transaction struct {
-	ID                pgtype.UUID
-	OrderID           pgtype.UUID
-	SbpTransactionID  string
-	Amount            pgtype.Numeric
-	Status            NullTransactionStatus
-	WebhookReceivedAt pgtype.Timestamptz
-	CreatedAt         pgtype.Timestamptz
+	ID               pgtype.UUID
+	OrderID          pgtype.UUID
+	SbpTransactionID string
+	Amount           pgtype.Numeric
+	Status           TransactionStatus
+	PaidAt           pgtype.Timestamptz
+	CreatedAt        pgtype.Timestamptz
 }

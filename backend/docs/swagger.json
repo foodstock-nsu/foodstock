@@ -1,0 +1,98 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API системы управления запасами еды.",
+        "title": "FoodStock API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/admin/auth": {
+            "post": {
+                "description": "Проверяет логин/пароль и возвращает JWT токен",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Авторизация администратора",
+                "parameters": [
+                    {
+                        "description": "Данные для входа",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminAuthRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Токен успешно выдан",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminAuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный JSON",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неверный логин или пароль",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.AdminAuthRequest": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "description": "Логин администратора (минимум 4 символа)",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "password": {
+                    "description": "Пароль для доступа к системе",
+                    "type": "string",
+                    "example": "admin123"
+                }
+            }
+        },
+        "dto.AdminAuthResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

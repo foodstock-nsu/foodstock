@@ -4,6 +4,7 @@ import (
 	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	"backend/pkg/utils"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,18 +15,18 @@ import (
 
 func TestNewNutrition(t *testing.T) {
 	var (
-		testCalories = 1000
-		testProteins = float64(10)
-		testFats     = float64(10)
-		testCarbs    = float64(10)
+		testCalories = utils.VPtr(1000)
+		testProteins = utils.VPtr(float64(10))
+		testFats     = utils.VPtr(float64(10))
+		testCarbs    = utils.VPtr(float64(10))
 	)
 
 	type testCase struct {
 		testName string
-		calories int
-		proteins float64
-		fats     float64
-		carbs    float64
+		calories *int
+		proteins *float64
+		fats     *float64
+		carbs    *float64
 		expect   error
 	}
 
@@ -39,21 +40,25 @@ func TestNewNutrition(t *testing.T) {
 			expect:   nil,
 		},
 		{
+			testName: "Success - empty nutrition",
+			expect:   nil,
+		},
+		{
 			testName: "Failure - invalid calories",
-			calories: -1,
+			calories: utils.VPtr(-1),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
 			testName: "Failure - invalid proteins",
 			calories: testCalories,
-			proteins: float64(-1),
+			proteins: utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
 			testName: "Failure - invalid fats",
 			calories: testCalories,
 			proteins: testProteins,
-			fats:     float64(-1),
+			fats:     utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
@@ -61,7 +66,7 @@ func TestNewNutrition(t *testing.T) {
 			calories: testCalories,
 			proteins: testProteins,
 			fats:     testFats,
-			carbs:    float64(-1),
+			carbs:    utils.VPtr(float64(-1)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 	}
@@ -77,10 +82,15 @@ func TestNewNutrition(t *testing.T) {
 				assert.Empty(t, nutrition)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tt.calories, nutrition.Calories())
-				assert.Equal(t, tt.proteins, nutrition.Proteins())
-				assert.Equal(t, tt.fats, nutrition.Fats())
-				assert.Equal(t, tt.carbs, nutrition.Carbs())
+
+				if tt.calories == nil && tt.proteins == nil && tt.fats == nil && tt.carbs == nil {
+					assert.Nil(t, nutrition)
+				} else {
+					assert.Equal(t, tt.calories, nutrition.Calories())
+					assert.Equal(t, tt.proteins, nutrition.Proteins())
+					assert.Equal(t, tt.fats, nutrition.Fats())
+					assert.Equal(t, tt.carbs, nutrition.Carbs())
+				}
 			}
 		})
 	}
@@ -137,7 +147,10 @@ func TestNutrition_Update(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.testName, func(t *testing.T) {
 			nutrition := model.RestoreNutrition(
-				1000, float64(10), float64(10), float64(10),
+				utils.VPtr(1000),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(10)),
 			)
 
 			err := nutrition.Update(
@@ -147,30 +160,31 @@ func TestNutrition_Update(t *testing.T) {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)
 				if tt.calories != nil {
-					assert.NotEqual(t, *tt.calories, nutrition.Calories())
+					assert.NotEqual(t, tt.calories, nutrition.Calories())
 				}
 				if tt.proteins != nil {
-					assert.NotEqual(t, *tt.proteins, nutrition.Proteins())
+					assert.NotEqual(t, tt.proteins, nutrition.Proteins())
 				}
 				if tt.fats != nil {
-					assert.NotEqual(t, *tt.fats, nutrition.Fats())
+					assert.NotEqual(t, tt.fats, nutrition.Fats())
 				}
 				if tt.carbs != nil {
-					assert.NotEqual(t, *tt.carbs, nutrition.Carbs())
+					assert.NotEqual(t, tt.carbs, nutrition.Carbs())
 				}
 			} else {
 				require.NoError(t, err)
 				if tt.calories != nil {
-					assert.Equal(t, *tt.calories, nutrition.Calories())
+					assert.Equal(t, tt.calories, nutrition.Calories())
+					fmt.Printf("\nIn tt = %v | in model = %v\n", *tt.calories, *nutrition.Calories())
 				}
 				if tt.proteins != nil {
-					assert.Equal(t, *tt.proteins, nutrition.Proteins())
+					assert.Equal(t, tt.proteins, nutrition.Proteins())
 				}
 				if tt.fats != nil {
-					assert.Equal(t, *tt.fats, nutrition.Fats())
+					assert.Equal(t, tt.fats, nutrition.Fats())
 				}
 				if tt.carbs != nil {
-					assert.Equal(t, *tt.carbs, nutrition.Carbs())
+					assert.Equal(t, tt.carbs, nutrition.Carbs())
 				}
 			}
 		})
@@ -182,9 +196,12 @@ func TestNewItem(t *testing.T) {
 		testItemName  = "Chicken Sandwich"
 		testDesc      = utils.VPtr("Chicken sandwich with fresh vegetables")
 		testCategory  = "lunch"
-		testPhoto     = utils.VPtr("https://hosting.com/new.jpg")
+		testPhoto     = "https://hosting.com/new.jpg"
 		testNutrition = model.RestoreNutrition(
-			1000, float64(10), float64(10), float64(10),
+			utils.VPtr(1000),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(10)),
 		)
 	)
 
@@ -193,8 +210,8 @@ func TestNewItem(t *testing.T) {
 		name        string
 		description *string
 		category    string
-		photoURL    *string
-		nutrition   model.Nutrition
+		photoURL    string
+		nutrition   *model.Nutrition
 		expect      error
 	}
 
@@ -231,7 +248,7 @@ func TestNewItem(t *testing.T) {
 			name:        testItemName,
 			description: testDesc,
 			category:    testCategory,
-			photoURL:    utils.VPtr("photo.jpg"),
+			photoURL:    "photo.jpg",
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 	}
@@ -259,10 +276,10 @@ func TestNewItem(t *testing.T) {
 					assert.Equal(t, tt.description, item.Description())
 				}
 				assert.Equal(t, tt.category, item.Category().String())
-				if tt.photoURL != nil {
-					assert.Equal(t, tt.photoURL, item.PhotoURL())
+				assert.Equal(t, tt.photoURL, item.PhotoURL())
+				if tt.nutrition != nil {
+					assert.Equal(t, tt.nutrition, item.Nutrition())
 				}
-				assert.Equal(t, tt.nutrition, item.Nutrition())
 				assert.False(t, item.CreatedAt().After(time.Now().UTC()))
 			}
 		})
@@ -275,9 +292,12 @@ func TestItem_Update(t *testing.T) {
 		testDesc      = utils.VPtr("Chicken sandwich with fresh vegetables")
 		testCategory  = utils.VPtr("lunch")
 		testPhoto     = utils.VPtr("https://hosting.com/new.jpg")
-		testNutrition = utils.VPtr(model.RestoreNutrition(
-			1000, float64(10), float64(10), float64(10),
-		))
+		testNutrition = model.RestoreNutrition(
+			utils.VPtr(1000),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(10)),
+			utils.VPtr(float64(10)),
+		)
 	)
 
 	type testCase struct {
@@ -329,9 +349,12 @@ func TestItem_Update(t *testing.T) {
 				"Salade",
 				nil,
 				model.ItemBreakfast,
-				nil,
+				"https://hosting.com/old.jpg",
 				model.RestoreNutrition(
-					1000, float64(10), float64(10), float64(10),
+					utils.VPtr(1000),
+					utils.VPtr(float64(10)),
+					utils.VPtr(float64(10)),
+					utils.VPtr(float64(10)),
 				),
 				time.Now().UTC(),
 			)
@@ -355,10 +378,10 @@ func TestItem_Update(t *testing.T) {
 					assert.Equal(t, *tt.category, item.Category().String())
 				}
 				if tt.photoURL != nil {
-					assert.Equal(t, tt.photoURL, item.PhotoURL())
+					assert.Equal(t, *tt.photoURL, item.PhotoURL())
 				}
 				if tt.nutrition != nil {
-					assert.Equal(t, *tt.nutrition, item.Nutrition())
+					assert.Equal(t, tt.nutrition, item.Nutrition())
 				}
 			}
 		})

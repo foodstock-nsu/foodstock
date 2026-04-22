@@ -115,10 +115,12 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 			"Chicken Sandwich",
 			utils.VPtr("Chicken sandwich with fresh vegetables"),
 			model.ItemLunch,
-			nil,
+			"https://example.com/photo.jpg",
 			model.RestoreNutrition(
-				1000, float64(10), float64(10), float64(10),
-			),
+				utils.VPtr(100),
+				utils.VPtr(float64(20)),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(30))),
 			time.Now().UTC(),
 		),
 	)
@@ -129,10 +131,12 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 			"Beef Sandwich",
 			utils.VPtr("Beef sandwich with fresh vegetables"),
 			model.ItemLunch,
-			nil,
+			"https://example.com/photo.jpg",
 			model.RestoreNutrition(
-				1000, float64(10), float64(10), float64(10),
-			),
+				utils.VPtr(100),
+				utils.VPtr(float64(20)),
+				utils.VPtr(float64(10)),
+				utils.VPtr(float64(30))),
 			time.Now().UTC(),
 		),
 	)
@@ -214,11 +218,24 @@ func (s *LocationItemRepoSuite) TestUpdate() {
 	s.Require().True(res.IsAvailable())
 }
 
-func (s *LocationItemRepoSuite) TestDelete() {
+func (s *LocationItemRepoSuite) TestDeleteByItemID() {
 	err := s.repo.Create(s.ctx, s.testLocItem)
 	s.Require().NoError(err)
 
-	err = s.repo.Delete(s.ctx, s.testLocItem.ID())
+	err = s.repo.DeleteByItemID(s.ctx, s.testLocItem.ItemID())
+	s.Require().NoError(err)
+
+	res, err := s.repo.GetByID(s.ctx, s.testLocItem.ID())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+	s.Require().Nil(res)
+}
+
+func (s *LocationItemRepoSuite) TestDeleteByLocationID() {
+	err := s.repo.Create(s.ctx, s.testLocItem)
+	s.Require().NoError(err)
+
+	err = s.repo.DeleteByLocationID(s.ctx, s.testLocItem.LocationID())
 	s.Require().NoError(err)
 
 	res, err := s.repo.GetByID(s.ctx, s.testLocItem.ID())
@@ -243,12 +260,7 @@ func (s *LocationItemRepoSuite) TestList() {
 	err = s.repo.Create(s.ctx, item2)
 	s.Require().NoError(err)
 
-	items, err := s.repo.List(s.ctx, s.testLocID, 10, 0)
+	items, err := s.repo.List(s.ctx, s.testLocID)
 	s.Require().NoError(err)
 	s.Require().Len(items, 2)
-
-	// Test pagination
-	itemsPaged, err := s.repo.List(s.ctx, s.testLocID, 1, 1)
-	s.Require().NoError(err)
-	s.Require().Len(itemsPaged, 1)
 }

@@ -111,31 +111,39 @@ func (r *LocationItemRepository) Update(ctx context.Context, locItem *model.Loca
 	return r.q.UpdateLocationItem(ctx, db, params)
 }
 
-func (r *LocationItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *LocationItemRepository) DeleteByItemID(ctx context.Context, itemID uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteLocationItem(
+	return r.q.DeleteLocationItemByItemID(
 		ctx,
 		db,
 		pgtype.UUID{
-			Bytes: id,
+			Bytes: itemID,
 			Valid: true,
 		},
 	)
 }
 
-func (r *LocationItemRepository) List(ctx context.Context, locationID uuid.UUID, limit, offset int) ([]*model.LocationItem, error) {
+func (r *LocationItemRepository) DeleteByLocationID(ctx context.Context, locationID uuid.UUID) error {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+	return r.q.DeleteLocationItemsByLocationID(
+		ctx,
+		db,
+		pgtype.UUID{
+			Bytes: locationID,
+			Valid: true,
+		},
+	)
+}
+
+func (r *LocationItemRepository) List(ctx context.Context, locationID uuid.UUID) ([]*model.LocationItem, error) {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
 	rawLocItems, err := r.q.ListLocationItems(
 		ctx,
 		db,
-		sqlc.ListLocationItemsParams{
-			LocationID: pgtype.UUID{
-				Bytes: locationID,
-				Valid: true,
-			},
-			Limit:  int32(limit),
-			Offset: int32(offset),
+		pgtype.UUID{
+			Bytes: locationID,
+			Valid: true,
 		},
 	)
 	if err != nil {

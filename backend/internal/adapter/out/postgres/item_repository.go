@@ -82,7 +82,8 @@ func (r *ItemRepository) Update(ctx context.Context, item *model.Item) error {
 
 func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
-	return r.q.DeleteItem(
+
+	rowsAffected, err := r.q.DeleteItem(
 		ctx,
 		db,
 		pgtype.UUID{
@@ -90,19 +91,44 @@ func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			Valid: true,
 		},
 	)
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return pkgerrs.NewObjectNotFoundError("item", id)
+	}
+
+	return nil
 }
 
-func (r *ItemRepository) List(ctx context.Context, limit, offset int) ([]*model.Item, error) {
+func (r *ItemRepository) ListAll(ctx context.Context) ([]*model.Item, error) {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	rawItems, err := r.q.ListItems(
-		ctx,
-		db,
-		sqlc.ListItemsParams{
-			Limit:  int32(limit),
-			Offset: int32(offset),
-		},
-	)
+	rawItems, err := r.q.ListAllItems(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.MapSQLCToItems(rawItems), nil
+}
+
+func (r *ItemRepository) ListByIDs(ctx context.Context, ids []uuid.UUID) ([]*model.Item, error) {
+	if ids == nil {
+		return nil, nil
+	}
+
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	uIDs := make([]pgtype.UUID, len(ids))
+	for i := range uIDs {
+		uIDs[i] = pgtype.UUID{
+			Bytes: ids[i],
+			Valid: true,
+		}
+	}
+
+	rawItems, err := r.q.ListItemsByIDs(ctx, db, uIDs)
 	if err != nil {
 		return nil, err
 	}

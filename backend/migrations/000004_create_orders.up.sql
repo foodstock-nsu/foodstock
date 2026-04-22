@@ -1,7 +1,7 @@
 CREATE TYPE order_status AS ENUM('PENDING', 'PAID', 'CANCELED');
 
-CREATE TABLE orders (
-    id UUID PRIMARY KEY, 
+CREATE TABLE IF NOT EXISTS orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     location_id UUID REFERENCES locations(id),           
     status order_status NOT NULL DEFAULT 'PENDING',           
     total_price NUMERIC(10, 2) CHECK (total_price >= 0) NOT NULL DEFAULT 0,

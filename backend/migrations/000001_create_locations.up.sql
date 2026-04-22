@@ -1,5 +1,5 @@
-CREATE TABLE locations (
-    id UUID PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS locations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug TEXT UNIQUE NOT NULL,           
     name TEXT NOT NULL,           
     address TEXT NOT NULL,   

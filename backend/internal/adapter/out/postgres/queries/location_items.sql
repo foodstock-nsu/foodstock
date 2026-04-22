@@ -44,9 +44,13 @@ SET
     stock_amount = @stock_amount
 WHERE id = @id;
 
--- name: DeleteLocationItem :exec
+-- name: DeleteLocationItemByItemID :exec
 DELETE FROM location_items
-WHERE id = @id;
+WHERE item_id = @item_id;
+
+-- name: DeleteLocationItemsByLocationID :exec
+DELETE FROM location_items
+WHERE location_id = @location_id;
 
 -- name: ListLocationItems :many
 SELECT
@@ -57,5 +61,4 @@ SELECT
     is_available,
     stock_amount
 FROM location_items
-WHERE location_id = $1
-LIMIT $2 OFFSET $3;
+WHERE location_id = @location_id;

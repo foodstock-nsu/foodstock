@@ -1,0 +1,392 @@
+openapi: 3.0.3
+
+info:
+  title: FoodStock API
+  description: Приложение для микромаркетов "на доверии"
+  version: 1.0.0
+
+tags:
+  - name: Client
+  - name: Webhooks
+  - name: Admin Auth
+  - name: Admin Locations
+  - name: Admin Inventory
+  - name: Admin Items
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    LocationIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор торговой точки
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "something went wrong"
+
+    AdminAuthRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          example: "maket"
+        password:
+          type: string
+          example: "maket123"
+    AdminAuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LocationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        slug:
+          type: string
+          example: "nsu_1"
+        name:
+          type: string
+          example: "Холодильник в главном корпусе НГУ"
+        address:
+          type: string
+          example: "Новосибирск, ул. Пирогова, д.1"
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+
+    CreateLocationRequest:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: "nsu_1"
+        name:
+          type: string
+          example: "Холодильник в главном корпусе НГУ"
+        address:
+          type: string
+          example: "Новосибирск, ул. Пирогова, д.1"
+    CreateLocationResponse:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/LocationResponse"
+
+    UpdateLocationRequest:
+      type: object
+      properties:
+        slug:
+          type: string
+          nullable: true
+          example: "nsu_1"
+        name:
+          type: string
+          nullable: true
+          example: "Холодильник в главном корпусе НГУ"
+        address:
+          type: string
+          nullable: true
+          example: "Новосибирск, ул. Пирогова, д.1"
+        is_active:
+          type: boolean
+          nullable: true
+          example: true
+    UpdateLocationResponse:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/LocationResponse"
+
+    ListLocationsResponse:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocationResponse"
+
+  responses:
+    BadRequestError:
+      description: Ошибка в формате запроса
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "invalid json"
+
+    UnauthorizedError:
+      description: Ошибка авторизации
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missing_header:
+              summary: Отсутствует заголовок
+              value:
+                error: "missing auth header"
+            invalid_token:
+              summary: Невалидный или просроченный токен
+              value:
+                error: "invalid or expired token"
+
+    LocationNotFoundError:
+      description: Торговая точка не найдена
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "location not found"
+
+    InternalError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "internal error"
+
+paths:
+  /api/v1/admin/auth:
+    post:
+      tags: [Admin Auth]
+      summary: Авторизация администратора
+      description: Возвращает JWT токен доступа при успехе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAuthRequest'
+      responses:
+        '200':
+          description: Токен успешно выдан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthResponse'
+        '400':
+          $ref: "#/components/responses/BadRequestError"
+        '401':
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid login or password"
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/admin/locations:
+    post:
+      tags: [Admin Locations]
+      summary: Создать новую торговую точку
+      description: Создаёт новую торговую точку и возвращает её данные
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationRequest'
+      responses:
+        '201':
+          description: Точка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLocationResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_slug:
+                  summary: Некорректный slug
+                  value:
+                    error: "invalid input"
+                incorrect_name:
+                  summary: Некорректное имя
+                  value:
+                    error: "invalid input"
+                incorrect_address:
+                  summary: Некорректный адрес
+                  value:
+                    error: "invalid input"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: Торговая точка уже существует
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "location with given slug already exists"
+        '500':
+          $ref: "#/components/responses/InternalError"
+    get:
+      tags: [ Admin Locations ]
+      summary: Список всех торговых точек
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: Список всех торговых точек
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListLocationsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/admin/locations/{id}:
+    put:
+      tags: [ Admin Locations ]
+      summary: Обновить данные торговой точки
+      description: Обновляет торговую точку и возвращает её новые данные
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+      responses:
+        '200':
+          description: "Данные торговой точки обновлены"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateLocationResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_slug:
+                  summary: Некорректный slug
+                  value:
+                    error: "invalid input"
+                incorrect_name:
+                  summary: Некорректное имя
+                  value:
+                    error: "invalid input"
+                incorrect_address:
+                  summary: Некорректный адрес
+                  value:
+                    error: "invalid input"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/LocationNotFoundError'
+        '409':
+          description: Не удалось изменить статус торговой точки
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cannot_activate:
+                  summary: Торговая точка уже активирована
+                  value:
+                    error: "location is already activated"
+                cannot_deactivate:
+                  summary: Торговая точка уже деактивирована
+                  value:
+                    error: "location is already deactivated"
+        '500':
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags: [ Admin Locations ]
+      summary: Удалить торговую точку
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '204':
+          description: "Торговая точка удалена успешно"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/LocationNotFoundError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/admin/locations/{id}/qrcode:
+    get:
+      tags: [ Admin Locations ]
+      summary: Получить QR-код торговой точки
+      description: Генерирует и возвращает изображение QR-кода в формате PNG
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '200':
+          description: QR-код успешно сгенерирован
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/LocationNotFoundError'
+        '422':
+          description: QR-код не может быть получен, так как торговая точка неактивна
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "location is not operational"
+        '500':
+          $ref: '#/components/responses/InternalError'
