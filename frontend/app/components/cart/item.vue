@@ -10,15 +10,15 @@ const { decrement, increment } = useCartStore()
 
 <template lang="pug">
 div.cart-item
-  img.cart-item-img(:src="item.item.photo_url" :alt="item.item.name")
+  img.cart-item-img(:src="item.item.photo_url || '/images/food-placeholder.png'" :alt="item.item.name")
   div.cart-item-info
     p.cart-item-name {{ item.item.name }}
-    p.cart-item-price {{ formatNumber(item.item.price / 100) }} ₽
+    p.cart-item-price {{ formatNumber((item.item.price || 0) / 100) }} ₽
   div.cart-item-controls
-    button.cart-qty-btn(:id="`cart-dec-${item.item.id}`" @click="decrement(item.item.id)")
+    button.cart-qty-btn(:id="`cart-dec-${item.item.id || ''}`" @click="item.item.id && decrement(item.item.id)")
       u-icon(name="i-heroicons-minus")
     span.cart-qty {{ item.quantity }}
-    button.cart-qty-btn(:id="`cart-inc-${item.item.id}`" @click="increment(item.item.id)")
+    button.cart-qty-btn(:id="`cart-inc-${item.item.id || ''}`" @click="item.item.id && increment(item.item.id)")
       u-icon(name="i-heroicons-plus")
 </template>
 

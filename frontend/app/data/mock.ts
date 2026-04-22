@@ -68,5 +68,6 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     name: "Торговый автомат на Центральной",
     address: "ул. Деловая, 123, офис 100",
     slug: "central-ave",
+    is_active: true,
   },
 }

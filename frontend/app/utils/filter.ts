@@ -11,10 +11,10 @@ const isValueInRange = (value: number, [min, max]: Range) => {
 }
 
 const matchesNutritionFilters = (nutrition: Nutrition, filters: Filters) => {
-  return isValueInRange(nutrition.calories, filters.calories)
-    && isValueInRange(nutrition.proteins, filters.proteins)
-    && isValueInRange(nutrition.fats, filters.fats)
-    && isValueInRange(nutrition.carbs, filters.carbs)
+  return isValueInRange(nutrition.calories ?? 0, filters.calories)
+    && isValueInRange(nutrition.proteins ?? 0, filters.proteins)
+    && isValueInRange(nutrition.fats ?? 0, filters.fats)
+    && isValueInRange(nutrition.carbs ?? 0, filters.carbs)
 }
 
 export const cloneFilters = (filters: Filters): Filters => {

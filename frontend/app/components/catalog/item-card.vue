@@ -43,21 +43,21 @@ div(
   div(class="flex flex-col gap-1")
     div(class="flex justify-between items-start")
       h3(class="headline-md text-on-surface line-clamp-1") {{ item.name }}
-      div(class="text-primary font-bold text-lg") {{ formatNumber(item.price / 100) }} ₽
+      div(class="text-primary font-bold text-lg") {{ formatNumber((item.price || 0) / 100) }} ₽
 
     p(class="body-md text-on-surface opacity-70 line-clamp-2") {{ item.description }}
 
   div(class="mt-auto flex items-center justify-between")
-    div(v-if="item.stock_amount > 0" class="flex items-center gap-2")
+    div(v-if="(item.stock_amount || 0) > 0" class="flex items-center gap-2")
       div(class="w-2 h-2 rounded-full bg-primary")
-      span(class="text-xs font-medium uppercase tracking-wider text-on-surface opacity-60") {{ item.stock_amount }} в наличии
+      span(class="text-xs font-medium uppercase tracking-wider text-on-surface opacity-60") {{ item.stock_amount || 0 }} в наличии
     div(v-else class="text-xs font-medium uppercase text-red-500") Нет в наличии
 
     button(
       :id="`add-to-cart-${item.id}`"
       class="btn-primary px-6 py-2 text-sm add-btn"
       :class="{ 'add-btn--bounce': adding }"
-      :disabled="item.stock_amount === 0"
+      :disabled="(item.stock_amount || 0) === 0"
       @click="addToCart"
     ) {{ addLabel }}
 </template>

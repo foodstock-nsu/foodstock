@@ -8,7 +8,7 @@ export const useCartStore = createGlobalState(() => {
   const items = useLocalStorage<CartItem[]>("foodstock-cart", [])
 
   const totalQuantity = computed(() => items.value.reduce((sum, ci) => sum + ci.quantity, 0))
-  const totalPrice = computed(() => items.value.reduce((sum, ci) => sum + ci.item.price * ci.quantity, 0))
+  const totalPrice = computed(() => items.value.reduce((sum, ci) => sum + (ci.item.price ?? 0) * ci.quantity, 0))
 
   function addItem(item: CatalogItem) {
     const existing = items.value.find(ci => ci.item.id === item.id)

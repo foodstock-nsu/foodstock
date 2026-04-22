@@ -30,9 +30,9 @@ div(class="footer-container")
     size="xl"
     class="btn-primary py-4 text-lg font-bold shadow-lg"
     :class="{ 'add-btn--bounce': adding }"
-    :disabled="item.stock_amount === 0"
+    :disabled="(item.stock_amount || 0) === 0"
     @click="addToCart"
-  ) {{ item.stock_amount > 0 ? addLabel : 'Нет в наличии' }}
+  ) {{ (item.stock_amount || 0) > 0 ? addLabel : 'Нет в наличии' }}
 </template>
 
 <style scoped>

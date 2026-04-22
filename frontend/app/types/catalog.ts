@@ -4,9 +4,15 @@ export type Range = [number, number]
 
 export type Nutrition = NonNullable<components["schemas"]["Item"]["nutrition"]>
 
-export type CatalogItem = components["schemas"]["CatalogItem"]
+type CatalogItemSchema = components["schemas"]["CatalogItem"]
 
-export type Location = components["schemas"]["Location"]
+export type CatalogItem = Omit<CatalogItemSchema, "id" | "price" | "stock_amount" | "photo_url" | "nutrition"> & Required<Pick<CatalogItemSchema, "id" | "price" | "stock_amount" | "photo_url">> & {
+  nutrition?: Nutrition
+}
+
+type LocationSchema = components["schemas"]["Location"]
+
+export type Location = Omit<LocationSchema, "id"> & Required<Pick<LocationSchema, "id">>
 
 export interface Filters {
   calories: Range
