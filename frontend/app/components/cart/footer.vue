@@ -14,7 +14,7 @@ function handleCheckout() {
 div.cart-footer
   div.cart-total-row
     span.body-md Итого
-    span.cart-total-price {{ formatNumber(totalPrice / 100) }} ₽
+    span.cart-total-price.whitespace-nowrap {{ formatNumber(totalPrice / 100) }} ₽
   button.btn-primary.cart-checkout-btn(id="cart-checkout-btn" @click="handleCheckout") Оформить заказ
 </template>
 

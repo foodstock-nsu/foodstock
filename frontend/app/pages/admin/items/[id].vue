@@ -10,6 +10,14 @@ const currentItemName = ref("")
 const notFound = ref(false)
 const form = reactive<AdminItemForm>(createItemForm())
 
+const categoryItems = [
+  { label: "Lunch", value: "lunch" },
+  { label: "Breakfast", value: "breakfast" },
+  { label: "Drinks", value: "drinks" },
+  { label: "Snacks", value: "snacks" },
+  { label: "Desserts", value: "desserts" },
+]
+
 async function loadItem() {
   if (isNew.value) {
     notFound.value = false
@@ -84,16 +92,11 @@ div(class="flex flex-col gap-10")
 
       label(class="flex flex-col gap-3")
         span(class="text-sm font-black uppercase tracking-widest opacity-40") Категория
-        u-select(v-model="form.category" size="xl")
-          option(value="lunch") Lunch
-          option(value="breakfast") Breakfast
-          option(value="drinks") Drinks
-          option(value="snacks") Snacks
-          option(value="desserts") Desserts
+        u-select(v-model="form.category" size="xl" :items="categoryItems")
 
       label(class="md:col-span-2 flex flex-col gap-3")
         span(class="text-sm font-black uppercase tracking-widest opacity-40") Описание
-        u-textarea(v-model="form.description" rows="3" size="xl" class="resize-none" placeholder="Краткое описание для карточки товара...")
+        u-textarea(v-model="form.description" :rows="3" size="xl" class="resize-none" placeholder="Краткое описание для карточки товара...")
 
       label(class="md:col-span-2 flex flex-col gap-3")
         span(class="text-sm font-black uppercase tracking-widest opacity-40") Ссылка на изображение (URL)

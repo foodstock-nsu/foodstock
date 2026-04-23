@@ -20,6 +20,11 @@ watchEffect(() => {
   view.items = [...store.sortedItems.value]
 })
 
+const categoryItems = computed(() => [
+  { label: "Все категории", value: "all" },
+  ...view.categories.map(category => ({ label: category, value: category })),
+])
+
 async function onDeleteItem(id: string) {
   deletingId.value = id
   try {
@@ -63,9 +68,8 @@ div(class="flex flex-col gap-10")
           size="xl"
           variant="none"
           class="w-full md:w-64"
+          :items="categoryItems"
         )
-          option(value="all") Все категории
-          option(v-for="category in view.categories" :key="category" :value="category") {{ category }}
 
       u-button(
         to="/admin/items/new"
@@ -94,7 +98,7 @@ div(class="flex flex-col gap-10")
         div(class="flex-1 flex flex-col gap-2")
           div(class="flex items-start justify-between gap-4")
             h3(class="headline-md font-extrabold") {{ item.name }}
-            div(class="text-2xl font-black text-primary") {{ formatNumber(item.price / 100) }} ₽
+            div(class="text-2xl font-black text-primary whitespace-nowrap") {{ formatNumber(item.price / 100) }} ₽
 
           p(class="body-md opacity-60 line-clamp-2 min-h-[3rem]") {{ item.description || "Описание отсутствует." }}
 

@@ -43,7 +43,7 @@ div(
   div(class="flex flex-col gap-1")
     div(class="flex justify-between items-start")
       h3(class="headline-md text-on-surface line-clamp-1") {{ item.name }}
-      div(class="text-primary font-bold text-lg") {{ formatNumber((item.price || 0) / 100) }} ₽
+      div(class="text-primary font-bold text-lg whitespace-nowrap") {{ formatNumber((item.price || 0) / 100) }} ₽
 
     p(class="body-md text-on-surface opacity-70 line-clamp-2") {{ item.description }}
 
