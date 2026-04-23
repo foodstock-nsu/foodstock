@@ -1,4 +1,4 @@
-name: foodstock
+version: "3.8"
 
 services:
   foodstock-db:
