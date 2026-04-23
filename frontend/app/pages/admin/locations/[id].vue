@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { FormSubmitEvent } from "@nuxt/ui"
+import * as v from "valibot"
+
 import type { AdminLocationForm } from "~/types/admin"
 
 const route = useRoute()
@@ -9,6 +12,29 @@ const isNew = computed(() => locationId.value === "new")
 const currentLocationName = ref("")
 const notFound = ref(false)
 const form = reactive<AdminLocationForm>(createLocationForm())
+
+const schema = v.object({
+  slug: v.pipe(
+    v.string(),
+    v.nonEmpty("Slug обязателен"),
+    v.minLength(4, "Минимум 4 символа"),
+    v.maxLength(10, "Максимум 10 символов"),
+    v.regex(/^[\w-]+$/, "Только латиница, цифры, дефис и подчеркивание"),
+  ),
+  name: v.pipe(
+    v.string(),
+    v.nonEmpty("Название обязательно"),
+    v.minLength(4, "Минимум 4 символа"),
+  ),
+  address: v.pipe(
+    v.string(),
+    v.nonEmpty("Адрес обязателен"),
+    v.minLength(20, "Минимум 20 символов"),
+  ),
+  is_active: v.boolean(),
+})
+
+type Schema = v.InferOutput<typeof schema>
 
 async function loadLocation() {
   if (isNew.value) {
@@ -28,16 +54,12 @@ async function loadLocation() {
   Object.assign(form, createLocationForm(location))
 }
 
-async function onSubmit() {
+async function onSubmit(event: FormSubmitEvent<Schema>) {
   const payload = {
-    ...form,
-    slug: form.slug.trim(),
-    name: form.name.trim(),
-    address: form.address.trim(),
-  }
-
-  if (!payload.slug || !payload.name || !payload.address) {
-    return
+    ...event.data,
+    slug: event.data.slug.trim(),
+    name: event.data.name.trim(),
+    address: event.data.address.trim(),
   }
 
   try {
@@ -80,24 +102,27 @@ div(class="flex flex-col gap-10")
     u-button(to="/admin/locations" variant="ghost" class="btn-secondary px-8 py-3 rounded-full font-bold transform transition-all active:scale-95")
       | Вернуться к списку
 
-  form(v-else class="surface-card container-pad flex flex-col gap-10" @submit.prevent="onSubmit")
+  u-form(v-else :schema="schema" :state="form" class="surface-card container-pad flex flex-col gap-10" @submit="onSubmit")
     div(v-if="error" class="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border-l-4 border-red-500")
       p(class="text-sm font-bold text-red-600 flex items-center gap-2")
         u-icon(name="i-heroicons-exclamation-triangle" class="w-4 h-4")
         | {{ error }}
 
     div(class="grid grid-cols-1 md:grid-cols-2 gap-8")
-      label(class="flex flex-col gap-3")
-        span(class="text-sm font-black uppercase tracking-widest opacity-40") Slug (URL-путь)
-        u-input(v-model="form.slug" size="xl" required placeholder="example-location")
+      u-form-field(name="slug" class="flex flex-col gap-3")
+        template(#label)
+          span(class="text-sm font-black uppercase tracking-widest opacity-40") Slug (URL-путь)
+        u-input(v-model="form.slug" size="xl" placeholder="example-location")
 
-      label(class="flex flex-col gap-3")
-        span(class="text-sm font-black uppercase tracking-widest opacity-40") Название
-        u-input(v-model="form.name" size="xl" required placeholder="Вендинг на Пушкина")
+      u-form-field(name="name" class="flex flex-col gap-3")
+        template(#label)
+          span(class="text-sm font-black uppercase tracking-widest opacity-40") Название
+        u-input(v-model="form.name" size="xl" placeholder="Вендинг на Пушкина")
 
-      label(class="md:col-span-2 flex flex-col gap-3")
-        span(class="text-sm font-black uppercase tracking-widest opacity-40") Полный адрес
-        u-textarea(v-model="form.address" rows="3" size="xl" class="resize-none" required placeholder="г. Новосибирск, ул. Пушкина, д. 10, этаж 1")
+      u-form-field(name="address" class="md:col-span-2 flex flex-col gap-3 w-full")
+        template(#label)
+          span(class="text-sm font-black uppercase tracking-widest opacity-40") Полный адрес
+        u-textarea(v-model="form.address" :rows="3" size="xl" class="resize-none w-full" placeholder="г. Новосибирск, ул. Пушкина, д. 10, этаж 1")
 
     div(class="flex flex-col md:flex-row items-center gap-8 border-t border-gray-100 dark:border-gray-800 pt-8")
       label(class="bg-gray-50 dark:bg-gray-900/50 rounded-full px-6 py-4 flex items-center gap-4 cursor-pointer transition-all hover:bg-gray-100 dark:hover:bg-gray-900")

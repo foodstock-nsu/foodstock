@@ -66,7 +66,7 @@ async function handleLogin() {
 
       p.text-red-500.text-sm.font-bold(v-if="error") {{ error }}
 
-      u-button.w-full.btn-primary.py-4.text-lg.transform.transition-all.active:scale-95(
+      u-button.w-full.btn-primary.py-4.text-lg.transform.transition-all.active.scale-95(
         type="submit"
         size="xl"
         :loading="loading"
