@@ -28,7 +28,7 @@ transition(name="cart-bar")
         span.cart-bar-count {{ totalQuantity }}
       span.cart-bar-label Корзина
 
-    span.cart-bar-total {{ formatNumber(totalPrice / 100) }} ₽
+    span.cart-bar-total.whitespace-nowrap {{ formatNumber(totalPrice / 100) }} ₽
 
 cart-drawer(v-model:open="drawerOpen")
 </template>

@@ -28,7 +28,7 @@ function onViewQr() {
 
 <template lang="pug">
 article(class="surface-card container-pad relative flex flex-col gap-4 transition-all duration-300 hover:shadow-lg")
-  div(class="absolute right-4 top-4")
+  div(v-if="location.is_active" class="absolute right-4 top-4")
     u-button(
       color="neutral"
       variant="ghost"

@@ -10,9 +10,9 @@ export type CatalogItem = Omit<CatalogItemSchema, "id" | "price" | "stock_amount
   nutrition?: Nutrition
 }
 
-type LocationSchema = components["schemas"]["Location"]
+type LocationSchema = components["schemas"]["LocationResponse"]
 
-export type Location = Omit<LocationSchema, "id"> & Required<Pick<LocationSchema, "id">>
+export type Location = Omit<LocationSchema, "id" | "is_active"> & Required<Pick<LocationSchema, "id" | "is_active">>
 
 export interface Filters {
   calories: Range

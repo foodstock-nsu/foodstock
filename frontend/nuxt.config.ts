@@ -101,10 +101,5 @@ export default defineNuxtConfig({
         allowedHosts: true,
       },
     },
-    runtimeConfig: {
-      public: {
-        baseUrl: "http://localhost:8080",
-      },
-    },
   },
 })

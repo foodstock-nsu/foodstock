@@ -37,7 +37,7 @@ u-drawer(
       div(class="flex flex-col gap-2")
         div(class="flex justify-between items-baseline")
           h2(class="display-sm font-extrabold text-on-surface") {{ item.name }}
-          span(class="headline-md text-primary font-bold") {{ formatNumber((item.price || 0) / 100) }} ₽
+          span(class="headline-md text-primary font-bold whitespace-nowrap") {{ formatNumber((item.price || 0) / 100) }} ₽
 
         p(class="body-lg text-on-surface opacity-80 leading-relaxed") {{ item.description }}
 
