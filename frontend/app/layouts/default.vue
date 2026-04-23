@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { useRoute } from "vue-router"
+
 const { totalQuantity } = useCartStore()
 const { logout } = useAdminAuth()
+
+const route = useRoute()
+const isLocationPage = computed(() => route.path.startsWith("/l/"))
 </script>
 
 <template lang="pug">
@@ -12,11 +17,12 @@ div(class="min-h-screen surface-base")
     slot
 
     div(
+      v-if="isLocationPage"
       class="transition-all duration-300 ease-in-out"
       :class="totalQuantity > 0 ? 'pb-20' : ''"
     )
 
-  cart-bar
+  cart-bar(v-if="isLocationPage")
 </template>
 
 <style scoped>
