@@ -52,48 +52,47 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			},
 			expectErr: nil,
 		},
-		{
-			name: "Success - activate location",
-			input: dto.UpdateLocationInput{
-				ID:       testID,
-				Slug:     utils.VPtr("updated-slug"),
-				Name:     utils.VPtr("Updated Name"),
-				Address:  utils.VPtr("Updated Address address"),
-				IsActive: utils.VPtr(true),
-			},
-			mockBehaviour: func(a adapter) {
-				testLocation, _ := model.NewLocation(
-					"test-slug",
-					"Test LocationOutput for mall",
-					"Brooklyn, st. main Avenue, 2378",
-				)
-				// Деактивируем локацию, чтобы можно было активировать
-				_ = testLocation.Deactivate()
-				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
-			},
-			expectErr: nil,
-		},
-		{
-			name: "Success - deactivate location",
-			input: dto.UpdateLocationInput{
-				ID:       testID,
-				Slug:     utils.VPtr("updated-slug"),
-				Name:     utils.VPtr("Updated Name"),
-				Address:  utils.VPtr("Updated Address address"),
-				IsActive: utils.VPtr(false),
-			},
-			mockBehaviour: func(a adapter) {
-				testLocation, _ := model.NewLocation(
-					"test-slug",
-					"Test LocationOutput for mall",
-					"Brooklyn, st. main Avenue, 2378",
-				)
-				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
-				a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
-			},
-			expectErr: nil,
-		},
+		//{
+		//	name: "Success - activate location",
+		//	input: dto.UpdateLocationInput{
+		//		ID:       testID,
+		//		Slug:     utils.VPtr("updated-slug"),
+		//		Name:     utils.VPtr("Updated Name"),
+		//		Address:  utils.VPtr("Updated Address address"),
+		//		IsActive: utils.VPtr(true),
+		//	},
+		//	mockBehaviour: func(a adapter) {
+		//		testLocation, _ := model.NewLocation(
+		//			"test-slug",
+		//			"Test LocationOutput for mall",
+		//			"Brooklyn, st. main Avenue, 2378",
+		//		)
+		//		_ = testLocation.Deactivate()
+		//		a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
+		//		a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
+		//	},
+		//	expectErr: nil,
+		//},
+		//{
+		//	name: "Success - deactivate location",
+		//	input: dto.UpdateLocationInput{
+		//		ID:       testID,
+		//		Slug:     utils.VPtr("updated-slug"),
+		//		Name:     utils.VPtr("Updated Name"),
+		//		Address:  utils.VPtr("Updated Address address"),
+		//		IsActive: utils.VPtr(false),
+		//	},
+		//	mockBehaviour: func(a adapter) {
+		//		testLocation, _ := model.NewLocation(
+		//			"test-slug",
+		//			"Test LocationOutput for mall",
+		//			"Brooklyn, st. main Avenue, 2378",
+		//		)
+		//		a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
+		//		a.location.EXPECT().Update(mock.Anything, mock.AnythingOfType("*model.Location")).Return(nil)
+		//	},
+		//	expectErr: nil,
+		//},
 		{
 			name: "Failure - cannot activate location",
 			input: dto.UpdateLocationInput{

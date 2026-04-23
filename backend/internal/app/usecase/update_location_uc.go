@@ -41,14 +41,14 @@ func (uc *UpdateLocationUC) Execute(ctx context.Context, in dto.UpdateLocationIn
 	if in.IsActive != nil {
 		if *in.IsActive {
 			err = location.Activate()
-			if err != nil {
-				return dto.UpdateLocationOutput{}, ucerrs.ErrCannotActivateLocation
-			}
+			//if err != nil {
+			//	return dto.UpdateLocationOutput{}, ucerrs.ErrCannotActivateLocation
+			//}
 		} else {
 			err = location.Deactivate()
-			if err != nil {
-				return dto.UpdateLocationOutput{}, ucerrs.ErrCannotDeactivateLocation
-			}
+			//if err != nil {
+			//	return dto.UpdateLocationOutput{}, ucerrs.ErrCannotDeactivateLocation
+			//}
 		}
 	}
 

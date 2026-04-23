@@ -34,6 +34,12 @@ func NewRouter(
 func (r *Router) InitRoutes() *echo.Echo {
 	router := echo.New()
 
+	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
+
 	router.Use(middleware.Recover())
 	router.Use(middleware.RequestLogger())
 
