@@ -15,7 +15,6 @@ const cards = computed(() => {
       title: "Товары",
       description: "Редактируйте карточки товаров, цену и остатки.",
       value: stats.value.itemsCount,
-      helper: `Низкий остаток: ${stats.value.lowStockCount}`,
       to: "/admin/items",
       icon: "i-heroicons-cube",
     },

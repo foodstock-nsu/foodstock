@@ -4,7 +4,8 @@ import { useRoute } from "vue-router"
 import type { CatalogItem } from "~/types/catalog"
 
 const route = useRoute()
-const locationSlug = route.params.slug as string
+// Хардкодим central-ave для любых ссылок
+const locationSlug = "central-ave"
 
 const {
   location,
