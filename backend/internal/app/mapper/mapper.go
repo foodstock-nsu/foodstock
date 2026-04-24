@@ -45,6 +45,7 @@ func MapDomainToItemDTO(item *model.Item) dto.ItemOutput {
 		Category:    item.Category().String(),
 		PhotoURL:    item.PhotoURL(),
 		Nutrition:   mapDomainToItemNutritionDTO(item.Nutrition()),
+		CreatedAt:   item.CreatedAt(),
 	}
 }
 

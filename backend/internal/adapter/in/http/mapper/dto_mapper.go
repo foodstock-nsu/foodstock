@@ -71,8 +71,8 @@ func MapRequestToCreateLocation(req httpdto.CreateLocationRequest) appdto.Create
 	}
 }
 
-func MapOutputToLocation(out appdto.LocationOutput) httpdto.LocationResponse {
-	return httpdto.LocationResponse{
+func MapOutputToLocation(out appdto.LocationOutput) httpdto.Location {
+	return httpdto.Location{
 		ID:        out.ID.String(),
 		Slug:      out.Slug,
 		Name:      out.Name,
@@ -111,7 +111,7 @@ func MapRequestToDeleteLocation(req httpdto.DeleteLocationRequest) appdto.Delete
 }
 
 func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocationsResponse {
-	arr := make([]httpdto.LocationResponse, len(out.Locations))
+	arr := make([]httpdto.Location, len(out.Locations))
 	for i := range arr {
 		arr[i] = MapOutputToLocation(out.Locations[i])
 	}
@@ -122,4 +122,42 @@ func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocati
 func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
 	id, _ := uuid.Parse(req.ID)
 	return appdto.GetQRCodeInput{LocationID: id}
+}
+
+func MapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionOutput {
+	return appdto.NutritionOutput{
+		Calories: req.Calories,
+		Proteins: req.Proteins,
+		Fats:     req.Fats,
+		Carbs:    req.Carbs,
+	}
+}
+
+func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInput {
+	nutrition := MapRequestToNutrition(*req.Nutrition)
+	return appdto.CreateItemInput{
+		Name:        req.Name,
+		Description: req.Description,
+		Category:    req.Category,
+		PhotoURL:    req.PhotoURL,
+		Nutrition:   &nutrition,
+	}
+}
+
+func MapOutputToCreateItem(out appdto.CreateItemOutput) httpdto.CreateItemResponse {
+	nutrition := MapOutputToNutrition(*out.Item.Nutrition)
+	return httpdto.CreateItemResponse{
+		ID:          out.Item.ID.String(),
+		Name:        out.Item.Name,
+		Description: out.Item.Description,
+		Category:    out.Item.Category,
+		PhotoURL:    out.Item.PhotoURL,
+		Nutrition:   &nutrition,
+		CreatedAt:   out.Item.CreatedAt.String(),
+	}
+}
+
+func MapRequestToDeleteItem(req httpdto.DeleteItemRequest) appdto.DeleteItemInput {
+	id, _ := uuid.Parse(req.ID)
+	return appdto.DeleteItemInput{ID: id}
 }

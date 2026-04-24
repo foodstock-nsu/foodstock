@@ -131,7 +131,7 @@ func TestMapOutputToLocation(t *testing.T) {
 	out := appdto.LocationOutput{
 		ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now,
 	}
-	expected := httpdto.LocationResponse{
+	expected := httpdto.Location{
 		ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 	}
 	result := mapper.MapOutputToLocation(out)
@@ -149,7 +149,7 @@ func TestMapOutputToCreateLocation(t *testing.T) {
 		},
 	}
 	expected := httpdto.CreateLocationResponse{
-		Location: httpdto.LocationResponse{
+		Location: httpdto.Location{
 			ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 		},
 	}
@@ -186,7 +186,7 @@ func TestMapOutputToUpdateLocation(t *testing.T) {
 		},
 	}
 	expected := httpdto.UpdateLocationResponse{
-		Location: httpdto.LocationResponse{
+		Location: httpdto.Location{
 			ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 		},
 	}
@@ -215,7 +215,7 @@ func TestMapOutputToListLocations(t *testing.T) {
 		},
 	}
 	expected := httpdto.ListLocationsResponse{
-		Locations: []httpdto.LocationResponse{
+		Locations: []httpdto.Location{
 			{ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String()},
 		},
 	}

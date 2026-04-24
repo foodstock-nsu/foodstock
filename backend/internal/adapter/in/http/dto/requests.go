@@ -30,3 +30,22 @@ type DeleteLocationRequest struct {
 type GetQRCodeRequest struct {
 	ID string `param:"id"`
 }
+
+type NutritionRequest struct {
+	Calories *int     `json:"calories"`
+	Proteins *float64 `json:"proteins"`
+	Fats     *float64 `json:"fats"`
+	Carbs    *float64 `json:"carbs"`
+}
+
+type CreateItemRequest struct {
+	Name        string
+	Description *string
+	Category    string
+	PhotoURL    string
+	Nutrition   *NutritionRequest
+}
+
+type DeleteItemRequest struct {
+	ID string `param:"id"`
+}
