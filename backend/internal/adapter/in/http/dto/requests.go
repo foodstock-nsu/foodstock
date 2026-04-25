@@ -46,6 +46,15 @@ type CreateItemRequest struct {
 	Nutrition   *NutritionRequest
 }
 
+type UpdateItemRequest struct {
+	ID          string            `json:"id"`
+	Name        *string           `json:"name"`
+	Description *string           `json:"description"`
+	Category    *string           `json:"category"`
+	PhotoURL    *string           `json:"photo_url"`
+	Nutrition   *NutritionRequest `json:"nutrition"`
+}
+
 type DeleteItemRequest struct {
 	ID string `param:"id"`
 }

@@ -24,6 +24,16 @@ type NutritionResponse struct {
 	Carbs    *float64 `json:"carbs"`
 }
 
+type ItemResponse struct {
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	Description *string            `json:"description"`
+	Category    string             `json:"category"`
+	PhotoURL    string             `json:"photo_url"`
+	Nutrition   *NutritionResponse `json:"nutrition"`
+	CreatedAt   string             `json:"created_at"`
+}
+
 type CatalogItemResponse struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
@@ -61,4 +71,12 @@ type CreateItemResponse struct {
 	PhotoURL    string             `json:"photo_url"`
 	Nutrition   *NutritionResponse `json:"nutrition"`
 	CreatedAt   string             `json:"created_at"`
+}
+
+type UpdateItemResponse struct {
+	Item ItemResponse `json:"item"`
+}
+
+type ListItemsResponse struct {
+	Items []ItemResponse `json:"items"`
 }

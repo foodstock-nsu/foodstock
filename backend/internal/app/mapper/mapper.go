@@ -49,6 +49,14 @@ func MapDomainToItemDTO(item *model.Item) dto.ItemOutput {
 	}
 }
 
+func MapDomainToItemListDTO(items []*model.Item) []dto.ItemOutput {
+	res := make([]dto.ItemOutput, len(items))
+	for i := range res {
+		res[i] = MapDomainToItemDTO(items[i])
+	}
+	return res
+}
+
 func MapDomainToCatalogItemDTO(locItem *model.LocationItem, item *model.Item) dto.CatalogItemOutput {
 	return dto.CatalogItemOutput{
 		ID:          locItem.ID(),
