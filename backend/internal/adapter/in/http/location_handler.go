@@ -100,7 +100,7 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
@@ -137,7 +137,7 @@ func (h *LocationHandler) GetQRCode(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {

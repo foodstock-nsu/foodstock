@@ -62,6 +62,58 @@ components:
           type: string
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
+    CatalogItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        name:
+          type: string
+          example: "Сэндвич с курицей"
+        description:
+          type: string
+          nullable: true
+          example: "Сэндвич с курицей и соусом тар-тар"
+        category:
+          type: string
+          example: "breakfast"
+        photo_url:
+          type: string
+          example: "https://photos-storage/exsa129csa7690/chicken_sandwich.png"
+        nutrition:
+          $ref: "#/components/schemas/NutritionResponse"
+        price:
+          type: integer
+          format: int64
+          description: "Цена в копейках. 10050 = 100 руб. 50 коп."
+          example: 10050
+        is_available:
+          type: boolean
+          description: "Наличие товара на торговой точке"
+        stock_amount:
+          type: integer
+          description: "Количество товара на торговой точке"
+          example: 10
+
+
+    GetCatalogResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          description: "Список доступных категорий товаров"
+          items:
+            type: string
+          example: [ "lunch", "drinks", "snacks", "breakfast" ]
+        items:
+          type: array
+          description: "Список всех товаров"
+          items:
+            $ref: "#/components/schemas/CatalogItemResponse"
+
+
     LocationResponse:
       type: object
       properties:
@@ -298,6 +350,31 @@ components:
             error: "internal error"
 
 paths:
+  /api/v1/client/locations/{id}/catalog:
+    get:
+      tags: [ Client ]
+      summary: Получить каталог товаров
+      description: Возвращает каталог товаров на торговой точке и список категорий
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '200':
+          description: Возвращает каталог товаров на торговой точке и список категорий
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCatalogResponse'
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
+        '500':
+          $ref: "#/components/responses/InternalError"
+
   /api/v1/admin/auth:
     post:
       tags: [ Admin Auth ]
@@ -386,7 +463,7 @@ paths:
           $ref: "#/components/responses/InternalError"
     get:
       tags: [ Admin Locations ]
-      summary: Список всех торговых точек
+      summary: Получить список всех торговых точек
       security:
         - BearerAuth: [ ]
       responses:
@@ -592,7 +669,7 @@ paths:
           $ref: "#/components/responses/InternalError"
     get:
       tags: [ Admin Items ]
-      summary: Список всех товаров
+      summary: Получить список всех товаров
       security:
         - BearerAuth: [ ]
       responses:

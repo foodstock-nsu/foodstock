@@ -4,9 +4,11 @@ import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
+	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,8 +29,13 @@ func NewClientHandler(
 
 func (h *ClientHandler) GetCatalog(c echo.Context) error {
 	var req httpdto.GetCatalogRequest
+
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid query", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	if _, err := uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	out, err := h.getCatalogUC.Execute(
