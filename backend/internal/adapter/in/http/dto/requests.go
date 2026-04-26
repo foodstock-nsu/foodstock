@@ -6,7 +6,7 @@ type AdminAuthRequest struct {
 }
 
 type GetCatalogRequest struct {
-	ID string `query:"id"`
+	ID string `param:"id"`
 }
 
 type CreateLocationRequest struct {
