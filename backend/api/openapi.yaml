@@ -6,6 +6,7 @@ info:
   version: 1.0.0
 
 tags:
+  - name: System
   - name: Client
   - name: Webhooks
   - name: Admin Auth
@@ -39,6 +40,22 @@ components:
       description: Идентификатор товара
 
   schemas:
+    SystemInfoResponse:
+      type: object
+      properties:
+        app:
+          type: string
+          example: "foodstock-api"
+        environment:
+          type: string
+          example: "production"
+        uptime:
+          type: string
+          example: "45h12m3s"
+        api_version:
+          type: string
+          example: "v1"
+
     ErrorResponse:
       type: object
       properties:
@@ -350,6 +367,27 @@ components:
             error: "internal error"
 
 paths:
+  /health:
+    get:
+      tags: [ System ]
+      summary: Проверка работоспособности
+      responses:
+        '200':
+          description: Сервис жив
+
+  /_info:
+    get:
+      tags: [ System ]
+      summary: Информация о сборке
+      description: Возвращает версию API и текущее окружение.
+      responses:
+        '200':
+          description: Данные о системе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemInfoResponse'
+
   /api/v1/client/locations/{id}/catalog:
     get:
       tags: [ Client ]
