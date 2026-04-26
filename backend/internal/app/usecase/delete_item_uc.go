@@ -31,21 +31,21 @@ func NewDeleteItemUC(
 
 func (uc *DeleteItemUC) Execute(ctx context.Context, in dto.DeleteItemInput) error {
 	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
+		// Delete item in each catalog
+		deleteErr := uc.locationItem.DeleteByItemID(ctx, in.ID)
+		if deleteErr != nil {
+			return ucerrs.Wrap(
+				ucerrs.ErrDeleteLocationItemsByItemIDDB, deleteErr,
+			)
+		}
+
 		// Delete item in items list
-		deleteErr := uc.item.Delete(ctx, in.ID)
+		deleteErr = uc.item.Delete(ctx, in.ID)
 		if deleteErr != nil {
 			if errors.Is(deleteErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrItemNotFound
 			}
 			return ucerrs.Wrap(ucerrs.ErrDeleteItemDB, deleteErr)
-		}
-
-		// Delete item in each catalog
-		deleteErr = uc.locationItem.DeleteByItemID(ctx, in.ID)
-		if deleteErr != nil {
-			return ucerrs.Wrap(
-				ucerrs.ErrDeleteLocationItemsByItemIDDB, deleteErr,
-			)
 		}
 
 		return nil

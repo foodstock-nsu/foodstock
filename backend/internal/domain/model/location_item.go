@@ -32,7 +32,7 @@ func NewLocationItem(
 		return nil, pkgerrs.NewValueInvalidError("location_id")
 	}
 	if price < 0 {
-		return nil, pkgerrs.NewValueInvalidError("totalPrice")
+		return nil, pkgerrs.NewValueInvalidError("total_price")
 	}
 	if stockAmount < 0 {
 		return nil, pkgerrs.NewValueInvalidError("stock_amount")

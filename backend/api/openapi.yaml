@@ -29,6 +29,14 @@ components:
         type: string
         format: uuid
       description: Идентификатор торговой точки
+    ItemIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор товара
 
   schemas:
     ErrorResponse:
@@ -128,6 +136,115 @@ components:
           items:
             $ref: "#/components/schemas/LocationResponse"
 
+    NutritionResponse:
+      type: object
+      nullable: true
+      description: "Калории и БЖУ"
+      properties:
+        calories:
+          type: integer
+          nullable: true
+          example: 200
+        proteins:
+          type: number
+          format: float
+          nullable: true
+          example: 23.6
+        fats:
+          type: number
+          format: float
+          nullable: true
+          example: 1.9
+        carbs:
+          type: number
+          format: float
+          nullable: true
+          example: 0.3
+
+    ItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Сэндвич с курицей"
+        description:
+          type: string
+          nullable: true
+          example: "Сэндвич с курицей и соусом тар-тар"
+        category:
+          type: string
+          example: "breakfast"
+        photo_url:
+          type: string
+          example: "https://photos-storage/exsa129csa7690/chicken_sandwich.png"
+        nutrition:
+          $ref: "#/components/schemas/NutritionResponse"
+        created_at:
+          type: string
+          format: date-time
+
+    CreateItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Сэндвич с курицей"
+        description:
+          type: string
+          nullable: true
+          example: "Сэндвич с курицей и соусом тар-тар"
+        category:
+          type: string
+          example: "breakfast"
+        photo_url:
+          type: string
+          example: "https://photos-storage/exsa129csa7690/chicken_sandwich.png"
+        nutrition:
+          $ref: "#/components/schemas/NutritionResponse"
+    CreateItemResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemResponse"
+
+    UpdateItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: "Сэндвич с курицей"
+        description:
+          type: string
+          nullable: true
+          example: "Сэндвич с курицей и соусом тар-тар"
+        category:
+          type: string
+          nullable: true
+          example: "breakfast"
+        photo_url:
+          type: string
+          nullable: true
+          example: "https://photos-storage/exsa129csa7690/chicken_sandwich.png"
+        nutrition:
+          $ref: "#/components/schemas/NutritionResponse"
+    UpdateItemResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemResponse"
+
+    ListItemsResponse:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemResponse"
+
   responses:
     BadRequestError:
       description: Ошибка в формате запроса
@@ -162,6 +279,14 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "location not found"
+    ItemNotFoundError:
+      description: Товар не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "item not found"
 
     InternalError:
       description: Внутренняя ошибка сервера
@@ -175,7 +300,7 @@ components:
 paths:
   /api/v1/admin/auth:
     post:
-      tags: [Admin Auth]
+      tags: [ Admin Auth ]
       summary: Авторизация администратора
       description: Возвращает JWT токен доступа при успехе
       requestBody:
@@ -206,8 +331,8 @@ paths:
 
   /api/v1/admin/locations:
     post:
-      tags: [Admin Locations]
-      summary: Создать новую торговую точку
+      tags: [ Admin Locations ]
+      summary: Создать торговую точку
       description: Создаёт новую торговую точку и возвращает её данные
       security:
         - BearerAuth: [ ]
@@ -309,6 +434,10 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
+                incorrect_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
                 incorrect_slug:
                   summary: Некорректный slug
                   value:
@@ -325,21 +454,21 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
-        '409':
-          description: Не удалось изменить статус торговой точки
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                cannot_activate:
-                  summary: Торговая точка уже активирована
-                  value:
-                    error: "location is already activated"
-                cannot_deactivate:
-                  summary: Торговая точка уже деактивирована
-                  value:
-                    error: "location is already deactivated"
+#        '409':
+#          description: Не удалось изменить статус торговой точки
+#          content:
+#            application/json:
+#              schema:
+#                $ref: "#/components/schemas/ErrorResponse"
+#              examples:
+#                cannot_activate:
+#                  summary: Торговая точка уже активирована
+#                  value:
+#                    error: "location is already activated"
+#                cannot_deactivate:
+#                  summary: Торговая точка уже деактивирована
+#                  value:
+#                    error: "location is already deactivated"
         '500':
           $ref: "#/components/responses/InternalError"
     delete:
@@ -352,6 +481,14 @@ paths:
       responses:
         '204':
           description: "Торговая точка удалена успешно"
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -376,6 +513,14 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -390,3 +535,161 @@ paths:
                 error: "location is not operational"
         '500':
           $ref: '#/components/responses/InternalError'
+  /api/v1/admin/items:
+    post:
+      tags: [ Admin Items ]
+      summary: Создать товар
+      description: Создаёт новый товар и возвращает его данные
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Товар создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateItemResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_name:
+                  summary: Некорректное имя
+                  value:
+                    error: "invalid input"
+                incorrect_description:
+                  summary: Некорректное описание
+                  value:
+                    error: "invalid input"
+                incorrect_category:
+                  summary: Несуществующая категория
+                  value:
+                    error: "invalid input"
+                incorrect_photo_url:
+                  summary: Некорректная ссылка на фотографию
+                  value:
+                    error: "invalid input"
+                incorrect_nutrition:
+                  summary: Некорректное значение калорий или БЖУ
+                  value:
+                    error: "invalid input"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+    get:
+      tags: [ Admin Items ]
+      summary: Список всех товаров
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: Список всех товаров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListItemsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+  /api/v1/admin/items/{id}:
+    put:
+      tags: [ Admin Items ]
+      summary: Обновить данные товара
+      description: Обновляет товар и возвращает его новые данные
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        '200':
+          description: "Данные товара обновлены"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateItemResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
+                incorrect_name:
+                  summary: Некорректное имя
+                  value:
+                    error: "invalid input"
+                incorrect_description:
+                  summary: Некорректное описание
+                  value:
+                    error: "invalid input"
+                incorrect_category:
+                  summary: Несуществующая категория
+                  value:
+                    error: "invalid input"
+                incorrect_photo_url:
+                  summary: Некорректная ссылка на фотографию
+                  value:
+                    error: "invalid input"
+                incorrect_nutrition:
+                  summary: Некорректное значение калорий или БЖУ
+                  value:
+                    error: "invalid input"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/ItemNotFoundError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags: [ Admin Items ]
+      summary: Удалить товар
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      responses:
+        '204':
+          description: "Товар удалён успешно"
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/ItemNotFoundError'
+        '500':
+          $ref: "#/components/responses/InternalError"

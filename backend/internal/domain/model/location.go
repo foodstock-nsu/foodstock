@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"time"
+	"unicode/utf8"
 
 	pkgerrs "backend/pkg/errs"
 
@@ -26,13 +27,13 @@ type Location struct {
 }
 
 func NewLocation(slug, name, address string) (*Location, error) {
-	if len(slug) < 4 {
+	if utf8.RuneCountInString(slug) < 4 {
 		return nil, pkgerrs.NewValueInvalidError("slug")
 	}
-	if len(name) < 4 {
-		return nil, pkgerrs.NewValueInvalidError("locID")
+	if utf8.RuneCountInString(name) < 4 {
+		return nil, pkgerrs.NewValueInvalidError("name")
 	}
-	if len(address) < 20 {
+	if utf8.RuneCountInString(address) < 20 {
 		return nil, pkgerrs.NewValueInvalidError("address")
 	}
 
@@ -88,13 +89,13 @@ func (l *Location) ValidateQRCode(slug string) bool {
 // ================ Mutation ================
 
 func (l *Location) Update(slug, name, address *string) error {
-	if slug != nil && len(*slug) < 4 {
+	if slug != nil && utf8.RuneCountInString(*slug) < 4 {
 		return pkgerrs.NewValueInvalidError("slug")
 	}
-	if name != nil && len(*name) < 4 {
-		return pkgerrs.NewValueInvalidError("locID")
+	if name != nil && utf8.RuneCountInString(*name) < 4 {
+		return pkgerrs.NewValueInvalidError("name")
 	}
-	if address != nil && len(*address) < 20 {
+	if address != nil && utf8.RuneCountInString(*address) < 20 {
 		return pkgerrs.NewValueInvalidError("address")
 	}
 

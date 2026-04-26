@@ -137,6 +137,14 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	listLocationsUC := usecase.NewListLocationsUC(locationRepo)
 	getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
 	getCatalogUC := usecase.NewGetCatalogUC(itemRepo, locationItemRepo)
+	createItemUC := usecase.NewCreateItemUC(
+		trManager, locationRepo, itemRepo, locationItemRepo,
+	)
+	updateItemUC := usecase.NewUpdateItemUC(itemRepo)
+	deleteItemUC := usecase.NewDeleteItemUC(
+		trManager, itemRepo, locationItemRepo,
+	)
+	listItemsUC := usecase.NewListItemsUC(itemRepo)
 
 	// Handlers
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
@@ -145,6 +153,10 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		logger, createLocationUC, updateLocationUC,
 		deleteLocationUC, listLocationsUC, getQRCodeUC,
 	)
+	itemHandler := adapterhttp.NewItemHandler(
+		logger, createItemUC,
+		updateItemUC, deleteItemUC, listItemsUC,
+	)
 
 	// Router
 	router := adapterhttp.NewRouter(
@@ -152,6 +164,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		authHandler,
 		clientHandler,
 		locationsHandler,
+		itemHandler,
 	).InitRoutes()
 
 	// Launch server with graceful shutdown

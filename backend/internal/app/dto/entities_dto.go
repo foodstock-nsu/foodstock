@@ -29,6 +29,7 @@ type ItemOutput struct {
 	Category    string
 	PhotoURL    string
 	Nutrition   *NutritionOutput
+	CreatedAt   time.Time
 }
 
 type CatalogItemOutput struct {

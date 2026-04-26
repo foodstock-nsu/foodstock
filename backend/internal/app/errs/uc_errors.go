@@ -35,6 +35,8 @@ var (
 	ErrListLocationsDB   = errors.New("failed to get a list of locations using db")
 
 	ErrCreateItemDB     = errors.New("failed to create item using db")
+	ErrGetItemDB        = errors.New("failed to get item using db")
+	ErrUpdateItemDB     = errors.New("failed to update item using db")
 	ErrDeleteItemDB     = errors.New("failed to delete item using db")
 	ErrListAllItemsDB   = errors.New("failed to get a list of items by ids using db")
 	ErrListItemsByIDsDB = errors.New("failed to get a list of all items using db")

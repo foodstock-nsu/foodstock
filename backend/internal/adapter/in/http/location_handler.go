@@ -4,6 +4,7 @@ import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
+	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
 
@@ -42,7 +43,7 @@ func (h *LocationHandler) Create(c echo.Context) error {
 	var req httpdto.CreateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid json", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	out, err := h.createLocationUC.Execute(
@@ -53,6 +54,13 @@ func (h *LocationHandler) Create(c echo.Context) error {
 		return h.returnErr(c, "failed to create location", err)
 	}
 
+	h.log.InfoContext(
+		c.Request().Context(), "location created",
+		slog.String("slug", req.Slug),
+		slog.String("name", req.Name),
+		slog.String("address", req.Address),
+	)
+
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateLocation(out))
 }
 
@@ -60,11 +68,11 @@ func (h *LocationHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "invalid identifier format", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
 	}
 
 	out, err := h.updateLocationUC.Execute(
@@ -75,6 +83,15 @@ func (h *LocationHandler) Update(c echo.Context) error {
 		return h.returnErr(c, "failed to update location", err)
 	}
 
+	h.log.InfoContext(
+		c.Request().Context(), "location updated",
+		slog.String("id", req.ID),
+		slog.Any("slug", req.Slug),
+		slog.Any("name", req.Name),
+		slog.Any("address", req.Address),
+		slog.Any("is_active", req.IsActive),
+	)
+
 	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateLocation(out))
 }
 
@@ -83,11 +100,11 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	err = h.deleteLocationUC.Execute(
@@ -97,6 +114,11 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 	if err != nil {
 		return h.returnErr(c, "failed to delete location", err)
 	}
+
+	h.log.InfoContext(
+		c.Request().Context(), "location deleted",
+		slog.String("id", req.ID),
+	)
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -115,11 +137,11 @@ func (h *LocationHandler) GetQRCode(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	out, err := h.getQRCodeUC.Execute(

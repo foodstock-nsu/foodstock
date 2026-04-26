@@ -15,6 +15,7 @@ type Router struct {
 	Auth     *AuthHandler
 	Client   *ClientHandler
 	Location *LocationHandler
+	Item     *ItemHandler
 }
 
 func NewRouter(
@@ -22,12 +23,14 @@ func NewRouter(
 	auth *AuthHandler,
 	client *ClientHandler,
 	location *LocationHandler,
+	item *ItemHandler,
 ) *Router {
 	return &Router{
 		tokenGen: tokenGen,
 		Auth:     auth,
 		Client:   client,
 		Location: location,
+		Item:     item,
 	}
 }
 
@@ -77,6 +80,14 @@ func (r *Router) InitRoutes() *echo.Echo {
 			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
 		}
 
+		adminItems := admin.Group("/items")
+		adminItems.Use(r.withAuth(r.tokenGen))
+		{
+			adminItems.POST("", r.Item.Create)
+			adminItems.PUT("/:id", r.Item.Update)
+			adminItems.DELETE("/:id", r.Item.Delete)
+			adminItems.GET("", r.Item.List)
+		}
 	}
 
 	return router

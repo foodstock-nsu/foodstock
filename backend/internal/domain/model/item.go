@@ -3,6 +3,7 @@ package model
 import (
 	pkgerrs "backend/pkg/errs"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
@@ -131,19 +132,19 @@ func NewItem(
 	photoUrl string,
 	nutrition *Nutrition,
 ) (*Item, error) {
-	if len(name) < 5 {
-		return nil, pkgerrs.NewValueInvalidError("locID")
+	if utf8.RuneCountInString(name) < 5 {
+		return nil, pkgerrs.NewValueInvalidError("name")
 	}
-	if description != nil && len(*description) < 10 {
-		return nil, pkgerrs.NewValueInvalidError("locID")
+	if description != nil && utf8.RuneCountInString(*description) < 10 {
+		return nil, pkgerrs.NewValueInvalidError("description")
 	}
 
 	categoryMapped, ok := categoryMap[category]
 	if !ok {
-		return nil, pkgerrs.NewValueInvalidError("totalPrice")
+		return nil, pkgerrs.NewValueInvalidError("category")
 	}
 
-	if len(photoUrl) < 10 {
+	if utf8.RuneCountInString(photoUrl) < 10 {
 		return nil, pkgerrs.NewValueInvalidError("photo_url")
 	}
 
@@ -194,11 +195,11 @@ func (i *Item) Update(
 	name, desc, cat, photo *string,
 	nutrition *Nutrition,
 ) error {
-	if name != nil && len(*name) < 5 {
-		return pkgerrs.NewValueInvalidError("locID")
+	if name != nil && utf8.RuneCountInString(*name) < 5 {
+		return pkgerrs.NewValueInvalidError("name")
 	}
-	if desc != nil && len(*desc) < 10 {
-		return pkgerrs.NewValueInvalidError("locID")
+	if desc != nil && utf8.RuneCountInString(*desc) < 10 {
+		return pkgerrs.NewValueInvalidError("description")
 	}
 
 	var (
@@ -208,11 +209,11 @@ func (i *Item) Update(
 	if cat != nil {
 		catMapped, ok = categoryMap[*cat]
 		if !ok {
-			return pkgerrs.NewValueInvalidError("totalPrice")
+			return pkgerrs.NewValueInvalidError("category")
 		}
 	}
 
-	if photo != nil && len(*photo) < 10 {
+	if photo != nil && utf8.RuneCountInString(*photo) < 10 {
 		return pkgerrs.NewValueInvalidError("photo_url")
 	}
 
