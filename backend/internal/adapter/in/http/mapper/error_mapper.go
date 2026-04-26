@@ -4,15 +4,20 @@ import (
 	ucerrs "backend/internal/app/errs"
 	pkgerrs "backend/pkg/errs"
 	"errors"
-	"fmt"
 	"net/http"
-
-	"github.com/labstack/echo/v4"
 )
 
 func HttpError(err error) *pkgerrs.OutErr {
 	if err == nil {
 		return nil
+	}
+
+	switch {
+	case errors.Is(err, pkgerrs.ErrInvalidJSON):
+		return pkgerrs.NewOutError(http.StatusBadRequest, "invalid json", err)
+
+	case errors.Is(err, pkgerrs.ErrInvalidIdentifier):
+		return pkgerrs.NewOutError(http.StatusBadRequest, "invalid identifier format", err)
 	}
 
 	var w *ucerrs.WrappedError
@@ -25,6 +30,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrDeleteLocationDB),
 			errors.Is(err, ucerrs.ErrListLocationsDB),
 			errors.Is(err, ucerrs.ErrCreateItemDB),
+			errors.Is(err, ucerrs.ErrGetItemDB),
+			errors.Is(err, ucerrs.ErrUpdateItemDB),
 			errors.Is(err, ucerrs.ErrDeleteItemDB),
 			errors.Is(err, ucerrs.ErrListAllItemsDB),
 			errors.Is(err, ucerrs.ErrListItemsByIDsDB),
@@ -54,21 +61,6 @@ func HttpError(err error) *pkgerrs.OutErr {
 				w.Reason,
 			)
 		}
-	}
-
-	var echoErr *echo.HTTPError
-	if errors.As(err, &echoErr) {
-		msg := fmt.Sprintf("%v", echoErr.Message)
-
-		if echoErr.Code == http.StatusBadRequest {
-			msg = "invalid json"
-		}
-
-		return pkgerrs.NewOutError(
-			echoErr.Code,
-			msg,
-			err,
-		)
 	}
 
 	switch {

@@ -24,12 +24,8 @@ func MapDomainToLocationListDTO(locations []*model.Location) []dto.LocationOutpu
 	return res
 }
 
-func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.NutritionOutput {
-	if nutrition == nil {
-		return nil
-	}
-
-	return &dto.NutritionOutput{
+func mapDomainToItemNutritionDTO(nutrition model.Nutrition) dto.NutritionOutput {
+	return dto.NutritionOutput{
 		Calories: nutrition.Calories(),
 		Proteins: nutrition.Proteins(),
 		Fats:     nutrition.Fats(),
@@ -38,13 +34,18 @@ func mapDomainToItemNutritionDTO(nutrition *model.Nutrition) *dto.NutritionOutpu
 }
 
 func MapDomainToItemDTO(item *model.Item) dto.ItemOutput {
+	var nutrition dto.NutritionOutput
+	if item.Nutrition() != nil {
+		nutrition = mapDomainToItemNutritionDTO(*item.Nutrition())
+	}
+
 	return dto.ItemOutput{
 		ID:          item.ID(),
 		Name:        item.Name(),
 		Description: item.Description(),
 		Category:    item.Category().String(),
 		PhotoURL:    item.PhotoURL(),
-		Nutrition:   mapDomainToItemNutritionDTO(item.Nutrition()),
+		Nutrition:   &nutrition,
 		CreatedAt:   item.CreatedAt(),
 	}
 }
@@ -58,13 +59,18 @@ func MapDomainToItemListDTO(items []*model.Item) []dto.ItemOutput {
 }
 
 func MapDomainToCatalogItemDTO(locItem *model.LocationItem, item *model.Item) dto.CatalogItemOutput {
+	var nutrition dto.NutritionOutput
+	if item.Nutrition() != nil {
+		nutrition = mapDomainToItemNutritionDTO(*item.Nutrition())
+	}
+
 	return dto.CatalogItemOutput{
 		ID:          locItem.ID(),
 		Name:        item.Name(),
 		Description: item.Description(),
 		Category:    item.Category().String(),
 		PhotoURL:    item.PhotoURL(),
-		Nutrition:   mapDomainToItemNutritionDTO(item.Nutrition()),
+		Nutrition:   &nutrition,
 		Price:       locItem.Price(),
 		IsAvailable: locItem.IsAvailable(),
 		StockAmount: locItem.StockAmount(),

@@ -1,5 +1,12 @@
 package errs
 
+import "errors"
+
+var (
+	ErrInvalidJSON       = errors.New("invalid json")
+	ErrInvalidIdentifier = errors.New("invalid identifier format")
+)
+
 type OutErr struct {
 	Code    int
 	Message string

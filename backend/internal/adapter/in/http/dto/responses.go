@@ -64,13 +64,7 @@ type ListLocationsResponse struct {
 }
 
 type CreateItemResponse struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
-	Description *string            `json:"description"`
-	Category    string             `json:"category"`
-	PhotoURL    string             `json:"photo_url"`
-	Nutrition   *NutritionResponse `json:"nutrition"`
-	CreatedAt   string             `json:"created_at"`
+	Item ItemResponse `json:"item"`
 }
 
 type UpdateItemResponse struct {

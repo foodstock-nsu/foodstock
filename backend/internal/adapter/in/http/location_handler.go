@@ -4,6 +4,7 @@ import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
+	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
 
@@ -42,7 +43,7 @@ func (h *LocationHandler) Create(c echo.Context) error {
 	var req httpdto.CreateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid json", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	out, err := h.createLocationUC.Execute(
@@ -60,11 +61,11 @@ func (h *LocationHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateLocationRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "invalid identifier format", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
 	}
 
 	out, err := h.updateLocationUC.Execute(
@@ -83,11 +84,11 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	err = h.deleteLocationUC.Execute(
@@ -115,11 +116,11 @@ func (h *LocationHandler) GetQRCode(c echo.Context) error {
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	out, err := h.getQRCodeUC.Execute(

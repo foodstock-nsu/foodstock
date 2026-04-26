@@ -54,7 +54,7 @@ func TestMapOutputToNutrition(t *testing.T) {
 	carbs := 20.0
 	out := appdto.NutritionOutput{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
 	expected := httpdto.NutritionResponse{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
-	result := mapper.MapOutputToNutrition(out)
+	result := mapper.mapOutputToNutrition(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}
@@ -134,7 +134,7 @@ func TestMapOutputToLocation(t *testing.T) {
 	expected := httpdto.Location{
 		ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 	}
-	result := mapper.MapOutputToLocation(out)
+	result := mapper.mapOutputToLocation(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}

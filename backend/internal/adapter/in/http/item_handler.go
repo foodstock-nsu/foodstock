@@ -4,7 +4,7 @@ import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	"backend/internal/adapter/in/http/mapper"
 	"backend/internal/app/usecase"
-	"context"
+	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
 
@@ -15,18 +15,24 @@ import (
 type ItemHandler struct {
 	log          *slog.Logger
 	createItemUC *usecase.CreateItemUC
+	updateItemUC *usecase.UpdateItemUC
 	deleteItemUC *usecase.DeleteItemUC
+	listItemsUC  *usecase.ListItemsUC
 }
 
 func NewItemHandler(
 	log *slog.Logger,
 	createItemUC *usecase.CreateItemUC,
+	updateItemUC *usecase.UpdateItemUC,
 	deleteItemUC *usecase.DeleteItemUC,
+	listItemsUC *usecase.ListItemsUC,
 ) *ItemHandler {
 	return &ItemHandler{
 		log:          log,
 		createItemUC: createItemUC,
+		updateItemUC: updateItemUC,
 		deleteItemUC: deleteItemUC,
+		listItemsUC:  listItemsUC,
 	}
 }
 
@@ -34,7 +40,7 @@ func (h *ItemHandler) Create(c echo.Context) error {
 	var req httpdto.CreateItemRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "invalid json", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	out, err := h.createItemUC.Execute(
@@ -48,16 +54,39 @@ func (h *ItemHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateItem(out))
 }
 
+func (h *ItemHandler) Update(c echo.Context) error {
+	var req httpdto.UpdateItemRequest
+
+	if err := c.Bind(req); err != nil {
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
+	}
+
+	if _, err := uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	out, err := h.updateItemUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToUpdateItem(req),
+	)
+
+	if err != nil {
+		return h.returnErr(c, "failed to update item", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateItem(out))
+}
+
 func (h *ItemHandler) Delete(c echo.Context) error {
 	var req httpdto.DeleteItemRequest
 
 	err := c.Bind(&req)
 	if err != nil {
-		return h.returnErr(c, "binding failed", err)
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
 	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid uuid", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
 	}
 
 	err = h.deleteItemUC.Execute(
@@ -69,6 +98,15 @@ func (h *ItemHandler) Delete(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *ItemHandler) List(c echo.Context) error {
+	out, err := h.listItemsUC.Execute(c.Request().Context())
+	if err != nil {
+		return h.returnErr(c, "failed to get a list of items", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToListItems(out))
 }
 
 func (h *ItemHandler) returnErr(c echo.Context, msg string, err error) error {
