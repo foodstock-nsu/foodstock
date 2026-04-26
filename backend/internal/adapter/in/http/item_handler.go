@@ -66,7 +66,7 @@ func (h *ItemHandler) Create(c echo.Context) error {
 func (h *ItemHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateItemRequest
 
-	if err := c.Bind(req); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 

@@ -47,7 +47,7 @@ type CreateItemRequest struct {
 }
 
 type UpdateItemRequest struct {
-	ID          string            `json:"id"`
+	ID          string            `param:"id"`
 	Name        *string           `json:"name"`
 	Description *string           `json:"description"`
 	Category    *string           `json:"category"`

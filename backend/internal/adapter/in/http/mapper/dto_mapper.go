@@ -127,26 +127,36 @@ func mapOutputToNutrition(out appdto.NutritionOutput) httpdto.NutritionResponse 
 }
 
 func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInput {
-	nutrition := mapRequestToNutrition(*req.Nutrition)
+	var nutrition *appdto.NutritionOutput
+	if req.Nutrition != nil {
+		mapped := mapRequestToNutrition(*req.Nutrition)
+		nutrition = &mapped
+	}
 	return appdto.CreateItemInput{
 		Name:        req.Name,
 		Description: req.Description,
 		Category:    req.Category,
 		PhotoURL:    req.PhotoURL,
-		Nutrition:   &nutrition,
+		Nutrition:   nutrition,
 	}
 }
 
 func MapRequestToUpdateItem(req httpdto.UpdateItemRequest) appdto.UpdateItemInput {
 	id, _ := uuid.Parse(req.ID)
-	nutrition := mapRequestToNutrition(*req.Nutrition)
+
+	var nutrition *appdto.NutritionOutput
+	if req.Nutrition != nil {
+		mapped := mapRequestToNutrition(*req.Nutrition)
+		nutrition = &mapped
+	}
+
 	return appdto.UpdateItemInput{
 		ID:          id,
 		Name:        req.Name,
 		Description: req.Description,
 		Category:    req.Category,
 		PhotoURL:    req.PhotoURL,
-		Nutrition:   &nutrition,
+		Nutrition:   nutrition,
 	}
 }
 
@@ -156,14 +166,18 @@ func MapRequestToDeleteItem(req httpdto.DeleteItemRequest) appdto.DeleteItemInpu
 }
 
 func mapOutputToItemResponse(out appdto.ItemOutput) httpdto.ItemResponse {
-	nutrition := mapOutputToNutrition(*out.Nutrition)
+	var nutrition *httpdto.NutritionResponse
+	if out.Nutrition != nil {
+		mapped := mapOutputToNutrition(*out.Nutrition)
+		nutrition = &mapped
+	}
 	return httpdto.ItemResponse{
 		ID:          out.ID.String(),
 		Name:        out.Name,
 		Description: out.Description,
 		Category:    out.Category,
 		PhotoURL:    out.PhotoURL,
-		Nutrition:   &nutrition,
+		Nutrition:   nutrition,
 		CreatedAt:   out.CreatedAt.String(),
 	}
 }
