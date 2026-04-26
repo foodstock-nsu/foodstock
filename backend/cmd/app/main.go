@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	API_VERSION     = "v1"
 	shutdownTimeout = 10 * time.Second
 )
 
@@ -147,6 +148,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	listItemsUC := usecase.NewListItemsUC(itemRepo)
 
 	// Handlers
+	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, API_VERSION)
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC)
 	locationsHandler := adapterhttp.NewLocationHandler(
@@ -161,6 +163,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	// Router
 	router := adapterhttp.NewRouter(
 		tokenGen,
+		systemHandler,
 		authHandler,
 		clientHandler,
 		locationsHandler,

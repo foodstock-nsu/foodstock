@@ -12,6 +12,7 @@ import (
 
 type Router struct {
 	tokenGen *jwtinfra.Generator
+	System   *SystemHandler
 	Auth     *AuthHandler
 	Client   *ClientHandler
 	Location *LocationHandler
@@ -20,6 +21,7 @@ type Router struct {
 
 func NewRouter(
 	tokenGen *jwtinfra.Generator,
+	system *SystemHandler,
 	auth *AuthHandler,
 	client *ClientHandler,
 	location *LocationHandler,
@@ -27,6 +29,7 @@ func NewRouter(
 ) *Router {
 	return &Router{
 		tokenGen: tokenGen,
+		System:   system,
 		Auth:     auth,
 		Client:   client,
 		Location: location,
@@ -46,6 +49,11 @@ func (r *Router) InitRoutes() *echo.Echo {
 	router.Use(middleware.Recover())
 	router.Use(middleware.RequestLogger())
 
+	// --- SYSTEM ENDPOINTS ---
+	router.GET("/health", r.System.Health)
+	router.GET("/_info", r.System.Info)
+
+	// --- SWAGGER ---
 	router.File("/swagger/doc.json", "api/openapi.yaml")
 
 	router.GET("/swagger", func(c echo.Context) error {
@@ -54,6 +62,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 
 	router.GET("/swagger/*", echoSwagger.WrapHandler)
 
+	// --- API V1 ---
 	v1 := router.Group("/api/v1")
 	{
 		client := v1.Group("/client")
