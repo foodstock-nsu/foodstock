@@ -39,11 +39,11 @@ type NutritionRequest struct {
 }
 
 type CreateItemRequest struct {
-	Name        string
-	Description *string
-	Category    string
-	PhotoURL    string
-	Nutrition   *NutritionRequest
+	Name        string            `json:"name"`
+	Description *string           `json:"description"`
+	Category    string            `json:"category"`
+	PhotoURL    string            `json:"photo_url"`
+	Nutrition   *NutritionRequest `json:"nutrition"`
 }
 
 type UpdateItemRequest struct {

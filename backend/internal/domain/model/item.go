@@ -2,6 +2,7 @@ package model
 
 import (
 	pkgerrs "backend/pkg/errs"
+	"fmt"
 	"time"
 	"unicode/utf8"
 
@@ -144,6 +145,7 @@ func NewItem(
 		return nil, pkgerrs.NewValueInvalidError("category")
 	}
 
+	fmt.Printf("photo = %s", photoUrl)
 	if utf8.RuneCountInString(photoUrl) < 10 {
 		return nil, pkgerrs.NewValueInvalidError("photo_url")
 	}
