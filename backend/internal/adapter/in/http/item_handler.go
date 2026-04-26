@@ -51,6 +51,15 @@ func (h *ItemHandler) Create(c echo.Context) error {
 		return h.returnErr(c, "failed to create item", err)
 	}
 
+	h.log.InfoContext(
+		c.Request().Context(), "item created",
+		slog.Any("name", req.Name),
+		slog.Any("description", req.Description),
+		slog.Any("category", req.Category),
+		slog.Any("photo_url", req.PhotoURL),
+		slog.Any("nutrition", req.Nutrition),
+	)
+
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateItem(out))
 }
 
@@ -74,6 +83,16 @@ func (h *ItemHandler) Update(c echo.Context) error {
 		return h.returnErr(c, "failed to update item", err)
 	}
 
+	h.log.InfoContext(
+		c.Request().Context(), "item updated",
+		slog.String("id", req.ID),
+		slog.Any("name", req.Name),
+		slog.Any("description", req.Description),
+		slog.Any("category", req.Category),
+		slog.Any("photo_url", req.PhotoURL),
+		slog.Any("nutrition", req.Nutrition),
+	)
+
 	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateItem(out))
 }
 
@@ -96,6 +115,11 @@ func (h *ItemHandler) Delete(c echo.Context) error {
 	if err != nil {
 		return h.returnErr(c, "failed to delete item", err)
 	}
+
+	h.log.InfoContext(
+		c.Request().Context(), "item deleted",
+		slog.String("id", req.ID),
+	)
 
 	return c.NoContent(http.StatusNoContent)
 }
