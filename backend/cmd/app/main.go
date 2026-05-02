@@ -161,6 +161,8 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		trManager, locationRepo, locationItemRepo, orderRepo,
 		orderItemRepo, transactionRepo, paymentGateway,
 	)
+	getInventoryUC := usecase.NewGetInventoryUC(locationItemRepo)
+	updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationItemRepo)
 
 	// Services
 	orderCleaner := service.NewExpirationService(
@@ -179,6 +181,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		logger, createItemUC,
 		updateItemUC, deleteItemUC, listItemsUC,
 	)
+	inventoryHandler := adapterhttp.NewInventoryHandler(
+		logger, getInventoryUC, updateInventoryUC,
+	)
 
 	// Router
 	router := adapterhttp.NewRouter(
@@ -188,6 +193,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		clientHandler,
 		locationsHandler,
 		itemHandler,
+		inventoryHandler,
 	).InitRoutes()
 
 	// Launch background job - cleaning expired orders
