@@ -132,17 +132,10 @@ SELECT
     paid_at
 FROM orders
 WHERE status = $1
-LIMIT $2 OFFSET $3
 `
 
-type ListOrdersByStatusParams struct {
-	Status OrderStatus
-	Limit  int32
-	Offset int32
-}
-
-func (q *Queries) ListOrdersByStatus(ctx context.Context, db DBTX, arg ListOrdersByStatusParams) ([]Order, error) {
-	rows, err := db.Query(ctx, listOrdersByStatus, arg.Status, arg.Limit, arg.Offset)
+func (q *Queries) ListOrdersByStatus(ctx context.Context, db DBTX, status OrderStatus) ([]Order, error) {
+	rows, err := db.Query(ctx, listOrdersByStatus, status)
 	if err != nil {
 		return nil, err
 	}

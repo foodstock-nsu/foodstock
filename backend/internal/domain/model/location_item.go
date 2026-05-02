@@ -7,7 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrCannotReduceStock = errors.New("stock cannot be less than zero")
+var (
+	ErrCannotChangeStock = errors.New("stock amount cannot be less than zero")
+)
 
 // ================ Rich model for LocationItem ================
 
@@ -86,9 +88,20 @@ func (li *LocationItem) CanBeSold() bool {
 
 // ================ Mutation ================
 
+func (li *LocationItem) RestoreStock(amount int) error {
+	if amount <= 0 {
+		return ErrCannotChangeStock
+	}
+
+	li.stockAmount += amount
+	li.isAvailable = true
+
+	return nil
+}
+
 func (li *LocationItem) ReduceStock(amount int) error {
 	if li.stockAmount-amount < 0 || amount <= 0 {
-		return ErrCannotReduceStock
+		return ErrCannotChangeStock
 	}
 
 	li.stockAmount -= amount

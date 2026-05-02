@@ -108,6 +108,23 @@ func TestNewLocationItemAndCanBeSold(t *testing.T) {
 	}
 }
 
+func TestLocationItem_AddStock(t *testing.T) {
+	locItem, _ := model.NewLocationItem(
+		uuid.New(), uuid.New(), int64(10000), 0,
+	)
+
+	err := locItem.RestoreStock(0)
+	assert.Error(t, err)
+
+	err = locItem.RestoreStock(-10)
+	assert.Error(t, err)
+
+	err = locItem.RestoreStock(5)
+	assert.NoError(t, err)
+	assert.NotZero(t, locItem.StockAmount())
+	assert.True(t, locItem.IsAvailable())
+}
+
 func TestLocationItem_ReduceStock(t *testing.T) {
 	locItem, _ := model.NewLocationItem(
 		uuid.New(), uuid.New(), int64(10000), 10,

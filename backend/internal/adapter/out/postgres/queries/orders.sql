@@ -55,5 +55,4 @@ SELECT
     created_at,
     paid_at
 FROM orders
-WHERE status = $1
-LIMIT $2 OFFSET $3;
+WHERE status = $1;

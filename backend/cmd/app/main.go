@@ -4,6 +4,7 @@ import (
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
+	"backend/internal/app/service"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
 	infrapass "backend/internal/infrastructure/password"
@@ -25,8 +26,9 @@ import (
 )
 
 const (
-	API_VERSION     = "v1"
+	apiVersion      = "v1"
 	shutdownTimeout = 10 * time.Second
+	cleanupDelay    = 10 * time.Minute
 )
 
 func parseLogLevel(level string) slog.Level {
@@ -114,6 +116,8 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	locationRepo := adapterpg.NewLocationRepository(pgClient, trmpgx.DefaultCtxGetter)
 	itemRepo := adapterpg.NewItemRepository(pgClient, trmpgx.DefaultCtxGetter)
 	locationItemRepo := adapterpg.NewLocationItemRepository(pgClient, trmpgx.DefaultCtxGetter)
+	orderRepo := adapterpg.NewOrderRepository(pgClient, trmpgx.DefaultCtxGetter)
+	orderItemRepo := adapterpg.NewOrderItemRepository(pgClient, trmpgx.DefaultCtxGetter)
 
 	// Infrastructure
 	tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
@@ -126,7 +130,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		return fmt.Errorf("failed to add seed data: %w", err)
 	}
 
-	// Use-cases
+	// UseСases
 	adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
 	createLocationUC := usecase.NewCreateLocationUC(
 		trManager, locationRepo, itemRepo, locationItemRepo,
@@ -147,8 +151,12 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	)
 	listItemsUC := usecase.NewListItemsUC(itemRepo)
 
+	// Services
+	orderCleaner := service.NewOrderCleaner(
+		trManager, locationItemRepo, orderRepo, orderItemRepo)
+
 	// Handlers
-	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, API_VERSION)
+	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC)
 	locationsHandler := adapterhttp.NewLocationHandler(
@@ -169,6 +177,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		locationsHandler,
 		itemHandler,
 	).InitRoutes()
+
+	// Launch background job - cleaning expired orders
+	go cleanupExpiredOrders(ctx, logger, orderCleaner)
 
 	// Launch server with graceful shutdown
 	srv := &http.Server{
@@ -210,6 +221,32 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 
 	logger.Info("server exited properly")
 	return nil
+}
+
+func cleanupExpiredOrders(
+	ctx context.Context,
+	logger *slog.Logger,
+	cleaner *service.OrderCleaner,
+) {
+	time.Sleep(20 * time.Second) // Wait until the server wakes up
+
+	ticker := time.NewTicker(cleanupDelay)
+	defer ticker.Stop()
+
+	logger.InfoContext(ctx, "background worker started", slog.Duration("delay", cleanupDelay))
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("stopping background cleanup worker...")
+			return
+		case <-ticker.C:
+			logger.InfoContext(ctx, "Background job: cleaning expired orders...")
+			if err := cleaner.Cleanup(ctx); err != nil {
+				logger.ErrorContext(ctx, "Background job error", slog.Any("err", err))
+			}
+		}
+	}
 }
 
 func main() {
