@@ -11,5 +11,5 @@ type UpdateLocationInput struct {
 }
 
 type UpdateLocationOutput struct {
-	Location LocationDTO
+	Location LocationResponse
 }

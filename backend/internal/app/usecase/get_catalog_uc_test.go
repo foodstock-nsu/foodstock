@@ -86,7 +86,7 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 			},
 			expectOutput: dto.GetCatalogOutput{
 				Categories: []string{"Lunch", "Breakfast"},
-				Items:      []dto.CatalogItemDTO{{}, {}},
+				Items:      []dto.CatalogItemResponse{{}, {}},
 			},
 			expectErr: nil,
 		},
@@ -139,7 +139,7 @@ func TestGetCatalogUC_Execute(t *testing.T) {
 			},
 			expectOutput: dto.GetCatalogOutput{
 				Categories: []string{"Lunch"},
-				Items:      []dto.CatalogItemDTO{{}, {}},
+				Items:      []dto.CatalogItemResponse{{}, {}},
 			},
 			expectErr: nil,
 		},

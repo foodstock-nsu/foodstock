@@ -30,11 +30,11 @@ func TestCreateItemUC_Execute(t *testing.T) {
 	}
 
 	validInput := dto.CreateItemInput{
-		Name:        "Valid ItemDTO Name",
+		Name:        "Valid ItemResponse Name",
 		Description: utils.VPtr("Valid Description"),
 		Category:    "drinks",
 		PhotoURL:    "https://example.com/photo.jpg",
-		Nutrition: &dto.NutritionDTO{
+		Nutrition: &dto.NutritionResponse{
 			Calories: utils.VPtr(250),
 			Proteins: utils.VPtr(float64(10.5)),
 			Fats:     utils.VPtr(float64(5.0)),
@@ -44,7 +44,7 @@ func TestCreateItemUC_Execute(t *testing.T) {
 
 	testLocation, _ := model.NewLocation(
 		"test-slug",
-		"Test LocationDTO for mall",
+		"Test LocationResponse for mall",
 		"Brooklyn, st. main Avenue, 2378",
 	)
 

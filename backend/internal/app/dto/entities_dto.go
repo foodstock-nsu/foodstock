@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type LocationDTO struct {
+type LocationResponse struct {
 	ID        uuid.UUID
 	Slug      string
 	Name      string
@@ -15,36 +15,43 @@ type LocationDTO struct {
 	CreatedAt time.Time
 }
 
-type NutritionDTO struct {
+type NutritionResponse struct {
 	Calories *int
 	Proteins *float64
 	Fats     *float64
 	Carbs    *float64
 }
 
-type ItemDTO struct {
+type ItemResponse struct {
 	ID          uuid.UUID
 	Name        string
 	Description *string
 	Category    string
 	PhotoURL    string
-	Nutrition   *NutritionDTO
+	Nutrition   *NutritionResponse
 	CreatedAt   time.Time
 }
 
-type CatalogItemDTO struct {
+type CatalogItemResponse struct {
 	ID          uuid.UUID // here is a location item id, not an item id
 	Name        string
 	Description *string
 	Category    string
 	PhotoURL    string
-	Nutrition   *NutritionDTO
+	Nutrition   *NutritionResponse
 	Price       int64
 	IsAvailable bool
 	StockAmount int
 }
 
-type InventoryItemDTO struct {
+type InventoryItemRequest struct {
+	ItemID      uuid.UUID
+	Price       *int64
+	IsAvailable *bool
+	StockAmount *int
+}
+
+type InventoryItemResponse struct {
 	ItemID      uuid.UUID
 	Price       int64
 	IsAvailable bool
