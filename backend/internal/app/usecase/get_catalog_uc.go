@@ -60,7 +60,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 	// ========== Make the catalog ==========
 
 	categories := make([]string, 0)
-	items := make([]dto.CatalogItemOutput, len(inventory))
+	items := make([]dto.CatalogItemResponse, len(inventory))
 
 	for i := range inventory {
 		item, ok := allItemsMap[inventory[i].ItemID()]

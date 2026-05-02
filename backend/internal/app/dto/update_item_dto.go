@@ -8,9 +8,9 @@ type UpdateItemInput struct {
 	Description *string
 	Category    *string
 	PhotoURL    *string
-	Nutrition   *NutritionOutput
+	Nutrition   *NutritionResponse
 }
 
 type UpdateItemOutput struct {
-	Item ItemOutput
+	Item ItemResponse
 }

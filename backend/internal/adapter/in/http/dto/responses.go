@@ -80,3 +80,18 @@ type CreateOrderResponse struct {
 	TotalPrice int64  `json:"total_price"`
 	PaymentURL string `json:"payment_url"`
 }
+
+type InventoryItemResponse struct {
+	ItemID      string `json:"item_id"`
+	Price       int64  `json:"price"`
+	IsAvailable bool   `json:"is_available"`
+	StockAmount int    `json:"stock_amount"`
+}
+
+type GetInventoryResponse struct {
+	Inventory []InventoryItemResponse `json:"inventory"`
+}
+
+type UpdateInventoryResponse struct {
+	Inventory []InventoryItemResponse `json:"inventory"`
+}

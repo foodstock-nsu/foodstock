@@ -71,6 +71,13 @@ func (h *ClientHandler) CreateOrder(c echo.Context) error {
 		return h.returnErr(c, "failed to create order", err)
 	}
 
+	h.log.InfoContext(
+		c.Request().Context(), "order created",
+		slog.String("id", out.OrderID.String()),
+		slog.Int64("total_price", out.TotalPrice),
+		slog.String("payment_url", out.PaymentURL),
+	)
+
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateOrder(out))
 }
 

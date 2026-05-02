@@ -48,7 +48,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Success",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test LocationOutput for mall",
+				Name:    "Test LocationResponse for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
@@ -72,7 +72,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - location already exists",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test LocationOutput for mall",
+				Name:    "Test LocationResponse for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
@@ -84,7 +84,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - create location db error",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test LocationOutput for mall",
+				Name:    "Test LocationResponse for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {
@@ -96,7 +96,7 @@ func TestCreateLocationUC_Execute(t *testing.T) {
 			name: "Failure - list items db error",
 			input: dto.CreateLocationInput{
 				Slug:    "test-slug",
-				Name:    "Test LocationOutput for mall",
+				Name:    "Test LocationResponse for mall",
 				Address: "Brooklyn, st. main Avenue, 2378",
 			},
 			mockBehaviour: func(a adapter) {

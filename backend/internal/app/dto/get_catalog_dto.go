@@ -8,5 +8,5 @@ type GetCatalogInput struct {
 
 type GetCatalogOutput struct {
 	Categories []string
-	Items      []CatalogItemOutput
+	Items      []CatalogItemResponse
 }

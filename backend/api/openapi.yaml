@@ -359,6 +359,74 @@ components:
           items:
             $ref: "#/components/schemas/ItemResponse"
 
+    InventoryItemRequest:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        price:
+          type: integer
+          format: int64
+          nullable: true
+          description: "Цена в копейках. 10050 = 100 руб. 50 коп."
+          example: 10050
+        is_available:
+          type: boolean
+          nullable: true
+          description: "Доступность товара на точке"
+        stock_amount:
+          type: integer
+          nullable: true
+          description: "Остаток на точке в единицах товара"
+          example: 10
+    InventoryItemResponse:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        price:
+          type: integer
+          format: int64
+          description: "Цена в копейках. 10050 = 100 руб. 50 коп."
+          example: 10050
+        is_available:
+          type: boolean
+          description: "Доступность товара на точке"
+        stock_amount:
+          type: integer
+          description: "Остаток на точке в единицах товара"
+          example: 10
+
+    GetInventoryResponse:
+      type: object
+      properties:
+        inventory:
+          type: array
+          description: "Список товаров на точке"
+          items:
+            $ref: "#/components/schemas/InventoryItemResponse"
+
+    UpdateInventoryRequest:
+      type: object
+      properties:
+        inventory:
+          type: array
+          description: "Список товаров с указанием полей для обновления"
+          items:
+            $ref: "#/components/schemas/InventoryItemRequest"
+    UpdateInventoryResponse:
+      type: object
+      properties:
+        inventory:
+          type: array
+          description: "Список обновлённых товаров на точке"
+          items:
+            $ref: "#/components/schemas/InventoryItemResponse"
+
   responses:
     BadRequestError:
       description: Ошибка в формате запроса
@@ -782,6 +850,85 @@ paths:
                 error: "location is not operational"
         '500':
           $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/locations/{id}/inventory:
+    get:
+      tags: [ Admin Inventory ]
+      summary: Получить инвентарь торговой точки
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '200':
+          description: Текущие остатки на точке
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInventoryResponse'
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [ Admin Inventory ]
+      summary: Обновить инвентарь торговой точки
+      description: Обновляет инвентарь и возвращает обновлённые товары
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryRequest'
+      responses:
+        '200':
+          description: "Инвентарь торговой точки обновлен"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateInventoryResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_id:
+                  summary: Некорректный идентификатор
+                  value:
+                    error: "invalid identifier format"
+                incorrect_price:
+                  summary: Некорректная цена
+                  value:
+                    error: "invalid input"
+                incorrect_stock:
+                  summary: Некорректный остаток
+                  value:
+                    error: "invalid input"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/LocationItemNotFoundError'
+        '500':
+          $ref: "#/components/responses/InternalError"
+
   /api/v1/admin/items:
     post:
       tags: [ Admin Items ]

@@ -44,7 +44,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				testLocation, _ := model.NewLocation(
 					"test-slug",
-					"Test LocationOutput for mall",
+					"Test LocationResponse for mall",
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
@@ -64,7 +64,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 		//	mockBehaviour: func(a adapter) {
 		//		testLocation, _ := model.NewLocation(
 		//			"test-slug",
-		//			"Test LocationOutput for mall",
+		//			"Test LocationResponse for mall",
 		//			"Brooklyn, st. main Avenue, 2378",
 		//		)
 		//		_ = testLocation.Deactivate()
@@ -85,7 +85,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 		//	mockBehaviour: func(a adapter) {
 		//		testLocation, _ := model.NewLocation(
 		//			"test-slug",
-		//			"Test LocationOutput for mall",
+		//			"Test LocationResponse for mall",
 		//			"Brooklyn, st. main Avenue, 2378",
 		//		)
 		//		a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
@@ -105,7 +105,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				testLocation, _ := model.NewLocation(
 					"test-slug",
-					"Test LocationOutput for mall",
+					"Test LocationResponse for mall",
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
@@ -124,7 +124,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				testLocation, _ := model.NewLocation(
 					"test-slug",
-					"Test LocationOutput for mall",
+					"Test LocationResponse for mall",
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				// Деактивируем локацию, повторная деактивация должна вернуть ошибку
@@ -163,7 +163,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				testLocation, _ := model.NewLocation(
 					"test-slug",
-					"Test LocationOutput for mall",
+					"Test LocationResponse for mall",
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
@@ -181,7 +181,7 @@ func TestUpdateLocationUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				testLocation, _ := model.NewLocation(
 					"test-slug",
-					"Test LocationOutput for mall",
+					"Test LocationResponse for mall",
 					"Brooklyn, st. main Avenue, 2378",
 				)
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocation, nil)
