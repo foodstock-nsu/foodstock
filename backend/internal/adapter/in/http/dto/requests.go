@@ -69,3 +69,19 @@ type CreateOrderRequest struct {
 	LocationID string             `json:"location_id"`
 	Items      []OrderItemRequest `json:"items"`
 }
+
+type GetInventoryRequest struct {
+	LocationID string `param:"id"`
+}
+
+type InventoryItemRequest struct {
+	ItemID      string `json:"item_id"`
+	Price       *int64 `json:"price"`
+	IsAvailable *bool  `json:"is_available"`
+	StockAmount *int   `json:"stock_amount"`
+}
+
+type UpdateInventoryRequest struct {
+	LocationID string                 `param:"id"`
+	Inventory  []InventoryItemRequest `json:"inventory"`
+}
