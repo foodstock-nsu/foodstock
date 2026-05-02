@@ -11,12 +11,13 @@ import (
 )
 
 type Router struct {
-	tokenGen *jwtinfra.Generator
-	System   *SystemHandler
-	Auth     *AuthHandler
-	Client   *ClientHandler
-	Location *LocationHandler
-	Item     *ItemHandler
+	tokenGen  *jwtinfra.Generator
+	System    *SystemHandler
+	Auth      *AuthHandler
+	Client    *ClientHandler
+	Location  *LocationHandler
+	Item      *ItemHandler
+	Inventory *InventoryHandler
 }
 
 func NewRouter(
@@ -26,14 +27,16 @@ func NewRouter(
 	client *ClientHandler,
 	location *LocationHandler,
 	item *ItemHandler,
+	inventory *InventoryHandler,
 ) *Router {
 	return &Router{
-		tokenGen: tokenGen,
-		System:   system,
-		Auth:     auth,
-		Client:   client,
-		Location: location,
-		Item:     item,
+		tokenGen:  tokenGen,
+		System:    system,
+		Auth:      auth,
+		Client:    client,
+		Location:  location,
+		Item:      item,
+		Inventory: inventory,
 	}
 }
 
@@ -95,6 +98,10 @@ func (r *Router) InitRoutes() *echo.Echo {
 			adminLocations.DELETE("/:id", r.Location.Delete)
 			adminLocations.GET("", r.Location.List)
 			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
+
+			// --- INVENTORY ---
+			adminLocations.GET("/:id/inventory", r.Inventory.Get)
+			adminLocations.PUT("/:id/inventory", r.Inventory.Update)
 		}
 
 		// --- ITEMS ---
