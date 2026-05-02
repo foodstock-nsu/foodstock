@@ -36,11 +36,17 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrListAllItemsDB),
 			errors.Is(err, ucerrs.ErrListItemsByIDsDB),
 			errors.Is(err, ucerrs.ErrCreateLocationItemDB),
+			errors.Is(err, ucerrs.ErrGetLocationItemByLocationAndItemDB),
+			errors.Is(err, ucerrs.ErrUpdateLocationItemDB),
 			errors.Is(err, ucerrs.ErrDeleteLocationItemsByItemIDDB),
 			errors.Is(err, ucerrs.ErrDeleteLocationItemByLocationIDDB),
 			errors.Is(err, ucerrs.ErrListLocationItemsDB),
+			errors.Is(err, ucerrs.ErrCreateOrderDB),
+			errors.Is(err, ucerrs.ErrCreateOrderItemsDB),
 			errors.Is(err, ucerrs.ErrGenerateToken),
-			errors.Is(err, ucerrs.ErrGenerateQRCode):
+			errors.Is(err, ucerrs.ErrGenerateQRCode),
+			errors.Is(err, ucerrs.ErrCreatePayment),
+			errors.Is(err, ucerrs.ErrCreateTransactionDB):
 			return pkgerrs.NewOutError(
 				http.StatusInternalServerError,
 				"internal error",
@@ -72,7 +78,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 		)
 
 	case errors.Is(err, ucerrs.ErrLocationNotFound),
-		errors.Is(err, ucerrs.ErrItemNotFound):
+		errors.Is(err, ucerrs.ErrItemNotFound),
+		errors.Is(err, ucerrs.ErrLocationItemNotFound):
 		return pkgerrs.NewOutError(
 			http.StatusNotFound,
 			err.Error(),
@@ -81,14 +88,18 @@ func HttpError(err error) *pkgerrs.OutErr {
 
 	case errors.Is(err, ucerrs.ErrCannotActivateLocation),
 		errors.Is(err, ucerrs.ErrCannotDeactivateLocation),
-		errors.Is(err, ucerrs.ErrLocationAlreadyExists):
+		errors.Is(err, ucerrs.ErrLocationAlreadyExists),
+		errors.Is(err, ucerrs.ErrCannotSellItem),
+		errors.Is(err, ucerrs.ErrOrderAlreadyExists),
+		errors.Is(err, ucerrs.ErrTransactionAlreadyExists):
 		return pkgerrs.NewOutError(
 			http.StatusConflict,
 			err.Error(),
 			nil,
 		)
 
-	case errors.Is(err, ucerrs.ErrCannotGetLocationQRCode):
+	case errors.Is(err, ucerrs.ErrCannotGetLocationQRCode),
+		errors.Is(err, ucerrs.ErrCannotCreateOrder):
 		return pkgerrs.NewOutError(
 			http.StatusUnprocessableEntity,
 			err.Error(),
