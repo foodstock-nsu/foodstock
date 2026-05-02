@@ -197,3 +197,38 @@ func MapOutputToListItems(out appdto.ListItemsOutput) httpdto.ListItemsResponse 
 	}
 	return httpdto.ListItemsResponse{Items: arr}
 }
+
+// --- ORDERS ---
+
+func mapRequestToOrderItem(req httpdto.OrderItemRequest) appdto.OrderItemInput {
+	id, _ := uuid.Parse(req.ItemID)
+	return appdto.OrderItemInput{
+		ItemID: id,
+		Amount: req.Amount,
+		Price:  req.Price,
+	}
+}
+
+func mapRequestToOrderItems(rawItems []httpdto.OrderItemRequest) []appdto.OrderItemInput {
+	var items []appdto.OrderItemInput
+	for i := range rawItems {
+		items[i] = mapRequestToOrderItem(rawItems[i])
+	}
+	return items
+}
+
+func MapRequestToCreateOrder(req httpdto.CreateOrderRequest) appdto.CreateOrderInput {
+	id, _ := uuid.Parse(req.LocationID)
+	return appdto.CreateOrderInput{
+		LocationID: id,
+		Items:      mapRequestToOrderItems(req.Items),
+	}
+}
+
+func MapOutputToCreateOrder(out appdto.CreateOrderOutput) httpdto.CreateOrderResponse {
+	return httpdto.CreateOrderResponse{
+		OrderID:    out.OrderID.String(),
+		TotalPrice: out.TotalPrice,
+		PaymentURL: out.PaymentURL,
+	}
+}

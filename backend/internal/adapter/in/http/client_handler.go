@@ -52,7 +52,27 @@ func (h *ClientHandler) GetCatalog(c echo.Context) error {
 	return c.JSON(http.StatusOK, mapper.MapOutputToGetCatalog(out))
 }
 
-func (h *ClientHandler) CreateOrder(c echo.Context) error {}
+func (h *ClientHandler) CreateOrder(c echo.Context) error {
+	var req httpdto.CreateOrderRequest
+
+	if err := c.Bind(&req); err != nil {
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	if _, err := uuid.Parse(req.LocationID); err != nil {
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	out, err := h.createOrderUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToCreateOrder(req),
+	)
+	if err != nil {
+		return h.returnErr(c, "failed to create order", err)
+	}
+
+	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateOrder(out))
+}
 
 func (h *ClientHandler) returnErr(c echo.Context, msg string, err error) error {
 	outErr := mapper.HttpError(err)
