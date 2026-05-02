@@ -232,3 +232,57 @@ func MapOutputToListItems(out appdto.ListItemsOutput) httpdto.ListItemsResponse 
 	}
 	return httpdto.ListItemsResponse{Items: arr}
 }
+
+func MapRequestToGetInventory(req httpdto.GetInventoryRequest) appdto.GetInventoryInput {
+	locID, _ := uuid.Parse(req.LocationID)
+	return appdto.GetInventoryInput{LocationID: locID}
+}
+
+func mapOutputToInventoryItem(out appdto.InventoryItemResponse) httpdto.InventoryItemResponse {
+	return httpdto.InventoryItemResponse{
+		ItemID:      out.ItemID.String(),
+		Price:       out.Price,
+		IsAvailable: out.IsAvailable,
+		StockAmount: out.StockAmount,
+	}
+}
+
+func MapOutputToGetInventory(out appdto.GetInventoryOutput) httpdto.GetInventoryResponse {
+	arr := make([]httpdto.InventoryItemResponse, len(out.Inventory))
+	for i := range out.Inventory {
+		arr[i] = mapOutputToInventoryItem(out.Inventory[i])
+	}
+	return httpdto.GetInventoryResponse{Inventory: arr}
+}
+
+func mapRequestToInventoryItem(req httpdto.InventoryItemRequest) appdto.InventoryItemRequest {
+	itemID, _ := uuid.Parse(req.ItemID)
+	return appdto.InventoryItemRequest{
+		ItemID:      itemID,
+		Price:       req.Price,
+		IsAvailable: req.IsAvailable,
+		StockAmount: req.StockAmount,
+	}
+}
+
+func MapRequestToUpdateInventory(req httpdto.UpdateInventoryRequest) appdto.UpdateInventoryInput {
+	locID, _ := uuid.Parse(req.LocationID)
+
+	arr := make([]appdto.InventoryItemRequest, len(req.Inventory))
+	for i := range req.Inventory {
+		arr[i] = mapRequestToInventoryItem(req.Inventory[i])
+	}
+
+	return appdto.UpdateInventoryInput{
+		LocationID: locID,
+		Inventory:  arr,
+	}
+}
+
+func MapOutputToUpdateInventory(out appdto.UpdateInventoryOutput) httpdto.UpdateInventoryResponse {
+	arr := make([]httpdto.InventoryItemResponse, len(out.Inventory))
+	for i := range out.Inventory {
+		arr[i] = mapOutputToInventoryItem(out.Inventory[i])
+	}
+	return httpdto.UpdateInventoryResponse{Inventory: arr}
+}
