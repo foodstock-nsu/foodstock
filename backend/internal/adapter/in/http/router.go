@@ -65,6 +65,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 	// --- API V1 ---
 	v1 := router.Group("/api/v1")
 	{
+		// --- CLIENT ---
 		client := v1.Group("/client")
 
 		clientLocations := client.Group("/locations")
@@ -72,6 +73,12 @@ func (r *Router) InitRoutes() *echo.Echo {
 			clientLocations.GET("/:id/catalog", r.Client.GetCatalog)
 		}
 
+		clientOrders := client.Group("/orders")
+		{
+			clientOrders.POST("", r.Client.CreateOrder)
+		}
+
+		// --- ADMIN ---
 		admin := v1.Group("/admin")
 
 		auth := admin.Group("/auth")
@@ -79,6 +86,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 			auth.POST("", r.Auth.AdminAuth)
 		}
 
+		// --- LOCATIONS ---
 		adminLocations := admin.Group("/locations")
 		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
@@ -89,6 +97,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
 		}
 
+		// --- ITEMS ---
 		adminItems := admin.Group("/items")
 		adminItems.Use(r.withAuth(r.tokenGen))
 		{

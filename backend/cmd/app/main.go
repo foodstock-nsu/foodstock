@@ -4,6 +4,7 @@ import (
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
+	adapteryookassa "backend/internal/adapter/out/yookassa"
 	"backend/internal/app/service"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
@@ -125,6 +126,11 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	passHasher := infrapass.NewHasher(cfg.PasswordCost)
 	qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
 
+	// Payment Gateway
+	paymentGateway := adapteryookassa.NewPaymentGateway(
+		cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout,
+	)
+
 	// Fill database with seed data
 	err = seedAdmins(ctx, cfg, adminRepo, passHasher)
 	if err != nil {
@@ -151,6 +157,10 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		trManager, itemRepo, locationItemRepo,
 	)
 	listItemsUC := usecase.NewListItemsUC(itemRepo)
+	createOrderUC := usecase.NewCreateOrderUC(
+		trManager, locationRepo, locationItemRepo, orderRepo,
+		orderItemRepo, transactionRepo, paymentGateway,
+	)
 
 	// Services
 	orderCleaner := service.NewExpirationService(
@@ -160,7 +170,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	// Handlers
 	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
-	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC)
+	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
 	locationsHandler := adapterhttp.NewLocationHandler(
 		logger, createLocationUC, updateLocationUC,
 		deleteLocationUC, listLocationsUC, getQRCodeUC,

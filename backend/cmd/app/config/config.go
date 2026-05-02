@@ -15,11 +15,11 @@ type adminSeed struct {
 
 type Config struct {
 	// Postgres
-	DbHost     string `env:"DB_HOST" envDefault:"localhost"`
+	DbHost     string `env:"DB_HOST,required"`
 	DbPort     int    `env:"DB_PORT" envDefault:"5432"`
-	DbUser     string `env:"DB_USER" envDefault:"foodstock-user"`
-	DbPassword string `env:"DB_PASSWORD" envDefault:"foodstock-password"`
-	DBName     string `env:"DB_NAME" envDefault:"foodstock-db"`
+	DbUser     string `env:"DB_USER,required"`
+	DbPassword string `env:"DB_PASSWORD,required"`
+	DBName     string `env:"DB_NAME,required"`
 	DbSSLMode  string `env:"DB_SSL_MODE" envDefault:"prefer"`
 
 	DbMaxConn         int           `env:"DB_MAX_CONNECTIONS" envDefault:"30"`
@@ -28,15 +28,20 @@ type Config struct {
 	DbMaxConnIdleTime time.Duration `env:"DB_MAX_CONNECTION_IDLETIME" envDefault:"5m"`
 
 	// Auth constants
-	AuthSecret string        `env:"AUTH_SECRET" envDefault:"super-secret-token"`
-	AuthTTL    time.Duration `env:"AUTH_TTL" envDefault:"1h"`
-	AdminSeeds []string      `env:"ADMIN_SEEDS" envSeparator:"," envDefault:"admin:admin-password"`
+	AuthSecret string        `env:"AUTH_SECRET,required"`
+	AuthTTL    time.Duration `env:"AUTH_TTL,required"`
+	AdminSeeds []string      `env:"ADMIN_SEEDS,required" envSeparator:","`
+
+	// Yookassa secrets
+	YookassaShopID  string        `env:"YOOKASSA_SHOP_ID,required"`
+	YookassaAPIKey  string        `env:"YOOKASSA_API_KEY,required"`
+	YookassaTimeout time.Duration `env:"YOOKASSA_TIMEOUT" envDefault:"1m"`
 
 	// Password hasher
 	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
 
 	// QR-code generator
-	QRCodeBaseURL string `env:"QR_CODE_BASE_URL" envDefault:"https://example.ru/"`
+	QRCodeBaseURL string `env:"QR_CODE_BASE_URL,required"`
 	QRCodeSize    int    `env:"QR_CODE_SIZE" envDefault:"512"`
 
 	// Service

@@ -114,7 +114,6 @@ components:
           description: "Количество товара на торговой точке"
           example: 10
 
-
     GetCatalogResponse:
       type: object
       properties:
@@ -130,6 +129,52 @@ components:
           items:
             $ref: "#/components/schemas/CatalogItemResponse"
 
+    OrderItemRequest:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        amount:
+          type: integer
+          description: "Количество единиц товара"
+          example: 5
+        price:
+          type: integer
+          format: int64
+          description: "Цена в копейках за ОДНУ единицу товара. 10050 = 100 руб. 50 коп."
+          example: 10050
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        location_id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        items:
+          type: array
+          description: "Список товаров заказа"
+          items:
+            $ref: "#/components/schemas/OrderItemRequest"
+    CreateOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+        total_price:
+          type: integer
+          format: int64
+          description: "Общая сумма заказа в копейках. 10050 = 100 руб. 50 коп."
+          example: 10050
+        payment_url:
+          type: string
+          format: uri
+          description: "Сгенерированная ссылка на оплату"
+          example: "https://yoomoney.ru/checkout/payments/v2/contract?orderId=250270ad-000f-5000-8000-117600"
 
     LocationResponse:
       type: object
@@ -309,7 +354,7 @@ components:
     ListItemsResponse:
       type: object
       properties:
-        locations:
+        items:
           type: array
           items:
             $ref: "#/components/schemas/ItemResponse"
@@ -356,6 +401,14 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "item not found"
+    LocationItemNotFoundError:
+      description: Товар на точке не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "location item not found"
 
     InternalError:
       description: Внутренняя ошибка сервера
@@ -410,6 +463,85 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error: "invalid identifier format"
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/client/orders:
+    post:
+      tags: [ Client ]
+      summary: Создать заказ и получить ссылку на оплату
+      description: Возвращает идентификатор заказа, итоговую сумму в копейках и ссылку на оплату
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  summary: Битый JSON
+                  value:
+                    error: "invalid json"
+                incorrect_location_id:
+                  summary: Некорректный идентификатор торговой точки
+                  value:
+                    error: "invalid input"
+                incorrect_items:
+                  summary: Некорректный массив товаров (пустой или содержит невалидные объекты)
+                  value:
+                    error: "invalid input"
+        '404':
+          description: Ресурс не найден (торговая точка или конкретный товар)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                location_not_found:
+                  summary: Торговая точка не найдена
+                  value:
+                    error: "location not found"
+                location_item_not_found:
+                  summary: Товар на точке не найден
+                  value:
+                    error: "location item not found"
+        '409':
+          description: Конфликт при создании заказа
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                order_exists:
+                  summary: Заказ уже существует
+                  value:
+                    error: "order already exists"
+                cannot_sell:
+                  summary: Ошибка валидации товаров (цена/наличие)
+                  description: "Возникает, если цена изменилась или товара нет в нужном количестве"
+                  value:
+                    error: "cannot sell one of the chosen items"
+        '422':
+          description: Указанная торговая точка не принимает заказы
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "cannot create order: location is not operational"
         '500':
           $ref: "#/components/responses/InternalError"
 
