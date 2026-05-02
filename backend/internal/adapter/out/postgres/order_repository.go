@@ -105,7 +105,26 @@ func (r *OrderRepository) ListByLocationID(ctx context.Context, locationID uuid.
 func (r *OrderRepository) ListByStatus(ctx context.Context, status model.OrderStatus, limit, offset int) ([]*model.Order, error) {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	rawOrders, err := r.q.ListOrdersByStatus(ctx, db, sqlc.OrderStatus(status))
+	rawOrders, err := r.q.ListOrdersByStatus(
+		ctx,
+		db,
+		sqlc.ListOrdersByStatusParams{
+			Status: sqlc.OrderStatus(status),
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.MapSQLCToOrders(rawOrders), nil
+}
+
+func (r *OrderRepository) ListExpired(ctx context.Context) ([]*model.Order, error) {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	rawOrders, err := r.q.ListExpiredOrders(ctx, db)
 	if err != nil {
 		return nil, err
 	}

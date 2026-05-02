@@ -131,7 +131,7 @@ func (s *OrderItemRepoSuite) TestCreateList() {
 	s.Require().Len(items, 1)
 	s.Require().Equal(item.ID(), items[0].ID())
 	s.Require().Equal(item.ItemID(), items[0].ItemID())
-	s.Require().Equal(item.ItemAmount(), items[0].ItemAmount())
+	s.Require().Equal(item.Amount(), items[0].Amount())
 	s.Require().Equal(item.PriceAtPurchase(), items[0].PriceAtPurchase())
 }
 

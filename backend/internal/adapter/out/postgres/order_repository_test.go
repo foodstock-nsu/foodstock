@@ -232,3 +232,25 @@ func (s *OrderRepoSuite) TestListByStatus() {
 	s.Require().Len(paidOrders, 1)
 	s.Require().Equal(order2.ID(), paidOrders[0].ID())
 }
+
+func (s *OrderRepoSuite) TestListExpired() {
+	err := s.repo.Create(s.ctx, s.testOrder) // PENDING
+	s.Require().NoError(err)
+
+	order2 := model.RestoreOrder(
+		uuid.New(),
+		s.testLocID,
+		nil,
+		model.OrderPending,
+		2000,
+		time.Now().Add(-15*time.Minute).UTC(),
+		nil,
+	)
+	err = s.repo.Create(s.ctx, order2)
+	s.Require().NoError(err)
+
+	expiredOrders, err := s.repo.ListExpired(s.ctx)
+	s.Require().NoError(err)
+	s.Require().Len(expiredOrders, 1)
+	s.Require().Equal(order2.ID(), expiredOrders[0].ID())
+}

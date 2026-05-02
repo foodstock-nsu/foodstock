@@ -4,6 +4,7 @@ import (
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
 	"context"
+	"errors"
 	"time"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2"
@@ -39,29 +40,64 @@ func (s *OrderCleaner) Cleanup(ctx context.Context) error {
 		return err
 	}
 
+	errs := make([]error, 0) // Append each error into array
+
 	now := time.Now().UTC()
 	expiredDiff := 15 * time.Minute
 
 	for _, order := range pendingOrders {
-		if !(order.CreatedAt().Sub(now) >= expiredDiff) {
+		if now.Sub(order.CreatedAt()) < expiredDiff {
 			continue // Filter by time
 		}
 
-		if err = order.Cancel(); err != nil {
-			return err
-		}
+		err = s.trManager.Do(ctx, func(txCtx context.Context) error {
+			var updErr error
 
-		if err = s.orderRepo.Update(ctx, order); err != nil {
-			return err
-		}
+			orderItems, getErr := s.orderItemRepo.List(txCtx, order.ID())
+			if getErr != nil {
+				return getErr
+			}
 
-		orderItems, getErr := s.orderItemRepo.List(ctx, order.ID())
-		if getErr != nil {
-			return getErr
-		}
+			/*
+				Restore stocks in location
+			*/
+			for _, orderItem := range orderItems {
+				locationItem, getLocItemErr := s.locationItemRepo.GetByLocationAndItem(
+					txCtx, order.LocationID(), orderItem.ItemID(),
+				)
+				if getLocItemErr != nil {
+					return getLocItemErr
+				}
 
-		/*
-			Restore stock
-		*/
+				updErr = locationItem.RestoreStock(orderItem.Amount())
+				if updErr != nil {
+					return updErr
+				}
+
+				updErr = s.locationItemRepo.Update(txCtx, locationItem)
+				if updErr != nil {
+					return updErr
+				}
+			}
+
+			/*
+				Cancel the order
+				Update it in database
+			*/
+			if updErr = order.Cancel(); updErr != nil {
+				return updErr
+			}
+			if updErr = s.orderRepo.Update(txCtx, order); updErr != nil {
+				return updErr
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			errs = append(errs, err)
+		}
 	}
+
+	return errors.Join(errs...)
 }

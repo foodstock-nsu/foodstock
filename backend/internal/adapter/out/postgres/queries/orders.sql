@@ -55,4 +55,18 @@ SELECT
     created_at,
     paid_at
 FROM orders
-WHERE status = $1;
+WHERE status = $1
+LIMIT $2 OFFSET $3;
+
+-- name: ListExpiredOrders :many
+SELECT
+    id,
+    location_id,
+    status,
+    total_price,
+    created_at,
+    paid_at
+FROM orders
+WHERE status = 'PENDING'
+  AND created_at < (NOW() AT TIME ZONE 'utc') - INTERVAL '15 minutes'
+    FOR UPDATE SKIP LOCKED;

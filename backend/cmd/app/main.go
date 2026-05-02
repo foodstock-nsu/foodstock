@@ -243,7 +243,7 @@ func cleanupExpiredOrders(
 		case <-ticker.C:
 			logger.InfoContext(ctx, "Background job: cleaning expired orders...")
 			if err := cleaner.Cleanup(ctx); err != nil {
-				logger.ErrorContext(ctx, "Background job error", slog.Any("err", err))
+				logger.ErrorContext(ctx, "Background job errors", slog.Any("err", err))
 			}
 		}
 	}
