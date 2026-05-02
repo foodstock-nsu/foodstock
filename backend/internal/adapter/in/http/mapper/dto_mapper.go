@@ -29,7 +29,7 @@ func MapRequestToGetCatalog(req httpdto.GetCatalogRequest) appdto.GetCatalogInpu
 	return appdto.GetCatalogInput{LocationID: uuid.MustParse(req.ID)}
 }
 
-func mapOutputToCatalogItem(out appdto.CatalogItemOutput) httpdto.CatalogItemResponse {
+func mapOutputToCatalogItem(out appdto.CatalogItemDTO) httpdto.CatalogItemResponse {
 	nutrition := mapOutputToNutrition(*out.Nutrition)
 	return httpdto.CatalogItemResponse{
 		ID:          out.ID.String(),
@@ -114,7 +114,7 @@ func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
 	return appdto.GetQRCodeInput{LocationID: id}
 }
 
-func mapOutputToLocation(out appdto.LocationOutput) httpdto.Location {
+func mapOutputToLocation(out appdto.LocationDTO) httpdto.Location {
 	return httpdto.Location{
 		ID:        out.ID.String(),
 		Slug:      out.Slug,
@@ -143,8 +143,8 @@ func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocati
 
 // --- ITEMS & NUTRITION ---
 
-func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionOutput {
-	return appdto.NutritionOutput{
+func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionDTO {
+	return appdto.NutritionDTO{
 		Calories: req.Calories,
 		Proteins: req.Proteins,
 		Fats:     req.Fats,
@@ -152,7 +152,7 @@ func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionOutput 
 	}
 }
 
-func mapOutputToNutrition(out appdto.NutritionOutput) httpdto.NutritionResponse {
+func mapOutputToNutrition(out appdto.NutritionDTO) httpdto.NutritionResponse {
 	return httpdto.NutritionResponse{
 		Calories: out.Calories,
 		Proteins: out.Proteins,
@@ -162,7 +162,7 @@ func mapOutputToNutrition(out appdto.NutritionOutput) httpdto.NutritionResponse 
 }
 
 func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInput {
-	var nutrition *appdto.NutritionOutput
+	var nutrition *appdto.NutritionDTO
 	if req.Nutrition != nil {
 		mapped := mapRequestToNutrition(*req.Nutrition)
 		nutrition = &mapped
@@ -179,7 +179,7 @@ func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInpu
 func MapRequestToUpdateItem(req httpdto.UpdateItemRequest) appdto.UpdateItemInput {
 	id, _ := uuid.Parse(req.ID)
 
-	var nutrition *appdto.NutritionOutput
+	var nutrition *appdto.NutritionDTO
 	if req.Nutrition != nil {
 		mapped := mapRequestToNutrition(*req.Nutrition)
 		nutrition = &mapped
@@ -200,7 +200,7 @@ func MapRequestToDeleteItem(req httpdto.DeleteItemRequest) appdto.DeleteItemInpu
 	return appdto.DeleteItemInput{ID: id}
 }
 
-func mapOutputToItemResponse(out appdto.ItemOutput) httpdto.ItemResponse {
+func mapOutputToItemResponse(out appdto.ItemDTO) httpdto.ItemResponse {
 	var nutrition *httpdto.NutritionResponse
 	if out.Nutrition != nil {
 		mapped := mapOutputToNutrition(*out.Nutrition)

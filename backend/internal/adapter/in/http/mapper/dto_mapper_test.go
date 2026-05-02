@@ -60,10 +60,10 @@ func TestMapOutputToGetCatalog(t *testing.T) {
 	p := 10.5
 	f := 5.5
 	carbs := 20.0
-	nutritionOut := appdto.NutritionOutput{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
+	nutritionOut := appdto.NutritionDTO{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
 	out := appdto.GetCatalogOutput{
 		Categories: []string{"drinks"},
-		Items: []appdto.CatalogItemOutput{
+		Items: []appdto.CatalogItemDTO{
 			{
 				ID: id, Name: "name", Description: &desc, Category: "drinks",
 				PhotoURL: "url", Nutrition: &nutritionOut, Price: 100, IsAvailable: true, StockAmount: 10,
@@ -151,7 +151,7 @@ func TestMapOutputToCreateLocation(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.CreateLocationOutput{
-		Location: appdto.LocationOutput{
+		Location: appdto.LocationDTO{
 			ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now,
 		},
 	}
@@ -188,7 +188,7 @@ func TestMapOutputToUpdateLocation(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.UpdateLocationOutput{
-		Location: appdto.LocationOutput{
+		Location: appdto.LocationDTO{
 			ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now,
 		},
 	}
@@ -217,7 +217,7 @@ func TestMapOutputToListLocations(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.ListLocationsOutput{
-		Locations: []appdto.LocationOutput{
+		Locations: []appdto.LocationDTO{
 			{ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now},
 		},
 	}
@@ -259,7 +259,7 @@ func TestMapRequestToCreateItem(t *testing.T) {
 		Description: &desc,
 		Category:    "cat",
 		PhotoURL:    "url",
-		Nutrition:   &appdto.NutritionOutput{Calories: &cal},
+		Nutrition:   &appdto.NutritionDTO{Calories: &cal},
 	}
 	result := mapper.MapRequestToCreateItem(req)
 	if !reflect.DeepEqual(result, expected) {
@@ -279,7 +279,7 @@ func TestMapRequestToUpdateItem(t *testing.T) {
 	expected := appdto.UpdateItemInput{
 		ID:        id,
 		Name:      &name,
-		Nutrition: &appdto.NutritionOutput{Calories: &cal},
+		Nutrition: &appdto.NutritionDTO{Calories: &cal},
 	}
 	result := mapper.MapRequestToUpdateItem(req)
 	if !reflect.DeepEqual(result, expected) {
@@ -302,11 +302,11 @@ func TestMapOutputToCreateItem(t *testing.T) {
 	now := time.Now()
 	calories := 640
 	out := appdto.CreateItemOutput{
-		Item: appdto.ItemOutput{
+		Item: appdto.ItemDTO{
 			ID:       id,
 			Name:     "name",
 			Category: "cat",
-			Nutrition: &appdto.NutritionOutput{
+			Nutrition: &appdto.NutritionDTO{
 				Calories: &calories,
 				Proteins: nil,
 				Fats:     nil,
@@ -339,7 +339,7 @@ func TestMapOutputToUpdateItem(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.UpdateItemOutput{
-		Item: appdto.ItemOutput{
+		Item: appdto.ItemDTO{
 			ID: id, Name: "updated", Category: "cat", CreatedAt: now,
 		},
 	}
@@ -358,7 +358,7 @@ func TestMapOutputToListItems(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.ListItemsOutput{
-		Items: []appdto.ItemOutput{
+		Items: []appdto.ItemDTO{
 			{ID: id, Name: "name", Category: "cat", CreatedAt: now},
 		},
 	}

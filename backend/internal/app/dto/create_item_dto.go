@@ -5,9 +5,9 @@ type CreateItemInput struct {
 	Description *string
 	Category    string
 	PhotoURL    string
-	Nutrition   *NutritionOutput
+	Nutrition   *NutritionDTO
 }
 
 type CreateItemOutput struct {
-	Item ItemOutput
+	Item ItemDTO
 }

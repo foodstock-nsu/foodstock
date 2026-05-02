@@ -152,12 +152,14 @@ func TestLocationItem_ReduceStock(t *testing.T) {
 func TestLocationItem_Update(t *testing.T) {
 	var (
 		testPrice       = utils.VPtr(int64(10000))
+		testIsAvailable = false
 		testStockAmount = utils.VPtr(0)
 	)
 
 	type testCase struct {
 		testName    string
 		price       *int64
+		isAvailable *bool
 		stockAmount *int
 		expect      error
 	}
@@ -166,6 +168,7 @@ func TestLocationItem_Update(t *testing.T) {
 		{
 			testName:    "Success",
 			price:       testPrice,
+			isAvailable: &testIsAvailable,
 			stockAmount: testStockAmount,
 			expect:      nil,
 		},
@@ -196,7 +199,7 @@ func TestLocationItem_Update(t *testing.T) {
 				10,
 			)
 
-			err := locationItem.Update(tt.price, tt.stockAmount)
+			err := locationItem.Update(tt.price, tt.isAvailable, tt.stockAmount)
 			if tt.expect != nil {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)
@@ -204,6 +207,9 @@ func TestLocationItem_Update(t *testing.T) {
 				require.NoError(t, err)
 				if tt.price != nil {
 					assert.Equal(t, *tt.price, locationItem.Price())
+				}
+				if tt.isAvailable != nil {
+					assert.Equal(t, *tt.isAvailable, locationItem.IsAvailable())
 				}
 				if tt.stockAmount != nil {
 					assert.Equal(t, *tt.stockAmount, locationItem.StockAmount())

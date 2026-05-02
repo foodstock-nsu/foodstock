@@ -114,6 +114,7 @@ func (li *LocationItem) ReduceStock(amount int) error {
 
 func (li *LocationItem) Update(
 	price *int64,
+	isAvailable *bool,
 	stockAmount *int,
 ) error {
 	if price != nil && *price < 0 {
@@ -125,6 +126,9 @@ func (li *LocationItem) Update(
 
 	if price != nil {
 		li.price = *price
+	}
+	if isAvailable != nil {
+		li.isAvailable = *isAvailable
 	}
 	if stockAmount != nil {
 		li.stockAmount = *stockAmount
