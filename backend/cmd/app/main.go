@@ -118,6 +118,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	locationItemRepo := adapterpg.NewLocationItemRepository(pgClient, trmpgx.DefaultCtxGetter)
 	orderRepo := adapterpg.NewOrderRepository(pgClient, trmpgx.DefaultCtxGetter)
 	orderItemRepo := adapterpg.NewOrderItemRepository(pgClient, trmpgx.DefaultCtxGetter)
+	transactionRepo := adapterpg.NewTransactionRepository(pgClient, trmpgx.DefaultCtxGetter)
 
 	// Infrastructure
 	tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
@@ -153,7 +154,8 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 
 	// Services
 	orderCleaner := service.NewExpirationService(
-		trManager, locationItemRepo, orderRepo, orderItemRepo)
+		trManager, locationItemRepo, orderRepo, orderItemRepo, transactionRepo,
+	)
 
 	// Handlers
 	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
@@ -191,7 +193,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 
 	go func() {
 		logger.Info("starting server", slog.String("address", fmt.Sprintf(":%d", cfg.HttpPort)))
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 			return
 		}
@@ -201,7 +203,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	select {
 	case <-ctx.Done():
 		logger.Info("shutdown signal received")
-	case err := <-errCh:
+	case err = <-errCh:
 		if err != nil {
 			logger.Error("server failed", slog.Any("err", err))
 			return err
@@ -213,7 +215,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	if err := srv.Shutdown(shutdownCtx); err != nil {
+	if err = srv.Shutdown(shutdownCtx); err != nil {
 		logger.Error("graceful shutdown failed", slog.Any("err", err))
 		_ = srv.Close() // fallback
 		return err
@@ -260,7 +262,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := runServer(ctx, cfg, logger); err != nil {
+	if err = runServer(ctx, cfg, logger); err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
