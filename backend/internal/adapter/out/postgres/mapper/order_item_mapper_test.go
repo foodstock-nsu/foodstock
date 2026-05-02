@@ -59,7 +59,7 @@ func TestMapSQLCToOrderItem(t *testing.T) {
 
 	assert.Equal(t, id, mapped.ID())
 	assert.Equal(t, itemID, mapped.ItemID())
-	assert.Equal(t, 5, mapped.ItemAmount())
+	assert.Equal(t, 5, mapped.Amount())
 	assert.Equal(t, int64(125050), mapped.PriceAtPurchase())
 }
 

@@ -120,3 +120,14 @@ func (r *OrderRepository) ListByStatus(ctx context.Context, status model.OrderSt
 
 	return mapper.MapSQLCToOrders(rawOrders), nil
 }
+
+func (r *OrderRepository) ListExpired(ctx context.Context) ([]*model.Order, error) {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	rawOrders, err := r.q.ListExpiredOrders(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.MapSQLCToOrders(rawOrders), nil
+}

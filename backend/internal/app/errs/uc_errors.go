@@ -8,7 +8,9 @@ import "errors"
 var (
 	ErrCannotActivateLocation   = errors.New("location is already activated")
 	ErrCannotDeactivateLocation = errors.New("location is already deactivated")
-	ErrCannotGetLocationQRCode  = errors.New("location is not operational")
+	ErrCannotGetLocationQRCode  = errors.New("cannot get qr-code: location is not operational")
+	ErrCannotCreateOrder        = errors.New("cannot create order: location is not operational")
+	ErrCannotSellItem           = errors.New("cannot sell one of the chosen items")
 
 	ErrInvalidCredentials = errors.New("invalid login or password")
 	ErrInvalidInput       = errors.New("invalid input") // for rich models
@@ -41,22 +43,38 @@ var (
 	ErrListAllItemsDB   = errors.New("failed to get a list of items by ids using db")
 	ErrListItemsByIDsDB = errors.New("failed to get a list of all items using db")
 
-	ErrCreateLocationItemDB             = errors.New("failed to create location item using db")
-	ErrDeleteLocationItemsByItemIDDB    = errors.New("failed to delete location items by item id using db")
-	ErrDeleteLocationItemByLocationIDDB = errors.New("failed to delete location items by location id using db")
-	ErrListLocationItemsDB              = errors.New("failed to get a list of location items using db")
+	ErrCreateLocationItemDB               = errors.New("failed to create location item using db")
+	ErrGetLocationItemByLocationAndItemDB = errors.New("failed to get location item by location id and item id")
+	ErrUpdateLocationItemDB               = errors.New("failed to update location item using db")
+	ErrDeleteLocationItemsByItemIDDB      = errors.New("failed to delete location items by item id using db")
+	ErrDeleteLocationItemByLocationIDDB   = errors.New("failed to delete location items by location id using db")
+	ErrListLocationItemsDB                = errors.New("failed to get a list of location items using db")
 
-	ErrListRoomsDB     = errors.New("failed to get a list of rooms using db")
-	ErrGetScheduleDB   = errors.New("failed to get schedule using db")
-	ErrGetSlotDB       = errors.New("failed to get slot using db")
-	ErrCreateBookingDB = errors.New("failed to create booking using db")
-	ErrGetBookingDB    = errors.New("failed to get booking using db")
+	ErrCreateOrderDB = errors.New("failed to create order using db")
+	ErrListRoomsDB   = errors.New("failed to get a list of rooms using db")
+	ErrGetScheduleDB = errors.New("failed to get schedule using db")
+	ErrGetSlotDB     = errors.New("failed to get slot using db")
+	ErrGetBookingDB  = errors.New("failed to get booking using db")
 
-	ErrLocationNotFound = errors.New("location not found")
-	ErrItemNotFound     = errors.New("item not found")
-	ErrSlotNotFound     = errors.New("slot not found")
-	ErrBookingNotFound  = errors.New("booking not found")
+	ErrCreateOrderItemsDB = errors.New("failed to create order items using db")
 
-	ErrLocationAlreadyExists = errors.New("location with given slug already exists")
-	ErrScheduleAlreadyExists = errors.New("schedule for this room already exists")
+	ErrCreateTransactionDB = errors.New("failed to create transaction using db")
+
+	ErrLocationNotFound     = errors.New("location not found")
+	ErrItemNotFound         = errors.New("item not found")
+	ErrLocationItemNotFound = errors.New("location item not found")
+	ErrSlotNotFound         = errors.New("slot not found")
+	ErrBookingNotFound      = errors.New("booking not found")
+
+	ErrLocationAlreadyExists    = errors.New("location with given slug already exists")
+	ErrOrderAlreadyExists       = errors.New("order already exists")
+	ErrTransactionAlreadyExists = errors.New("transaction with given slug already exists")
+)
+
+/*
+================ Payment Gateway failures ================
+*/
+
+var (
+	ErrCreatePayment = errors.New("failed to create a payment")
 )

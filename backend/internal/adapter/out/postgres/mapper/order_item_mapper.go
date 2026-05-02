@@ -25,7 +25,7 @@ func MapOrderItemToSQLCCreate(orderID uuid.UUID, orderItem *model.OrderItem) sql
 			Bytes: orderItem.ItemID(),
 			Valid: true,
 		},
-		ItemAmount:      int32(orderItem.ItemAmount()),
+		ItemAmount:      int32(orderItem.Amount()),
 		PriceAtPurchase: price,
 	}
 }
@@ -48,7 +48,7 @@ func MapOrderItemsToSQLCCreateBatch(orderID uuid.UUID, orderItems []*model.Order
 				Bytes: orderItem.ItemID(),
 				Valid: true,
 			},
-			ItemAmount:      int32(orderItem.ItemAmount()),
+			ItemAmount:      int32(orderItem.Amount()),
 			PriceAtPurchase: price,
 		}
 	}

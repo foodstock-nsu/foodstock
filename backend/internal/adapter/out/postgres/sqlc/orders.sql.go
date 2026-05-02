@@ -76,6 +76,47 @@ func (q *Queries) GetOrder(ctx context.Context, db DBTX, id pgtype.UUID) (Order,
 	return i, err
 }
 
+const listExpiredOrders = `-- name: ListExpiredOrders :many
+SELECT
+    id,
+    location_id,
+    status,
+    total_price,
+    created_at,
+    paid_at
+FROM orders
+WHERE status = 'PENDING'
+  AND created_at < (NOW() AT TIME ZONE 'utc') - INTERVAL '15 minutes'
+    FOR UPDATE SKIP LOCKED
+`
+
+func (q *Queries) ListExpiredOrders(ctx context.Context, db DBTX) ([]Order, error) {
+	rows, err := db.Query(ctx, listExpiredOrders)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.LocationID,
+			&i.Status,
+			&i.TotalPrice,
+			&i.CreatedAt,
+			&i.PaidAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listOrdersByLocationID = `-- name: ListOrdersByLocationID :many
 SELECT
     id,

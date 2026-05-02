@@ -69,7 +69,7 @@ func TestNewOrderItem(t *testing.T) {
 
 				assert.NotEmpty(t, orderItem.ID())
 				assert.Equal(t, tt.itemID, orderItem.ItemID())
-				assert.Equal(t, tt.amount, orderItem.ItemAmount())
+				assert.Equal(t, tt.amount, orderItem.Amount())
 				assert.Equal(t, tt.price, orderItem.PriceAtPurchase())
 			}
 		})
@@ -199,7 +199,7 @@ func TestOrder_AddItem(t *testing.T) {
 
 	var contains bool
 	for _, item := range order.Items() {
-		if item.ItemID() == locItem.ItemID() && item.ItemAmount() == 5 {
+		if item.ItemID() == locItem.ItemID() && item.Amount() == 5 {
 			contains = true
 			break
 		}

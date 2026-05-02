@@ -13,4 +13,5 @@ type OrderRepository interface {
 	Update(ctx context.Context, order *model.Order) error
 	ListByLocationID(ctx context.Context, locationID uuid.UUID, limit, offset int) ([]*model.Order, error)
 	ListByStatus(ctx context.Context, status model.OrderStatus, limit, offset int) ([]*model.Order, error)
+	ListExpired(ctx context.Context) ([]*model.Order, error)
 }

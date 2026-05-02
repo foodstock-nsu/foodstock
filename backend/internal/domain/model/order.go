@@ -29,7 +29,7 @@ const (
 type OrderItem struct {
 	id              uuid.UUID
 	itemID          uuid.UUID
-	itemAmount      int
+	amount          int
 	priceAtPurchase int64
 }
 
@@ -50,7 +50,7 @@ func NewOrderItem(
 	return &OrderItem{
 		id:              uuid.New(),
 		itemID:          itemID,
-		itemAmount:      amount,
+		amount:          amount,
 		priceAtPurchase: price,
 	}, nil
 }
@@ -58,20 +58,20 @@ func NewOrderItem(
 func RestoreOrderItem(
 	id uuid.UUID,
 	itemID uuid.UUID,
-	itemAmount int,
+	amount int,
 	priceAtPurchase int64,
 ) *OrderItem {
 	return &OrderItem{
 		id:              id,
 		itemID:          itemID,
-		itemAmount:      itemAmount,
+		amount:          amount,
 		priceAtPurchase: priceAtPurchase,
 	}
 }
 
 func (oi *OrderItem) ID() uuid.UUID          { return oi.id }
 func (oi *OrderItem) ItemID() uuid.UUID      { return oi.itemID }
-func (oi *OrderItem) ItemAmount() int        { return oi.itemAmount }
+func (oi *OrderItem) Amount() int            { return oi.amount }
 func (oi *OrderItem) PriceAtPurchase() int64 { return oi.priceAtPurchase }
 
 // ================ Rich model for Order ================
@@ -142,7 +142,7 @@ func (o *Order) PaidAt() *time.Time    { return o.paidAt }
 func (o *Order) calculateTotal() {
 	var total int64
 	for i := range o.items {
-		total += o.items[i].priceAtPurchase * int64(o.items[i].itemAmount)
+		total += o.items[i].priceAtPurchase * int64(o.items[i].amount)
 	}
 	o.totalPrice = total
 }
@@ -163,7 +163,7 @@ func (o *Order) AddItem(locationItem *LocationItem, quantity int) error {
 	item := &OrderItem{
 		id:              uuid.New(),
 		itemID:          locationItem.ItemID(),
-		itemAmount:      quantity,
+		amount:          quantity,
 		priceAtPurchase: locationItem.Price(),
 	}
 
