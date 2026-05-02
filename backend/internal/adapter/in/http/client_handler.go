@@ -13,17 +13,20 @@ import (
 )
 
 type ClientHandler struct {
-	log          *slog.Logger
-	getCatalogUC *usecase.GetCatalogUC
+	log           *slog.Logger
+	getCatalogUC  *usecase.GetCatalogUC
+	createOrderUC *usecase.CreateOrderUC
 }
 
 func NewClientHandler(
 	log *slog.Logger,
 	getCatalogUC *usecase.GetCatalogUC,
+	createOrderUC *usecase.CreateOrderUC,
 ) *ClientHandler {
 	return &ClientHandler{
-		log:          log,
-		getCatalogUC: getCatalogUC,
+		log:           log,
+		getCatalogUC:  getCatalogUC,
+		createOrderUC: createOrderUC,
 	}
 }
 
@@ -48,6 +51,8 @@ func (h *ClientHandler) GetCatalog(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, mapper.MapOutputToGetCatalog(out))
 }
+
+func (h *ClientHandler) CreateOrder(c echo.Context) error {}
 
 func (h *ClientHandler) returnErr(c echo.Context, msg string, err error) error {
 	outErr := mapper.HttpError(err)

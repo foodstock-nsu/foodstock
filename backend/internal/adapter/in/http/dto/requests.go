@@ -58,3 +58,14 @@ type UpdateItemRequest struct {
 type DeleteItemRequest struct {
 	ID string `param:"id"`
 }
+
+type OrderItemRequest struct {
+	ItemID string `json:"item_id"`
+	Amount int    `json:"amount"`
+	Price  int64  `json:"price"`
+}
+
+type CreateOrderRequest struct {
+	LocationID string             `json:"location_id"`
+	Items      []OrderItemRequest `json:"items"`
+}

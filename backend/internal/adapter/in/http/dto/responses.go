@@ -74,3 +74,9 @@ type UpdateItemResponse struct {
 type ListItemsResponse struct {
 	Items []ItemResponse `json:"items"`
 }
+
+type CreateOrderResponse struct {
+	OrderID    string `json:"order_id"`
+	TotalPrice int64  `json:"total_price"`
+	PaymentURL string `json:"payment_url"`
+}
