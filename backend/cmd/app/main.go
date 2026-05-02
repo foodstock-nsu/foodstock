@@ -152,7 +152,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	listItemsUC := usecase.NewListItemsUC(itemRepo)
 
 	// Services
-	orderCleaner := service.NewOrderCleaner(
+	orderCleaner := service.NewExpirationService(
 		trManager, locationItemRepo, orderRepo, orderItemRepo)
 
 	// Handlers
@@ -226,7 +226,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 func cleanupExpiredOrders(
 	ctx context.Context,
 	logger *slog.Logger,
-	cleaner *service.OrderCleaner,
+	cleaner *service.ExpirationService,
 ) {
 	time.Sleep(20 * time.Second) // Wait until the server wakes up
 
@@ -241,7 +241,7 @@ func cleanupExpiredOrders(
 			logger.Info("stopping background cleanup worker...")
 			return
 		case <-ticker.C:
-			logger.InfoContext(ctx, "Background job: cleaning expired orders...")
+			logger.InfoContext(ctx, "Background job: cleaning expired orders and transactions...")
 			if err := cleaner.Cleanup(ctx); err != nil {
 				logger.ErrorContext(ctx, "Background job errors", slog.Any("err", err))
 			}

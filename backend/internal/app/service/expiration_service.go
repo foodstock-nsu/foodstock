@@ -1,55 +1,46 @@
 package service
 
 import (
-	"backend/internal/domain/model"
 	"backend/internal/domain/port"
 	"context"
 	"errors"
-	"time"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2"
 )
 
-type OrderCleaner struct {
+type ExpirationService struct {
 	trManager        trm.Manager
 	locationItemRepo port.LocationItemRepository
 	orderRepo        port.OrderRepository
 	orderItemRepo    port.OrderItemRepository
+	transactionRepo  port.TransactionRepository
 }
 
-func NewOrderCleaner(
+func NewExpirationService(
 	trManager trm.Manager,
 	locationItemRepo port.LocationItemRepository,
 	orderRepo port.OrderRepository,
 	orderItemRepo port.OrderItemRepository,
-) *OrderCleaner {
-	return &OrderCleaner{
+	transactionRepo port.TransactionRepository,
+) *ExpirationService {
+	return &ExpirationService{
 		trManager:        trManager,
 		locationItemRepo: locationItemRepo,
 		orderRepo:        orderRepo,
 		orderItemRepo:    orderItemRepo,
+		transactionRepo:  transactionRepo,
 	}
 }
 
-func (s *OrderCleaner) Cleanup(ctx context.Context) error {
-	/*
-		Get orders with status PENDING
-	*/
-	pendingOrders, err := s.orderRepo.ListByStatus(ctx, model.OrderPending)
+func (s *ExpirationService) Cleanup(ctx context.Context) error {
+	expiredOrders, err := s.orderRepo.ListExpired(ctx)
 	if err != nil {
 		return err
 	}
 
 	errs := make([]error, 0) // Append each error into array
 
-	now := time.Now().UTC()
-	expiredDiff := 15 * time.Minute
-
-	for _, order := range pendingOrders {
-		if now.Sub(order.CreatedAt()) < expiredDiff {
-			continue // Filter by time
-		}
-
+	for _, order := range expiredOrders {
 		err = s.trManager.Do(ctx, func(txCtx context.Context) error {
 			var updErr error
 
@@ -89,6 +80,23 @@ func (s *OrderCleaner) Cleanup(ctx context.Context) error {
 			}
 			if updErr = s.orderRepo.Update(txCtx, order); updErr != nil {
 				return updErr
+			}
+
+			/*
+				Get a list of transactions for order
+				Deny them as well (if can)
+				Update them in database
+			*/
+			transactions, getErr := s.transactionRepo.List(txCtx, order.ID())
+			for _, transaction := range transactions {
+				if denyErr := transaction.Deny(); denyErr != nil {
+					continue
+				}
+
+				updErr = s.transactionRepo.Update(txCtx, transaction)
+				if updErr != nil {
+					return updErr
+				}
 			}
 
 			return nil
