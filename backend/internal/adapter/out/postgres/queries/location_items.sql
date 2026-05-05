@@ -41,6 +41,7 @@ WHERE item_id = @item_id AND location_id = @location_id;
 UPDATE location_items
 SET
     price = @price,
+    is_available = @is_available,
     stock_amount = @stock_amount
 WHERE id = @id;
 

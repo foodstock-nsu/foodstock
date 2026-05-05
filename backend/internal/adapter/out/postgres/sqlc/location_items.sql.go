@@ -170,17 +170,24 @@ const updateLocationItem = `-- name: UpdateLocationItem :exec
 UPDATE location_items
 SET
     price = $1,
-    stock_amount = $2
-WHERE id = $3
+    is_available = $2,
+    stock_amount = $3
+WHERE id = $4
 `
 
 type UpdateLocationItemParams struct {
 	Price       pgtype.Numeric
+	IsAvailable bool
 	StockAmount int32
 	ID          pgtype.UUID
 }
 
 func (q *Queries) UpdateLocationItem(ctx context.Context, db DBTX, arg UpdateLocationItemParams) error {
-	_, err := db.Exec(ctx, updateLocationItem, arg.Price, arg.StockAmount, arg.ID)
+	_, err := db.Exec(ctx, updateLocationItem,
+		arg.Price,
+		arg.IsAvailable,
+		arg.StockAmount,
+		arg.ID,
+	)
 	return err
 }

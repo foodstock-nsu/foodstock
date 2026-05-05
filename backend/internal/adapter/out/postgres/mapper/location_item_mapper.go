@@ -52,6 +52,7 @@ func MapLocationItemToSQLCUpdate(item *model.LocationItem) sqlc.UpdateLocationIt
 			Valid: true,
 		},
 		Price:       price,
+		IsAvailable: item.IsAvailable(),
 		StockAmount: int32(item.StockAmount()),
 	}
 }
