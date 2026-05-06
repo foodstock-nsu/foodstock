@@ -1,3 +1,5 @@
+//go:build integration
+
 package postgres_test
 
 import (
@@ -29,9 +31,6 @@ type AdminRepoSuite struct {
 }
 
 func TestAdminRepoSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration tests in short mode")
-	}
 	suite.Run(t, new(AdminRepoSuite))
 }
 

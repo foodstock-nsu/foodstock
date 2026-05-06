@@ -1,4 +1,4 @@
-CREATE TYPE order_status AS ENUM('PENDING', 'PAID', 'CANCELED');
+CREATE TYPE order_status AS ENUM('PENDING', 'PAID', 'CANCELLED');
 
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

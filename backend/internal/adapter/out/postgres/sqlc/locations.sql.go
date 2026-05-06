@@ -18,14 +18,16 @@ INSERT INTO locations (
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 ) VALUES (
     $1,
     $2,
     $3,
     $4,
     $5,
-    $6
+    $6,
+    $7
 )
 `
 
@@ -36,6 +38,7 @@ type CreateLocationParams struct {
 	Address   string
 	IsActive  bool
 	CreatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
 }
 
 func (q *Queries) CreateLocation(ctx context.Context, db DBTX, arg CreateLocationParams) error {
@@ -46,6 +49,7 @@ func (q *Queries) CreateLocation(ctx context.Context, db DBTX, arg CreateLocatio
 		arg.Address,
 		arg.IsActive,
 		arg.CreatedAt,
+		arg.DeletedAt,
 	)
 	return err
 }
@@ -63,6 +67,22 @@ func (q *Queries) DeleteLocation(ctx context.Context, db DBTX, id pgtype.UUID) (
 	return result.RowsAffected(), nil
 }
 
+const deleteLocationSoft = `-- name: DeleteLocationSoft :exec
+UPDATE locations
+SET deleted_at = $1
+WHERE id = $2
+`
+
+type DeleteLocationSoftParams struct {
+	DeletedAt pgtype.Timestamptz
+	ID        pgtype.UUID
+}
+
+func (q *Queries) DeleteLocationSoft(ctx context.Context, db DBTX, arg DeleteLocationSoftParams) error {
+	_, err := db.Exec(ctx, deleteLocationSoft, arg.DeletedAt, arg.ID)
+	return err
+}
+
 const getLocationByID = `-- name: GetLocationByID :one
 SELECT
     id,
@@ -70,7 +90,8 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations
 WHERE id = $1
 `
@@ -85,6 +106,7 @@ func (q *Queries) GetLocationByID(ctx context.Context, db DBTX, id pgtype.UUID) 
 		&i.Address,
 		&i.IsActive,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -96,7 +118,8 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations
 WHERE slug = $1
 `
@@ -111,6 +134,7 @@ func (q *Queries) GetLocationBySlug(ctx context.Context, db DBTX, slug string) (
 		&i.Address,
 		&i.IsActive,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -122,7 +146,8 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations
 `
 
@@ -142,6 +167,7 @@ func (q *Queries) ListLocations(ctx context.Context, db DBTX) ([]Location, error
 			&i.Address,
 			&i.IsActive,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

@@ -5,14 +5,16 @@ INSERT INTO locations (
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 ) VALUES (
     @id,
     @slug,
     @name,
     @address,
     @is_active,
-    @created_at
+    @created_at,
+    @deleted_at
 );
 
 -- name: GetLocationByID :one
@@ -22,7 +24,8 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations
 WHERE id = @id;
 
@@ -33,7 +36,8 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations
 WHERE slug = @slug;
 
@@ -44,6 +48,11 @@ SET
     name = @name,
     address = @address,
     is_active = @is_active
+WHERE id = @id;
+
+-- name: DeleteLocationSoft :exec
+UPDATE locations
+SET deleted_at = @deleted_at
 WHERE id = @id;
 
 -- name: DeleteLocation :execrows
@@ -57,5 +66,6 @@ SELECT
     name,
     address,
     is_active,
-    created_at
+    created_at,
+    deleted_at
 FROM locations;

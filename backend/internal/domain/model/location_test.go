@@ -167,7 +167,7 @@ func TestLocation_Update(t *testing.T) {
 	}
 }
 
-func TestLocation_ActivateDeactivate(t *testing.T) {
+func TestLocation_ActivateDeactivateDelete(t *testing.T) {
 	loc := model.RestoreLocation(
 		uuid.New(),
 		"nsu_1",
@@ -175,23 +175,14 @@ func TestLocation_ActivateDeactivate(t *testing.T) {
 		"Novosibirsk, some st., 6300019",
 		true,
 		time.Now().UTC(),
+		nil,
 	)
 
-	// First case - deactivate correctly
-	err := loc.Deactivate()
-	assert.NoError(t, err)
+	// Deactivate
+	loc.Deactivate()
 	assert.False(t, loc.IsActive())
 
-	// Second case - trying to deactivate again
-	err = loc.Deactivate()
-	assert.Error(t, err)
-
-	// First case - activate correctly
-	err = loc.Activate()
-	assert.NoError(t, err)
+	// Activate
+	loc.Activate()
 	assert.True(t, loc.IsActive())
-
-	// Second case - trying to activate again
-	err = loc.Activate()
-	assert.Error(t, err)
 }

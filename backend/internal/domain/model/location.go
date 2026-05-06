@@ -24,6 +24,7 @@ type Location struct {
 	address   string
 	isActive  bool
 	createdAt time.Time
+	deletedAt *time.Time
 }
 
 func NewLocation(slug, name, address string) (*Location, error) {
@@ -44,6 +45,7 @@ func NewLocation(slug, name, address string) (*Location, error) {
 		address:   address,
 		isActive:  true,
 		createdAt: time.Now().UTC(),
+		deletedAt: nil,
 	}, nil
 }
 
@@ -52,6 +54,7 @@ func RestoreLocation(
 	slug, name, address string,
 	isActive bool,
 	createdAt time.Time,
+	deletedAt *time.Time,
 ) *Location {
 	return &Location{
 		id:        id,
@@ -60,17 +63,19 @@ func RestoreLocation(
 		address:   address,
 		isActive:  isActive,
 		createdAt: createdAt,
+		deletedAt: deletedAt,
 	}
 }
 
 // ================ Read-Only ================
 
-func (l *Location) ID() uuid.UUID        { return l.id }
-func (l *Location) Slug() string         { return l.slug }
-func (l *Location) Name() string         { return l.name }
-func (l *Location) Address() string      { return l.address }
-func (l *Location) IsActive() bool       { return l.isActive }
-func (l *Location) CreatedAt() time.Time { return l.createdAt }
+func (l *Location) ID() uuid.UUID         { return l.id }
+func (l *Location) Slug() string          { return l.slug }
+func (l *Location) Name() string          { return l.name }
+func (l *Location) Address() string       { return l.address }
+func (l *Location) IsActive() bool        { return l.isActive }
+func (l *Location) CreatedAt() time.Time  { return l.createdAt }
+func (l *Location) DeletedAt() *time.Time { return l.deletedAt }
 
 // ================ Business Logic ================
 
@@ -112,18 +117,12 @@ func (l *Location) Update(slug, name, address *string) error {
 	return nil
 }
 
-func (l *Location) Activate() error {
-	if l.isActive {
-		return ErrCannotActivate
-	}
+func (l *Location) Activate() {
 	l.isActive = true
-	return nil
 }
 
-func (l *Location) Deactivate() error {
-	if !l.isActive {
-		return ErrCannotDeactivate
-	}
+func (l *Location) Deactivate() {
 	l.isActive = false
-	return nil
 }
+
+func (l *Location) Delete()

@@ -1,8 +1,9 @@
+//go:build e2e
+
 package e2e
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"

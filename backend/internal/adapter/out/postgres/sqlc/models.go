@@ -60,9 +60,9 @@ func (ns NullItemCategory) Value() (driver.Value, error) {
 type OrderStatus string
 
 const (
-	OrderStatusPENDING  OrderStatus = "PENDING"
-	OrderStatusPAID     OrderStatus = "PAID"
-	OrderStatusCANCELED OrderStatus = "CANCELED"
+	OrderStatusPENDING   OrderStatus = "PENDING"
+	OrderStatusPAID      OrderStatus = "PAID"
+	OrderStatusCANCELLED OrderStatus = "CANCELLED"
 )
 
 func (e *OrderStatus) Scan(src interface{}) error {
@@ -170,6 +170,7 @@ type Location struct {
 	Address   string
 	IsActive  bool
 	CreatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
 }
 
 type LocationItem struct {

@@ -1,0 +1,27 @@
+name: Go Backend CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.2'
+
+      - name: Run Unit Tests
+        run: go test -v -short ./backend/internal/...
+
+      - name: Run Integration Tests
+        run: go test -v -tags=integration ./backend/internal/adapter/...
