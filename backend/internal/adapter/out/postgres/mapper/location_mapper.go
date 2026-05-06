@@ -3,6 +3,7 @@ package mapper
 import (
 	"backend/internal/adapter/out/postgres/sqlc"
 	"backend/internal/domain/model"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -26,6 +27,10 @@ func MapLocationToSQLCCreate(loc *model.Location) sqlc.CreateLocationParams {
 }
 
 func MapSQLCToLocation(raw sqlc.Location) *model.Location {
+	var deletedAt *time.Time
+	if raw.DeletedAt.Valid {
+		deletedAt = &raw.DeletedAt.Time
+	}
 	return model.RestoreLocation(
 		raw.ID.Bytes,
 		raw.Slug,
@@ -33,6 +38,7 @@ func MapSQLCToLocation(raw sqlc.Location) *model.Location {
 		raw.Address,
 		raw.IsActive,
 		raw.CreatedAt.Time,
+		deletedAt,
 	)
 }
 

@@ -53,8 +53,8 @@ func (pc *Config) DSN() string {
 // MigrationDSN Returns dsn for migration tools such as https://github.com/golang-migrate/migrate
 func (pc *Config) MigrationDSN() string {
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=@s",
-		pc.User, pc.Password, pc.Host, pc.Port, pc.SSLMode,
+		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		pc.User, pc.Password, pc.Host, pc.Port, pc.Name, pc.SSLMode,
 	)
 }
 

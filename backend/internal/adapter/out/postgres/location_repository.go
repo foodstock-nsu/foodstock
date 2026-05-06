@@ -94,7 +94,7 @@ func (r *LocationRepository) Update(ctx context.Context, loc *model.Location) er
 	return r.q.UpdateLocation(ctx, db, params)
 }
 
-func (r *LocationRepository) SoftDelete(ctx context.Context, id uuid.UUID)
+func (r *LocationRepository) SoftDelete(ctx context.Context, id uuid.UUID) {}
 
 func (r *LocationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)

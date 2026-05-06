@@ -125,4 +125,4 @@ func (l *Location) Deactivate() {
 	l.isActive = false
 }
 
-func (l *Location) Delete()
+func (l *Location) Delete() {}

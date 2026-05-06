@@ -65,10 +65,10 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	}, nil
 }
 
-func (pc *PostgresContainer) Migrate(version uint) error {
+func (pc *PostgresContainer) MigrateUp(version uint) error {
 	sourceDriver, err := iofs.New(migrations.FS, ".")
 	if err != nil {
-		return fmt.Errorf("failed to find migration: %w", err)
+		return fmt.Errorf("failed to find migrations: %w", err)
 	}
 
 	m, err := migrate.NewWithSourceInstance("iofs", sourceDriver, pc.Config.MigrationDSN())
@@ -93,6 +93,20 @@ func (pc *PostgresContainer) Migrate(version uint) error {
 	}
 
 	return nil
+}
+
+func (pc *PostgresContainer) MigrateDown() error {
+	sourceDriver, err := iofs.New(migrations.FS, ".")
+	if err != nil {
+		return fmt.Errorf("failed to find migrations: %w", err)
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", sourceDriver, pc.Config.MigrationDSN())
+	if err != nil {
+		return fmt.Errorf("failed to init migration tool: %w", err)
+	}
+
+	return m.Down()
 }
 
 func (pc *PostgresContainer) Close(ctx context.Context) error {

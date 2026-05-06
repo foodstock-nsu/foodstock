@@ -1,91 +1,67 @@
+//go:build integration
+
 package postgres_test
 
 import (
 	adapterpostgres "backend/internal/adapter/out/postgres"
 	"backend/internal/domain/model"
-	"backend/migrations"
+	"backend/internal/testhelpers"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
 	"backend/pkg/utils"
 	"context"
-	"errors"
 	"testing"
 	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
 type ItemRepoSuite struct {
 	suite.Suite
-	dbClient *pkgpostgres.Client
-	repo     *adapterpostgres.ItemRepository
-	ctx      context.Context
-	migrate  *migrate.Migrate
-	testItem *model.Item
+	pgContainer *testhelpers.PostgresContainer
+	dbClient    *pkgpostgres.Client
+	repo        *adapterpostgres.ItemRepository
+	ctx         context.Context
+	migrate     *migrate.Migrate
+	testItem    *model.Item
 }
 
 func TestItemRepoSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration tests in short mode")
-	}
 	suite.Run(t, new(ItemRepoSuite))
 }
 
-func (s *ItemRepoSuite) setupDatabase() {
+func (s *ItemRepoSuite) SetupSuite() {
 	const targetVersion = 2
 
-	dbConfig := pkgpostgres.NewConfig(
-		"localhost", 5433, "test-user",
-		"test-pass", "test-db", "disable",
-		5, 5,
-		10*time.Second, 10*time.Second,
-	)
-	dsn := "postgres://test-user:test-pass@localhost:5433/test-db?sslmode=disable"
+	ctx := context.Background()
 
-	dbClient, err := pkgpostgres.NewClient(context.Background(), dbConfig)
-	s.Require().NoError(err)
-	s.dbClient = dbClient
-
-	sourceDriver, err := iofs.New(migrations.FS, ".")
+	// Init postgres container
+	pgContainer, err := testhelpers.StartPostgresContainer(ctx)
 	s.Require().NoError(err)
 
-	m, err := migrate.NewWithSourceInstance("iofs", sourceDriver, dsn)
+	// Init postgres client
+	client, err := pkgpostgres.NewClient(ctx, pgContainer.Config)
 	s.Require().NoError(err)
 
-	s.migrate = m
-	err = m.Migrate(targetVersion)
+	// Apply migrations
+	err = pgContainer.MigrateUp(targetVersion)
+	s.Require().NoError(err)
 
-	if err == nil || errors.Is(err, migrate.ErrNoChange) {
-		return
-	}
-
-	var dirtyErr migrate.ErrDirty
-	if errors.As(err, &dirtyErr) {
-		_ = m.Force(dirtyErr.Version)
-		_ = m.Down()
-		err = m.Migrate(targetVersion)
-		s.Require().NoError(err)
-	}
-}
-
-func (s *ItemRepoSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.setupDatabase()
+	s.pgContainer = pgContainer
+	s.dbClient = client
 	s.repo = adapterpostgres.NewItemRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
-
-	desc := "Delicious test item description long enough"
+	s.ctx = ctx
 	s.testItem = model.RestoreItem(
 		uuid.New(),
 		"Test Item",
-		&desc,
+		utils.VPtr("Delicious test item description long enough"),
 		model.ItemLunch,
 		"https://example.com/photo.jpg",
 		model.RestoreNutrition(
@@ -98,10 +74,9 @@ func (s *ItemRepoSuite) SetupSuite() {
 }
 
 func (s *ItemRepoSuite) TearDownSuite() {
-	if s.migrate != nil {
-		_ = s.migrate.Down()
-	}
+	_ = s.pgContainer.MigrateDown()
 	s.dbClient.Close()
+	_ = s.pgContainer.Close(s.ctx)
 }
 
 func (s *ItemRepoSuite) SetupTest() {
@@ -194,11 +169,10 @@ func (s *ItemRepoSuite) TestListAll() {
 	s.Require().NoError(err)
 
 	// Second item
-	desc2 := "Another description"
 	item2 := model.RestoreItem(
 		uuid.New(),
 		"Item 2",
-		&desc2,
+		utils.VPtr("Another description"),
 		model.ItemDrinks,
 		"https://example.com/photo.jpg",
 		model.RestoreNutrition(
@@ -221,11 +195,10 @@ func (s *ItemRepoSuite) TestListByIDs() {
 	s.Require().NoError(err)
 
 	// Second item
-	desc2 := "Another description"
 	item2 := model.RestoreItem(
 		uuid.New(),
 		"Item 2",
-		&desc2,
+		utils.VPtr("Another description"),
 		model.ItemDrinks,
 		"https://example.com/photo.jpg",
 		model.RestoreNutrition(
