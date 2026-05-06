@@ -1,4 +1,4 @@
-name: Go Backend CI/CD
+name: Backend Quality Control
 
 on:
   push:

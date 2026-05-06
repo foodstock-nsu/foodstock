@@ -1,3 +1,5 @@
+//go:build integration
+
 package yookassa_test
 
 import (
