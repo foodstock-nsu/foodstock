@@ -1,4 +1,4 @@
-//go:build integration
+///go:build integration
 
 package postgres_test
 
@@ -150,11 +150,22 @@ func (s *LocationRepoSuite) TestUpdate() {
 	s.Require().Equal("Updated Name", loc.Name())
 }
 
+func (s *LocationRepoSuite) TestSoftDelete() {
+	// Create the location in advance
+	_ = s.repo.Create(s.ctx, s.testLocation)
+
+	// Delete it (change state in database)
+	_ = s.testLocation.Delete()
+
+	err := s.repo.SoftDelete(s.ctx, s.testLocation)
+	s.Require().NoError(err)
+}
+
 func (s *LocationRepoSuite) TestDelete() {
 	// Create the location in advance
 	_ = s.repo.Create(s.ctx, s.testLocation)
 
-	// DeleteByItemID it
+	// Delete it
 	err := s.repo.Delete(s.ctx, s.testLocation.ID())
 	s.Require().NoError(err)
 

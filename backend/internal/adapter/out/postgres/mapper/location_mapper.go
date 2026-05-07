@@ -55,6 +55,23 @@ func MapLocationToSQLCUpdate(loc *model.Location) sqlc.UpdateLocationParams {
 	}
 }
 
+func MapLocationToSQLCSoftDelete(loc *model.Location) sqlc.DeleteLocationSoftParams {
+	var deletedAt pgtype.Timestamptz
+	if loc.DeletedAt() != nil {
+		deletedAt = pgtype.Timestamptz{
+			Time:  *loc.DeletedAt(),
+			Valid: true,
+		}
+	}
+	return sqlc.DeleteLocationSoftParams{
+		ID: pgtype.UUID{
+			Bytes: loc.ID(),
+			Valid: true,
+		},
+		DeletedAt: deletedAt,
+	}
+}
+
 func MapSQLCToLocations(raw []sqlc.Location) []*model.Location {
 	locs := make([]*model.Location, len(raw))
 	for i := range locs {

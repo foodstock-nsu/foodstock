@@ -77,6 +77,22 @@ func TestMapLocationToSQLCUpdate(t *testing.T) {
 	assert.Equal(t, location.IsActive(), mapped.IsActive)
 }
 
+func TestMapLocationToSQLCSoftDelete(t *testing.T) {
+	location, _ := model.NewLocation(
+		"nsu_1",
+		"Novosibirsk State University | Store №1",
+		"Novosibirsk, some st., 6300019",
+	)
+	_ = location.Delete()
+
+	mapped := mapper.MapLocationToSQLCSoftDelete(location)
+
+	require.True(t, mapped.ID.Valid)
+	require.True(t, mapped.DeletedAt.Valid)
+	assert.Equal(t, [16]byte(location.ID()), mapped.ID.Bytes)
+	assert.Equal(t, *location.DeletedAt(), mapped.DeletedAt.Time)
+}
+
 func TestMapSQLCToLocations(t *testing.T) {
 	raw := []sqlc.Location{
 		{

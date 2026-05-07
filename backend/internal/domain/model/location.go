@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/pkg/utils"
 	"errors"
 	"time"
 	"unicode/utf8"
@@ -11,8 +12,7 @@ import (
 )
 
 var (
-	ErrCannotActivate   = errors.New("location is already activated")
-	ErrCannotDeactivate = errors.New("location is already deactivated")
+	ErrCannotDelete = errors.New("location is already deleted")
 )
 
 // ================ Rich model for Location (e.g. Fridge) ================
@@ -125,4 +125,10 @@ func (l *Location) Deactivate() {
 	l.isActive = false
 }
 
-func (l *Location) Delete() {}
+func (l *Location) Delete() error {
+	if l.DeletedAt() != nil {
+		return ErrCannotDelete
+	}
+	l.deletedAt = utils.VPtr(time.Now().UTC())
+	return nil
+}

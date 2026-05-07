@@ -167,7 +167,7 @@ func TestLocation_Update(t *testing.T) {
 	}
 }
 
-func TestLocation_ActivateDeactivateDelete(t *testing.T) {
+func TestLocation_ActivateDeactivate(t *testing.T) {
 	loc := model.RestoreLocation(
 		uuid.New(),
 		"nsu_1",
@@ -185,4 +185,21 @@ func TestLocation_ActivateDeactivateDelete(t *testing.T) {
 	// Activate
 	loc.Activate()
 	assert.True(t, loc.IsActive())
+}
+
+func TestLocation_Delete(t *testing.T) {
+	loc, _ := model.NewLocation(
+		"nsu_1",
+		"Novosibirsk State University | Store №1",
+		"Novosibirsk, some st., 6300019",
+	)
+
+	// First case - delete successfully
+	err := loc.Delete()
+	assert.NoError(t, err)
+	assert.NotNil(t, loc.DeletedAt())
+
+	// Second case - trying to call the method twice
+	err = loc.Delete()
+	assert.Error(t, err)
 }

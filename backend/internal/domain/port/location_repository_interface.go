@@ -12,6 +12,7 @@ type LocationRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*model.Location, error)
 	GetBySlug(ctx context.Context, slug string) (*model.Location, error)
 	Update(ctx context.Context, location *model.Location) error
+	SoftDelete(ctx context.Context, loc *model.Location) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context) ([]*model.Location, error)
 }
