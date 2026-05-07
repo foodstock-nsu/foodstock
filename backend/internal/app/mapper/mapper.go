@@ -65,7 +65,7 @@ func MapDomainToCatalogItemDTO(locItem *model.LocationItem, item *model.Item) dt
 	}
 
 	return dto.CatalogItemResponse{
-		ID:          locItem.ID(),
+		ItemID:      item.ID(),
 		Name:        item.Name(),
 		Description: item.Description(),
 		Category:    item.Category().String(),

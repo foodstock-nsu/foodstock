@@ -22,6 +22,13 @@ components:
       bearerFormat: JWT
 
   parameters:
+    LocationSlugPath:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Slug торговой точки
     LocationIdPath:
       name: id
       in: path
@@ -82,7 +89,7 @@ components:
     CatalogItemResponse:
       type: object
       properties:
-        id:
+        item_id:
           type: string
           format: uuid
           example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
@@ -117,6 +124,8 @@ components:
     GetCatalogResponse:
       type: object
       properties:
+        location:
+          $ref: "#/components/schemas/LocationResponse"
         categories:
           type: array
           description: "Список доступных категорий товаров"
@@ -478,6 +487,24 @@ components:
           example:
             error: "location item not found"
 
+    LocationIsNotAvailableError:
+      description: Торговая точка недоступна
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "location is already deleted"
+
+    LocationIsNotOperationalError:
+      description: Указанная торговая точка не принимает заказы
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "location is not operational"
+
     InternalError:
       description: Внутренняя ошибка сервера
       content:
@@ -509,28 +536,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemInfoResponse'
 
-  /api/v1/client/locations/{id}/catalog:
+  /api/v1/client/locations/{slug}/catalog:
     get:
       tags: [ Client ]
       summary: Получить каталог товаров
-      description: Возвращает каталог товаров на торговой точке и список категорий
+      description: Возвращает торговую точку, каталог товаров на ней и список категорий
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       responses:
         '200':
-          description: Возвращает каталог товаров на торговой точке и список категорий
+          description: Торговая точка, каталог товаров на ней и список категорий
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetCatalogResponse'
-        '400':
-          description: Некорректный идентификатор
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: "invalid identifier format"
+        '404':
+          $ref: '#/components/responses/LocationNotFoundError'
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
+        '422':
+          $ref: "#/components/responses/LocationIsNotOperationalError"
         '500':
           $ref: "#/components/responses/InternalError"
 
@@ -603,13 +628,7 @@ paths:
                   value:
                     error: "cannot sell one of the chosen items"
         '422':
-          description: Указанная торговая точка не принимает заказы
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: "cannot create order: location is not operational"
+          $ref: "#/components/responses/LocationIsNotOperationalError"
         '500':
           $ref: "#/components/responses/InternalError"
 
@@ -716,7 +735,7 @@ paths:
         '500':
           $ref: "#/components/responses/InternalError"
 
-  /api/v1/admin/locations/{id}:
+  /api/v1/admin/locations/{slug}:
     put:
       tags: [ Admin Locations ]
       summary: Обновить данные торговой точки
@@ -808,10 +827,12 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"
 
-  /api/v1/admin/locations/{id}/qrcode:
+  /api/v1/admin/locations/{slug}/qrcode:
     get:
       tags: [ Admin Locations ]
       summary: Получить QR-код торговой точки
@@ -819,7 +840,7 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       responses:
         '200':
           description: QR-код успешно сгенерирован
@@ -829,25 +850,21 @@ paths:
                 type: string
                 format: binary
         '400':
-          description: Некорректный идентификатор
+          description: Некорректный slug
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                error: "invalid identifier format"
+                error: "invalid slug"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '422':
-          description: QR-код не может быть получен, так как торговая точка неактивна
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: "location is not operational"
+          $ref: "#/components/responses/LocationIsNotOperationalError"
         '500':
           $ref: '#/components/responses/InternalError'
 

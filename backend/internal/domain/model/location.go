@@ -83,6 +83,8 @@ func (l *Location) IsOperational() bool {
 	return l.isActive
 }
 
+func (l *Location) IsDeleted() bool { return l.deletedAt != nil }
+
 func (l *Location) GetQRData(baseURL string) string {
 	return baseURL + "?location_id=" + l.slug
 }

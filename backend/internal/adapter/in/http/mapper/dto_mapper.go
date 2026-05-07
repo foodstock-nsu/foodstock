@@ -26,13 +26,13 @@ func MapOutputToAdminAuth(out appdto.AdminAuthOutput) httpdto.AdminAuthResponse 
 // --- CATALOG ---
 
 func MapRequestToGetCatalog(req httpdto.GetCatalogRequest) appdto.GetCatalogInput {
-	return appdto.GetCatalogInput{LocationID: uuid.MustParse(req.ID)}
+	return appdto.GetCatalogInput{Slug: req.Slug}
 }
 
 func mapOutputToCatalogItem(out appdto.CatalogItemResponse) httpdto.CatalogItemResponse {
 	nutrition := mapOutputToNutrition(*out.Nutrition)
 	return httpdto.CatalogItemResponse{
-		ID:          out.ID.String(),
+		ItemID:      out.ItemID.String(),
 		Name:        out.Name,
 		Description: out.Description,
 		Category:    out.Category,
@@ -49,7 +49,11 @@ func MapOutputToGetCatalog(out appdto.GetCatalogOutput) httpdto.GetCatalogRespon
 	for i := range out.Items {
 		items[i] = mapOutputToCatalogItem(out.Items[i])
 	}
-	return httpdto.GetCatalogResponse{Categories: out.Categories, Items: items}
+	return httpdto.GetCatalogResponse{
+		Location:   mapOutputToLocation(out.Location),
+		Categories: out.Categories,
+		Items:      items,
+	}
 }
 
 // --- ORDERS ---
@@ -110,12 +114,11 @@ func MapRequestToDeleteLocation(req httpdto.DeleteLocationRequest) appdto.Delete
 }
 
 func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
-	id, _ := uuid.Parse(req.ID)
-	return appdto.GetQRCodeInput{LocationID: id}
+	return appdto.GetQRCodeInput{Slug: req.Slug}
 }
 
-func mapOutputToLocation(out appdto.LocationResponse) httpdto.Location {
-	return httpdto.Location{
+func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
+	return httpdto.LocationResponse{
 		ID:        out.ID.String(),
 		Slug:      out.Slug,
 		Name:      out.Name,
@@ -134,7 +137,7 @@ func MapOutputToUpdateLocation(out appdto.UpdateLocationOutput) httpdto.UpdateLo
 }
 
 func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocationsResponse {
-	arr := make([]httpdto.Location, len(out.Locations))
+	arr := make([]httpdto.LocationResponse, len(out.Locations))
 	for i := range out.Locations {
 		arr[i] = mapOutputToLocation(out.Locations[i])
 	}

@@ -66,7 +66,7 @@ func TestGetQRCodeUC_Execute(t *testing.T) {
 			mockBehaviour: func(a adapter) {
 				a.location.EXPECT().GetByID(mock.Anything, testID).Return(testLocationNonOperational, nil)
 			},
-			expectErr: ucerrs.ErrCannotGetLocationQRCode,
+			expectErr: ucerrs.ErrLocationIsNotOperational,
 		},
 		{
 			name: "Failure - qr generation error",

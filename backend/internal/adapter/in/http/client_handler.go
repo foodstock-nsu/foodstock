@@ -37,10 +37,6 @@ func (h *ClientHandler) GetCatalog(c echo.Context) error {
 		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
 	}
 
-	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
-	}
-
 	out, err := h.getCatalogUC.Execute(
 		c.Request().Context(),
 		mapper.MapRequestToGetCatalog(req),

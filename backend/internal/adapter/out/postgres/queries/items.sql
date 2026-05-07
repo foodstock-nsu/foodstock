@@ -9,7 +9,8 @@ INSERT INTO items (
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 ) VALUES (
     @id,
     @name,
@@ -20,7 +21,8 @@ INSERT INTO items (
     @proteins,
     @fats,
     @carbs,
-    @created_at
+    @created_at,
+    @deleted_at
 );
 
 -- name: GetItem :one
@@ -34,7 +36,8 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items
 WHERE id = @id;
 
@@ -49,6 +52,11 @@ SET
     proteins = @proteins,
     fats = @fats,
     carbs = @carbs
+WHERE id = @id;
+
+-- name: DeleteItemSoft :exec
+UPDATE items
+SET deleted_at = @deleted_at
 WHERE id = @id;
 
 -- name: DeleteItem :execrows
@@ -66,7 +74,8 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items;
 
 -- name: ListItemsByIDs :many
@@ -80,6 +89,7 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items
 WHERE id = ANY(@ids::uuid[]);

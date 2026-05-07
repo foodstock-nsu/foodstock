@@ -161,6 +161,7 @@ type Item struct {
 	Fats        pgtype.Numeric
 	Carbs       pgtype.Numeric
 	CreatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
 }
 
 type Location struct {

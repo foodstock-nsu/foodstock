@@ -33,7 +33,7 @@ type ItemResponse struct {
 }
 
 type CatalogItemResponse struct {
-	ID          uuid.UUID // here is a location item id, not an item id
+	ItemID      uuid.UUID
 	Name        string
 	Description *string
 	Category    string

@@ -26,20 +26,23 @@ func NewGetQRCodeUC(
 }
 
 func (uc *GetQRCodeUC) Execute(ctx context.Context, in dto.GetQRCodeInput) (dto.GetQRCodeOutput, error) {
-	// Get a location by id
-	location, err := uc.location.GetByID(ctx, in.LocationID)
+	// Get a location by slug and validate it
+	location, err := uc.location.GetBySlug(ctx, in.Slug)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
 			return dto.GetQRCodeOutput{}, ucerrs.ErrLocationNotFound
 		}
 		return dto.GetQRCodeOutput{}, ucerrs.Wrap(
-			ucerrs.ErrGetLocationByIDDB, err,
+			ucerrs.ErrGetLocationBySlugDB, err,
 		)
 	}
 
-	// Validation
+	if location.IsDeleted() {
+		return dto.GetQRCodeOutput{}, ucerrs.ErrLocationAlreadyDeleted
+	}
+
 	if !location.IsOperational() {
-		return dto.GetQRCodeOutput{}, ucerrs.ErrCannotGetLocationQRCode
+		return dto.GetQRCodeOutput{}, ucerrs.ErrLocationIsNotOperational
 	}
 
 	// Generate QR-code

@@ -6,7 +6,7 @@ type AdminAuthRequest struct {
 }
 
 type GetCatalogRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type CreateLocationRequest struct {
@@ -28,7 +28,7 @@ type DeleteLocationRequest struct {
 }
 
 type GetQRCodeRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type NutritionRequest struct {

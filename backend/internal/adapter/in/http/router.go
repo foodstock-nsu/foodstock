@@ -73,7 +73,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 
 		clientLocations := client.Group("/locations")
 		{
-			clientLocations.GET("/:id/catalog", r.Client.GetCatalog)
+			clientLocations.GET("/:slug/catalog", r.Client.GetCatalog)
 		}
 
 		clientOrders := client.Group("/orders")

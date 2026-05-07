@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrInvalidJSON       = errors.New("invalid json")
 	ErrInvalidIdentifier = errors.New("invalid identifier format")
+	ErrInvalidSlug       = errors.New("invalid slug")
 )
 
 type OutErr struct {

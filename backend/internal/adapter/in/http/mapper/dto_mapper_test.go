@@ -156,7 +156,7 @@ func TestMapOutputToCreateLocation(t *testing.T) {
 		},
 	}
 	expected := httpdto.CreateLocationResponse{
-		Location: httpdto.Location{
+		Location: httpdto.LocationResponse{
 			ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 		},
 	}
@@ -193,7 +193,7 @@ func TestMapOutputToUpdateLocation(t *testing.T) {
 		},
 	}
 	expected := httpdto.UpdateLocationResponse{
-		Location: httpdto.Location{
+		Location: httpdto.LocationResponse{
 			ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
 		},
 	}
@@ -222,7 +222,7 @@ func TestMapOutputToListLocations(t *testing.T) {
 		},
 	}
 	expected := httpdto.ListLocationsResponse{
-		Locations: []httpdto.Location{
+		Locations: []httpdto.LocationResponse{
 			{ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String()},
 		},
 	}
