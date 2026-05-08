@@ -229,10 +229,6 @@ components:
     UpdateLocationRequest:
       type: object
       properties:
-        slug:
-          type: string
-          nullable: true
-          example: "nsu_1"
         name:
           type: string
           nullable: true
@@ -743,7 +739,7 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       requestBody:
         required: true
         content:
@@ -768,14 +764,10 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
-                incorrect_id:
-                  summary: Некорректный идентификатор
-                  value:
-                    error: "invalid identifier format"
                 incorrect_slug:
                   summary: Некорректный slug
                   value:
-                    error: "invalid input"
+                    error: "invalid slug"
                 incorrect_name:
                   summary: Некорректное имя
                   value:
@@ -788,21 +780,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
-#        '409':
-#          description: Не удалось изменить статус торговой точки
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/ErrorResponse"
-#              examples:
-#                cannot_activate:
-#                  summary: Торговая точка уже активирована
-#                  value:
-#                    error: "location is already activated"
-#                cannot_deactivate:
-#                  summary: Торговая точка уже деактивирована
-#                  value:
-#                    error: "location is already deactivated"
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"
     delete:
@@ -811,18 +790,18 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       responses:
         '204':
           description: "Торговая точка удалена успешно"
         '400':
-          description: Некорректный идентификатор
+          description: Некорректный slug
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                error: "invalid identifier format"
+                error: "invalid slug"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':

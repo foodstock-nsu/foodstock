@@ -16,8 +16,7 @@ type CreateLocationRequest struct {
 }
 
 type UpdateLocationRequest struct {
-	ID       string  `param:"id"`
-	Slug     *string `json:"slug"`
+	Slug     string  `param:"slug"`
 	Name     *string `json:"name"`
 	Address  *string `json:"address"`
 	IsActive *bool   `json:"is_active"`

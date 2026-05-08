@@ -95,7 +95,6 @@ func TestLocation_BusinessLogic(t *testing.T) {
 func TestLocation_Update(t *testing.T) {
 	type testCase struct {
 		testName string
-		slug     *string
 		locName  *string
 		address  *string
 		expect   error
@@ -104,7 +103,6 @@ func TestLocation_Update(t *testing.T) {
 	var testCases = []testCase{
 		{
 			testName: "Success",
-			slug:     utils.VPtr("nsu_2"),
 			locName:  utils.VPtr("Novosibirsk State University | Store №2"),
 			address:  utils.VPtr("Novosibirsk, another st., 6300019"),
 			expect:   nil,
@@ -112,11 +110,6 @@ func TestLocation_Update(t *testing.T) {
 		{
 			testName: "Success - nothing to update",
 			expect:   nil,
-		},
-		{
-			testName: "Failure - invalid slug",
-			slug:     utils.VPtr("a_1"),
-			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
 			testName: "Failure - invalid location name",
@@ -138,13 +131,10 @@ func TestLocation_Update(t *testing.T) {
 				"Novosibirsk, some st., 6300019",
 			)
 
-			err := loc.Update(tt.slug, tt.locName, tt.address)
+			err := loc.Update(tt.locName, tt.address)
 			if tt.expect != nil {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)
-				if tt.slug != nil {
-					assert.NotEqual(t, *tt.slug, loc.Slug())
-				}
 				if tt.locName != nil {
 					assert.NotEqual(t, *tt.locName, loc.Name())
 				}
@@ -153,9 +143,6 @@ func TestLocation_Update(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				if tt.slug != nil {
-					assert.Equal(t, *tt.slug, loc.Slug())
-				}
 				if tt.locName != nil {
 					assert.Equal(t, *tt.locName, loc.Name())
 				}

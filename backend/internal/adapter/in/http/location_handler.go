@@ -72,8 +72,8 @@ func (h *LocationHandler) Update(c echo.Context) error {
 		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
-	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid identifier format", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+	if utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.updateLocationUC.Execute(
@@ -136,9 +136,8 @@ func (h *LocationHandler) List(c echo.Context) error {
 func (h *LocationHandler) GetQRCode(c echo.Context) error {
 	var req httpdto.GetQRCodeRequest
 
-	err := c.Bind(&req)
-	if err != nil || utf8.RuneCountInString(req.Slug) < 4 {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidSlug)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.getQRCodeUC.Execute(

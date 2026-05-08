@@ -44,7 +44,6 @@ WHERE slug = @slug;
 -- name: UpdateLocation :exec
 UPDATE locations
 SET
-    slug = @slug,
     name = @name,
     address = @address,
     is_active = @is_active

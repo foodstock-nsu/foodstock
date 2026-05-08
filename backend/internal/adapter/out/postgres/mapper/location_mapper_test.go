@@ -71,7 +71,6 @@ func TestMapLocationToSQLCUpdate(t *testing.T) {
 
 	require.True(t, mapped.ID.Valid)
 	assert.Equal(t, [16]byte(location.ID()), mapped.ID.Bytes)
-	assert.Equal(t, location.Slug(), mapped.Slug)
 	assert.Equal(t, location.Name(), mapped.Name)
 	assert.Equal(t, location.Address(), mapped.Address)
 	assert.Equal(t, location.IsActive(), mapped.IsActive)

@@ -48,7 +48,6 @@ func MapLocationToSQLCUpdate(loc *model.Location) sqlc.UpdateLocationParams {
 			Bytes: loc.ID(),
 			Valid: true,
 		},
-		Slug:     loc.Slug(),
 		Name:     loc.Name(),
 		Address:  loc.Address(),
 		IsActive: loc.IsActive(),

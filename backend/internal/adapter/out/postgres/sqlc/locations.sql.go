@@ -182,15 +182,13 @@ func (q *Queries) ListLocations(ctx context.Context, db DBTX) ([]Location, error
 const updateLocation = `-- name: UpdateLocation :exec
 UPDATE locations
 SET
-    slug = $1,
-    name = $2,
-    address = $3,
-    is_active = $4
-WHERE id = $5
+    name = $1,
+    address = $2,
+    is_active = $3
+WHERE id = $4
 `
 
 type UpdateLocationParams struct {
-	Slug     string
 	Name     string
 	Address  string
 	IsActive bool
@@ -199,7 +197,6 @@ type UpdateLocationParams struct {
 
 func (q *Queries) UpdateLocation(ctx context.Context, db DBTX, arg UpdateLocationParams) error {
 	_, err := db.Exec(ctx, updateLocation,
-		arg.Slug,
 		arg.Name,
 		arg.Address,
 		arg.IsActive,

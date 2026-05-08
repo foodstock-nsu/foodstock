@@ -1,12 +1,12 @@
 package model
 
 import (
-	"backend/pkg/utils"
 	"errors"
 	"time"
 	"unicode/utf8"
 
 	pkgerrs "backend/pkg/errs"
+	pkgutils "backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -95,10 +95,7 @@ func (l *Location) ValidateQRCode(slug string) bool {
 
 // ================ Mutation ================
 
-func (l *Location) Update(slug, name, address *string) error {
-	if slug != nil && utf8.RuneCountInString(*slug) < 4 {
-		return pkgerrs.NewValueInvalidError("slug")
-	}
+func (l *Location) Update(name, address *string) error {
 	if name != nil && utf8.RuneCountInString(*name) < 4 {
 		return pkgerrs.NewValueInvalidError("name")
 	}
@@ -106,9 +103,6 @@ func (l *Location) Update(slug, name, address *string) error {
 		return pkgerrs.NewValueInvalidError("address")
 	}
 
-	if slug != nil {
-		l.slug = *slug
-	}
 	if name != nil {
 		l.name = *name
 	}
@@ -131,6 +125,6 @@ func (l *Location) Delete() error {
 	if l.DeletedAt() != nil {
 		return ErrCannotDelete
 	}
-	l.deletedAt = utils.VPtr(time.Now().UTC())
+	l.deletedAt = pkgutils.VPtr(time.Now().UTC())
 	return nil
 }
