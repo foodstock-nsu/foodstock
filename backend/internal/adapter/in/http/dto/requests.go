@@ -23,7 +23,7 @@ type UpdateLocationRequest struct {
 }
 
 type DeleteLocationRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type GetQRCodeRequest struct {
@@ -70,7 +70,7 @@ type CreateOrderRequest struct {
 }
 
 type GetInventoryRequest struct {
-	LocationID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type InventoryItemRequest struct {
@@ -81,6 +81,6 @@ type InventoryItemRequest struct {
 }
 
 type UpdateInventoryRequest struct {
-	LocationID string                 `param:"id"`
-	Inventory  []InventoryItemRequest `json:"inventory"`
+	Slug      string                 `param:"slug"`
+	Inventory []InventoryItemRequest `json:"inventory"`
 }

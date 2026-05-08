@@ -94,14 +94,14 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
 			adminLocations.POST("", r.Location.Create)
-			adminLocations.PUT("/:id", r.Location.Update)
-			adminLocations.DELETE("/:id", r.Location.Delete)
+			adminLocations.PUT("/:slug", r.Location.Update)
+			adminLocations.DELETE("/:slug", r.Location.Delete)
 			adminLocations.GET("", r.Location.List)
-			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
+			adminLocations.GET("/:slug/qrcode", r.Location.GetQRCode)
 
 			// --- INVENTORY ---
-			adminLocations.GET("/:id/inventory", r.Inventory.Get)
-			adminLocations.PUT("/:id/inventory", r.Inventory.Update)
+			adminLocations.GET("/:slug/inventory", r.Inventory.Get)
+			adminLocations.PUT("/:slug/inventory", r.Inventory.Update)
 		}
 
 		// --- ITEMS ---

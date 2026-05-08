@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -86,7 +85,6 @@ func (h *LocationHandler) Update(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "location updated",
-		slog.String("id", req.ID),
 		slog.Any("slug", req.Slug),
 		slog.Any("name", req.Name),
 		slog.Any("address", req.Address),
@@ -99,16 +97,11 @@ func (h *LocationHandler) Update(c echo.Context) error {
 func (h *LocationHandler) Delete(c echo.Context) error {
 	var req httpdto.DeleteLocationRequest
 
-	err := c.Bind(&req)
-	if err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
-	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
-	}
-
-	err = h.deleteLocationUC.Execute(
+	err := h.deleteLocationUC.Execute(
 		c.Request().Context(),
 		mapper.MapRequestToDeleteLocation(req),
 	)
@@ -118,7 +111,7 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "location deleted",
-		slog.String("id", req.ID),
+		slog.String("slug", req.Slug),
 	)
 
 	return c.NoContent(http.StatusNoContent)

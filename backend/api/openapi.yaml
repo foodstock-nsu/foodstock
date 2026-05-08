@@ -847,7 +847,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/v1/admin/locations/{id}/inventory:
+  /api/v1/admin/locations/{slug}/inventory:
     get:
       tags: [ Admin Inventory ]
       summary: Получить инвентарь торговой точки
@@ -863,15 +863,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetInventoryResponse'
         '400':
-          description: Некорректный идентификатор
+          description: Некорректный slug
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                error: "invalid identifier format"
+                error: "invalid slug"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/LocationNotFoundError'
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '500':
           $ref: '#/components/responses/InternalError'
     put:
@@ -906,10 +910,10 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
-                incorrect_id:
-                  summary: Некорректный идентификатор
+                incorrect_slug:
+                  summary: Некорректный slug
                   value:
-                    error: "invalid identifier format"
+                    error: "invalid slug"
                 incorrect_price:
                   summary: Некорректная цена
                   value:
@@ -921,7 +925,22 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
-          $ref: '#/components/responses/LocationItemNotFoundError'
+          description: Ресурс не найден (торговая точка или конкретный товар)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                location_not_found:
+                  summary: Торговая точка не найдена
+                  value:
+                    error: "location not found"
+                location_item_not_found:
+                  summary: Товар на точке не найден
+                  value:
+                    error: "location item not found"
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"
 

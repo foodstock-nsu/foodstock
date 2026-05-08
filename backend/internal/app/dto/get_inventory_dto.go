@@ -1,9 +1,7 @@
 package dto
 
-import "github.com/google/uuid"
-
 type GetInventoryInput struct {
-	LocationID uuid.UUID
+	Slug string
 }
 
 type GetInventoryOutput struct {

@@ -7,8 +7,8 @@ import (
 	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
+	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,12 +33,8 @@ func NewInventoryHandler(
 func (h *InventoryHandler) Get(c echo.Context) error {
 	var req httpdto.GetInventoryRequest
 
-	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
-	}
-
-	if _, err := uuid.Parse(req.LocationID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.getInventoryUC.Execute(
@@ -59,8 +55,8 @@ func (h *InventoryHandler) Update(c echo.Context) error {
 		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
-	if _, err := uuid.Parse(req.LocationID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	if utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.updateInventoryUC.Execute(
@@ -73,7 +69,7 @@ func (h *InventoryHandler) Update(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "inventory updated",
-		slog.String("location_id", req.LocationID),
+		slog.String("location slug", req.Slug),
 		slog.Int("items affected", len(out.Inventory)),
 	)
 
