@@ -21,10 +21,12 @@ type UpdateInventoryUC struct {
 
 func NewUpdateInventoryUC(
 	trManager trm.Manager,
+	location port.LocationRepository,
 	locationItem port.LocationItemRepository,
 ) *UpdateInventoryUC {
 	return &UpdateInventoryUC{
 		trManager:    trManager,
+		location:     location,
 		locationItem: locationItem,
 	}
 }

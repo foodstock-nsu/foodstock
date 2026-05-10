@@ -15,8 +15,14 @@ type GetInventoryUC struct {
 	locationItem port.LocationItemRepository
 }
 
-func NewGetInventoryUC(locationItem port.LocationItemRepository) *GetInventoryUC {
-	return &GetInventoryUC{locationItem: locationItem}
+func NewGetInventoryUC(
+	location port.LocationRepository,
+	locationItem port.LocationItemRepository,
+) *GetInventoryUC {
+	return &GetInventoryUC{
+		location:     location,
+		locationItem: locationItem,
+	}
 }
 
 func (uc *GetInventoryUC) Execute(ctx context.Context, in dto.GetInventoryInput) (dto.GetInventoryOutput, error) {

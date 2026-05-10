@@ -13,6 +13,7 @@ type LocationResponse struct {
 	Address   string
 	IsActive  bool
 	CreatedAt time.Time
+	DeletedAt *time.Time
 }
 
 type NutritionResponse struct {

@@ -3,6 +3,7 @@ package mapper
 import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	appdto "backend/internal/app/dto"
+	pkgutils "backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -115,6 +116,10 @@ func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
 }
 
 func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
+	var deletedAt *string
+	if out.DeletedAt != nil {
+		deletedAt = pkgutils.VPtr(out.DeletedAt.String())
+	}
 	return httpdto.LocationResponse{
 		ID:        out.ID.String(),
 		Slug:      out.Slug,
@@ -122,6 +127,7 @@ func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
 		Address:   out.Address,
 		IsActive:  out.IsActive,
 		CreatedAt: out.CreatedAt.String(),
+		DeletedAt: deletedAt,
 	}
 }
 

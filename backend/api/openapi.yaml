@@ -158,10 +158,9 @@ components:
     CreateOrderRequest:
       type: object
       properties:
-        location_id:
+        location_slug:
           type: string
-          format: uuid
-          example: "b3d538c5-3680-5bd1-b784-cebb32b29d6c"
+          example: "nsu_1"
         items:
           type: array
           description: "Список товаров заказа"
@@ -854,7 +853,7 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       responses:
         '200':
           description: Текущие остатки на точке
@@ -885,7 +884,7 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - $ref: '#/components/parameters/LocationIdPath'
+        - $ref: '#/components/parameters/LocationSlugPath'
       requestBody:
         required: true
         content:

@@ -13,6 +13,7 @@ func MapDomainToLocationDTO(location *model.Location) dto.LocationResponse {
 		Address:   location.Address(),
 		IsActive:  location.IsActive(),
 		CreatedAt: location.CreatedAt(),
+		DeletedAt: location.DeletedAt(),
 	}
 }
 

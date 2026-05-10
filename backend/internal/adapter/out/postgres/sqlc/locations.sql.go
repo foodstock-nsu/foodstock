@@ -69,8 +69,10 @@ func (q *Queries) DeleteLocation(ctx context.Context, db DBTX, id pgtype.UUID) (
 
 const deleteLocationSoft = `-- name: DeleteLocationSoft :exec
 UPDATE locations
-SET deleted_at = $1
-WHERE id = $2
+SET
+    is_active = false,
+    deleted_at = $1
+WHERE id = $2 AND deleted_at IS NULL
 `
 
 type DeleteLocationSoftParams struct {
@@ -93,7 +95,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetLocationByID(ctx context.Context, db DBTX, id pgtype.UUID) (Location, error) {
@@ -121,7 +123,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE slug = $1
+WHERE slug = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetLocationBySlug(ctx context.Context, db DBTX, slug string) (Location, error) {
@@ -149,6 +151,9 @@ SELECT
     created_at,
     deleted_at
 FROM locations
+ORDER BY
+    (deleted_at IS NOT NULL) ASC,
+    created_at DESC
 `
 
 func (q *Queries) ListLocations(ctx context.Context, db DBTX) ([]Location, error) {
@@ -185,7 +190,7 @@ SET
     name = $1,
     address = $2,
     is_active = $3
-WHERE id = $4
+WHERE id = $4 AND deleted_at IS NULL
 `
 
 type UpdateLocationParams struct {

@@ -27,7 +27,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE id = @id;
+WHERE id = @id AND deleted_at IS NULL;
 
 -- name: GetLocationBySlug :one
 SELECT
@@ -39,7 +39,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE slug = @slug;
+WHERE slug = @slug AND deleted_at IS NULL;
 
 -- name: UpdateLocation :exec
 UPDATE locations
@@ -47,12 +47,14 @@ SET
     name = @name,
     address = @address,
     is_active = @is_active
-WHERE id = @id;
+WHERE id = @id AND deleted_at IS NULL;
 
 -- name: DeleteLocationSoft :exec
 UPDATE locations
-SET deleted_at = @deleted_at
-WHERE id = @id;
+SET
+    is_active = false,
+    deleted_at = @deleted_at
+WHERE id = @id AND deleted_at IS NULL;
 
 -- name: DeleteLocation :execrows
 DELETE FROM locations
@@ -67,4 +69,7 @@ SELECT
     is_active,
     created_at,
     deleted_at
-FROM locations;
+FROM locations
+ORDER BY
+    (deleted_at IS NOT NULL) ASC,
+    created_at DESC;

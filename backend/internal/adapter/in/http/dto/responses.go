@@ -9,12 +9,13 @@ type AdminAuthResponse struct {
 }
 
 type LocationResponse struct {
-	ID        string `json:"id"`
-	Slug      string `json:"slug"`
-	Name      string `json:"name"`
-	Address   string `json:"address"`
-	IsActive  bool   `json:"is_active"`
-	CreatedAt string `json:"created_at"`
+	ID        string  `json:"id"`
+	Slug      string  `json:"slug"`
+	Name      string  `json:"name"`
+	Address   string  `json:"address"`
+	IsActive  bool    `json:"is_active"`
+	CreatedAt string  `json:"created_at"`
+	DeletedAt *string `json:"deleted_at"`
 }
 
 type NutritionResponse struct {

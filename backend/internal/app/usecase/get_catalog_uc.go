@@ -6,6 +6,7 @@ import (
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
+	pkgerrs "backend/pkg/errs"
 	"context"
 	"errors"
 
@@ -34,7 +35,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 	// Get a location by slug and validate it
 	location, err := uc.location.GetBySlug(ctx, in.Slug)
 	if err != nil {
-		if errors.Is(err, ucerrs.ErrLocationNotFound) {
+		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
 			return dto.GetCatalogOutput{}, ucerrs.ErrLocationNotFound
 		}
 		return dto.GetCatalogOutput{}, ucerrs.Wrap(
