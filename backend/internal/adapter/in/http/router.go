@@ -126,14 +126,14 @@ func (r *Router) withAuth(gen *jwtinfra.Generator) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				return echo.NewHTTPError(http.StatusUnauthorized, "missing auth header")
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "missing auth header"})
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 			adminID, err := gen.Validate(tokenString)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired token")
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid or expired token"})
 			}
 
 			c.Set("admin_id", adminID)

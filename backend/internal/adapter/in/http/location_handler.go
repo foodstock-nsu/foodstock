@@ -106,10 +106,10 @@ func (h *LocationHandler) Update(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "location updated",
-		slog.Any("slug", req.Slug),
-		slog.Any("name", req.Name),
-		slog.Any("address", req.Address),
-		slog.Any("is_active", req.IsActive),
+		slog.Any("slug", out.Location.Slug),
+		slog.Any("name", out.Location.Name),
+		slog.Any("address", out.Location.Address),
+		slog.Any("is_active", out.Location.IsActive),
 	)
 
 	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateLocation(out))

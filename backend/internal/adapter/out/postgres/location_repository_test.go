@@ -1,4 +1,4 @@
-//go:build integration
+///go:build integration
 
 package postgres_test
 
@@ -135,7 +135,6 @@ func (s *LocationRepoSuite) TestUpdate() {
 
 	// Modify the model
 	_ = s.testLocation.Update(
-		utils.VPtr("updated-slug"),
 		utils.VPtr("Updated Name"),
 		utils.VPtr("Updated Address123456789"),
 	)
@@ -146,8 +145,8 @@ func (s *LocationRepoSuite) TestUpdate() {
 
 	// Check the result
 	loc, _ := s.repo.GetByID(s.ctx, s.testLocation.ID())
-	s.Require().Equal("updated-slug", loc.Slug())
 	s.Require().Equal("Updated Name", loc.Name())
+	s.Require().Equal("Updated Address123456789", loc.Address())
 }
 
 func (s *LocationRepoSuite) TestSoftDelete() {

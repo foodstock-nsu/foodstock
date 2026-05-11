@@ -28,13 +28,17 @@ type Location struct {
 }
 
 func NewLocation(slug, name, address string) (*Location, error) {
-	if utf8.RuneCountInString(slug) < 4 {
+	lenSlug := utf8.RuneCountInString(slug)
+	lenName := utf8.RuneCountInString(name)
+	lenAddress := utf8.RuneCountInString(address)
+
+	if lenSlug < 4 || lenSlug > 16 {
 		return nil, pkgerrs.NewValueInvalidError("slug")
 	}
-	if utf8.RuneCountInString(name) < 4 {
+	if lenName < 4 || lenName > 100 {
 		return nil, pkgerrs.NewValueInvalidError("name")
 	}
-	if utf8.RuneCountInString(address) < 20 {
+	if lenAddress < 20 || lenAddress > 200 {
 		return nil, pkgerrs.NewValueInvalidError("address")
 	}
 
@@ -96,10 +100,10 @@ func (l *Location) ValidateQRCode(slug string) bool {
 // ================ Mutation ================
 
 func (l *Location) Update(name, address *string) error {
-	if name != nil && utf8.RuneCountInString(*name) < 4 {
+	if name != nil && (utf8.RuneCountInString(*name) < 4 || utf8.RuneCountInString(*name) > 100) {
 		return pkgerrs.NewValueInvalidError("name")
 	}
-	if address != nil && utf8.RuneCountInString(*address) < 20 {
+	if address != nil && (utf8.RuneCountInString(*address) < 20 || utf8.RuneCountInString(*address) > 200) {
 		return pkgerrs.NewValueInvalidError("address")
 	}
 

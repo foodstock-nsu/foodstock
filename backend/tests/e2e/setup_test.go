@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -219,15 +220,32 @@ func setupE2E(t *testing.T) *testApp {
 // cleanData использует инструменты миграций для сброса БД в чистый вид
 // и восстанавливает необходимые seed-данные.
 func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
-	// 1. Сносим все таблицы
-	err := a.pg.MigrateDown()
-	require.NoError(t, err, "failed to migrate down")
+	// Список таблиц, которые нужно чистить (в порядке, учитывающем FK, либо используем CASCADE)
+	// Добавь сюда все свои таблицы
+	tables := []string{
+		"order_items",
+		"orders",
+		"transactions",
+		"location_items",
+		"items",
+		"locations",
+		"admins",
+	}
 
-	// 2. Накатываем структуру заново
-	err = a.pg.MigrateUp(migrationVersion)
-	require.NoError(t, err, "failed to migrate up")
+	// Формируем запрос: TRUNCATE table1, table2 RESTART IDENTITY CASCADE;
+	// RESTART IDENTITY сбрасывает счетчики SERIAL/BIGSERIAL в 0
+	// CASCADE удаляет зависимости, если они есть
+	query := fmt.Sprintf("TRUNCATE %s RESTART IDENTITY CASCADE", strings.Join(tables, ", "))
 
-	// 3. Заново создаем админов, так как MigrateDown удалил таблицу admins
+	_, err := a.dbClient.Pool.Exec(ctx, query)
+	require.NoError(t, err, "failed to truncate tables")
+
+	// После очистки данных кэш планов Postgres (Prepared Statements)
+	// НЕ ломается, так как таблицы не пересоздавались.
+	// Но на всякий случай можно оставить DISCARD PLANS, он очень легкий.
+	_, _ = a.dbClient.Pool.Exec(ctx, "DISCARD PLANS")
+
+	// Заново создаем админов, так как TRUNCATE их стер
 	adminRepo := adapterpg.NewAdminRepository(a.dbClient, trmpgx.DefaultCtxGetter)
 	passHasher := infrapass.NewHasher(a.cfg.PasswordCost)
 	err = seedAdmins(ctx, a.cfg, adminRepo, passHasher)
