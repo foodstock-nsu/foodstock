@@ -98,6 +98,10 @@ func MapRequestToCreateLocation(req httpdto.CreateLocationRequest) appdto.Create
 	return appdto.CreateLocationInput{Slug: req.Slug, Name: req.Name, Address: req.Address}
 }
 
+func MapRequestToGetLocation(req httpdto.GetLocationRequest) appdto.GetLocationInput {
+	return appdto.GetLocationInput{Slug: req.Slug}
+}
+
 func MapRequestToUpdateLocation(req httpdto.UpdateLocationRequest) appdto.UpdateLocationInput {
 	return appdto.UpdateLocationInput{
 		Slug:     req.Slug,
@@ -133,6 +137,10 @@ func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
 
 func MapOutputToCreateLocation(out appdto.CreateLocationOutput) httpdto.CreateLocationResponse {
 	return httpdto.CreateLocationResponse{Location: mapOutputToLocation(out.Location)}
+}
+
+func MapOutputToGetLocation(out appdto.GetLocationOutput) httpdto.GetLocationResponse {
+	return httpdto.GetLocationResponse{Location: mapOutputToLocation(out.Location)}
 }
 
 func MapOutputToUpdateLocation(out appdto.UpdateLocationOutput) httpdto.UpdateLocationResponse {

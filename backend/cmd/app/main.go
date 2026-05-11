@@ -142,6 +142,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	createLocationUC := usecase.NewCreateLocationUC(
 		trManager, locationRepo, itemRepo, locationItemRepo,
 	)
+	getLocationUC := usecase.NewGetLocationUC(locationRepo)
 	updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
 	deleteLocationUC := usecase.NewDeleteLocationUC(
 		trManager, locationRepo, locationItemRepo,
@@ -178,7 +179,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
 	locationsHandler := adapterhttp.NewLocationHandler(
-		logger, createLocationUC, updateLocationUC,
+		logger, createLocationUC, getLocationUC, updateLocationUC,
 		deleteLocationUC, listLocationsUC, getQRCodeUC,
 	)
 	itemHandler := adapterhttp.NewItemHandler(

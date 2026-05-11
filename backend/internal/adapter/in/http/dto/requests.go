@@ -15,6 +15,10 @@ type CreateLocationRequest struct {
 	Address string `json:"address"`
 }
 
+type GetLocationRequest struct {
+	Slug string `param:"slug"`
+}
+
 type UpdateLocationRequest struct {
 	Slug     string  `param:"slug"`
 	Name     *string `json:"name"`

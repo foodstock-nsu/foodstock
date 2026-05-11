@@ -170,6 +170,7 @@ func setupE2E(t *testing.T) *testApp {
 		// UseCases
 		adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
 		createLocationUC := usecase.NewCreateLocationUC(trManager, locationRepo, itemRepo, locationItemRepo)
+		getLocationUC := usecase.NewGetLocationUC(locationRepo)
 		updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
 		deleteLocationUC := usecase.NewDeleteLocationUC(trManager, locationRepo, locationItemRepo)
 		listLocationsUC := usecase.NewListLocationsUC(locationRepo)
@@ -187,7 +188,7 @@ func setupE2E(t *testing.T) *testApp {
 		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
-		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
+		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
 		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
 

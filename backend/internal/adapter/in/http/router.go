@@ -94,6 +94,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
 			adminLocations.POST("", r.Location.Create)
+			adminLocations.GET("/:slug", r.Location.Get)
 			adminLocations.PATCH("/:slug", r.Location.Update)
 			adminLocations.DELETE("/:slug", r.Location.Delete)
 			adminLocations.GET("", r.Location.List)

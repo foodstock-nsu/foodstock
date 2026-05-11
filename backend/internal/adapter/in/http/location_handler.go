@@ -15,6 +15,7 @@ import (
 type LocationHandler struct {
 	log              *slog.Logger
 	createLocationUC *usecase.CreateLocationUC
+	getLocationUC    *usecase.GetLocationUC
 	updateLocationUC *usecase.UpdateLocationUC
 	deleteLocationUC *usecase.DeleteLocationUC
 	listLocationsUC  *usecase.ListLocationsUC
@@ -24,6 +25,7 @@ type LocationHandler struct {
 func NewLocationHandler(
 	log *slog.Logger,
 	createLocationUC *usecase.CreateLocationUC,
+	getLocationUC *usecase.GetLocationUC,
 	updateLocationUC *usecase.UpdateLocationUC,
 	deleteLocationUC *usecase.DeleteLocationUC,
 	listLocationsUC *usecase.ListLocationsUC,
@@ -32,6 +34,7 @@ func NewLocationHandler(
 	return &LocationHandler{
 		log:              log,
 		createLocationUC: createLocationUC,
+		getLocationUC:    getLocationUC,
 		updateLocationUC: updateLocationUC,
 		deleteLocationUC: deleteLocationUC,
 		listLocationsUC:  listLocationsUC,
@@ -62,6 +65,24 @@ func (h *LocationHandler) Create(c echo.Context) error {
 	)
 
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateLocation(out))
+}
+
+func (h *LocationHandler) Get(c echo.Context) error {
+	var req httpdto.GetLocationRequest
+
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
+	}
+
+	out, err := h.getLocationUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToGetLocation(req),
+	)
+	if err != nil {
+		return h.returnErr(c, "failed to get location", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToGetLocation(out))
 }
 
 func (h *LocationHandler) Update(c echo.Context) error {

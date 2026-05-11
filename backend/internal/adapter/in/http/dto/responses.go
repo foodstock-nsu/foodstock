@@ -57,6 +57,10 @@ type CreateLocationResponse struct {
 	Location LocationResponse `json:"location"`
 }
 
+type GetLocationResponse struct {
+	Location LocationResponse `json:"location"`
+}
+
 type UpdateLocationResponse struct {
 	Location LocationResponse `json:"location"`
 }
