@@ -94,14 +94,14 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
 			adminLocations.POST("", r.Location.Create)
-			adminLocations.PUT("/:slug", r.Location.Update)
+			adminLocations.PATCH("/:slug", r.Location.Update)
 			adminLocations.DELETE("/:slug", r.Location.Delete)
 			adminLocations.GET("", r.Location.List)
 			adminLocations.GET("/:slug/qrcode", r.Location.GetQRCode)
 
 			// --- INVENTORY ---
 			adminLocations.GET("/:slug/inventory", r.Inventory.Get)
-			adminLocations.PUT("/:slug/inventory", r.Inventory.Update)
+			adminLocations.PATCH("/:slug/inventory", r.Inventory.Update)
 		}
 
 		// --- ITEMS ---
@@ -109,7 +109,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminItems.Use(r.withAuth(r.tokenGen))
 		{
 			adminItems.POST("", r.Item.Create)
-			adminItems.PUT("/:id", r.Item.Update)
+			adminItems.PATCH("/:id", r.Item.Update)
 			adminItems.DELETE("/:id", r.Item.Delete)
 			adminItems.GET("", r.Item.List)
 		}

@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -42,7 +42,7 @@ func TestAdminAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := app.DoRequest(
+			resp, err := app.doRequest(
 				"POST",
 				"/api/v1/admin/auth",
 				tt.payload,

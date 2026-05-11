@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -25,10 +25,9 @@ import (
 	"backend/internal/testhelpers"
 	pkgpostgres "backend/pkg/postgres"
 
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,16 +36,17 @@ const (
 	apiVersion       = "v1"
 )
 
-type TestApp struct {
-	Server   *httptest.Server
-	Client   *http.Client
-	Pg       *testhelpers.PostgresContainer
-	DBClient *pkgpostgres.Client
-	Cfg      *config.Config
+type testApp struct {
+	server     *httptest.Server
+	client     *http.Client
+	pg         *testhelpers.PostgresContainer
+	dbClient   *pkgpostgres.Client
+	cfg        *config.Config
+	adminToken *string
 }
 
 var (
-	appInstance *TestApp
+	appInstance *testApp
 	once        sync.Once
 )
 
@@ -103,7 +103,7 @@ func seedAdmins(
 	return nil
 }
 
-func setupE2E(t *testing.T) *TestApp {
+func setupE2E(t *testing.T) *testApp {
 	once.Do(func() {
 		ctx := context.Background()
 
@@ -200,12 +200,12 @@ func setupE2E(t *testing.T) *TestApp {
 		// Запускаем тестовый сервер
 		ts := httptest.NewServer(router)
 
-		appInstance = &TestApp{
-			Server:   ts,
-			Client:   ts.Client(),
-			Pg:       pg,
-			DBClient: pgClient,
-			Cfg:      cfg,
+		appInstance = &testApp{
+			server:   ts,
+			client:   ts.Client(),
+			pg:       pg,
+			dbClient: pgClient,
+			cfg:      cfg,
 		}
 	})
 
@@ -217,23 +217,23 @@ func setupE2E(t *testing.T) *TestApp {
 
 // cleanData использует инструменты миграций для сброса БД в чистый вид
 // и восстанавливает необходимые seed-данные.
-func (a *TestApp) cleanData(t *testing.T, ctx context.Context) {
+func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
 	// 1. Сносим все таблицы
-	err := a.Pg.MigrateDown()
+	err := a.pg.MigrateDown()
 	require.NoError(t, err, "failed to migrate down")
 
 	// 2. Накатываем структуру заново
-	err = a.Pg.MigrateUp(migrationVersion)
+	err = a.pg.MigrateUp(migrationVersion)
 	require.NoError(t, err, "failed to migrate up")
 
 	// 3. Заново создаем админов, так как MigrateDown удалил таблицу admins
-	adminRepo := adapterpg.NewAdminRepository(a.DBClient, trmpgx.DefaultCtxGetter)
-	passHasher := infrapass.NewHasher(a.Cfg.PasswordCost)
-	err = seedAdmins(ctx, a.Cfg, adminRepo, passHasher)
+	adminRepo := adapterpg.NewAdminRepository(a.dbClient, trmpgx.DefaultCtxGetter)
+	passHasher := infrapass.NewHasher(a.cfg.PasswordCost)
+	err = seedAdmins(ctx, a.cfg, adminRepo, passHasher)
 	require.NoError(t, err, "failed to re-seed admins")
 }
 
-func (a *TestApp) DoRequest(method, path string, body interface{}) (*http.Response, error) {
+func (a *testApp) doRequest(method, path string, body interface{}) (*http.Response, error) {
 	var buf bytes.Buffer
 	if body != nil {
 		if err := json.NewEncoder(&buf).Encode(body); err != nil {
@@ -241,21 +241,66 @@ func (a *TestApp) DoRequest(method, path string, body interface{}) (*http.Respon
 		}
 	}
 
-	req, err := http.NewRequest(method, a.Server.URL+path, &buf)
+	req, err := http.NewRequest(method, a.server.URL+path, &buf)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	return a.Client.Do(req)
+	return a.client.Do(req)
 }
 
-// TearDownE2E можно вызвать при завершении пакета тестов, если нужно
+func (a *testApp) doRequestAuth(method, path string, body interface{}, token string) (*http.Response, error) {
+	var buf bytes.Buffer
+	if body != nil {
+		_ = json.NewEncoder(&buf).Encode(body)
+	}
+
+	req, _ := http.NewRequest(method, a.server.URL+path, &buf)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	return a.client.Do(req)
+}
+
+func (a *testApp) getAdminToken(t *testing.T) string {
+	if a.adminToken != nil {
+		return *a.adminToken
+	}
+
+	resp, err := a.doRequest(
+		"POST",
+		"/api/v1/admin/auth",
+		map[string]interface{}{
+			"login":    "test",
+			"password": "test123",
+		},
+	)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, body["token"])
+
+	token, ok := body["token"].(string)
+	require.True(t, ok)
+
+	a.adminToken = &token
+
+	return token
+}
+
+// tearDownE2E можно вызвать при завершении пакета тестов, если нужно
 // принудительно освободить ресурсы (обычно go test сам все убивает при выходе)
-func TearDownE2E() {
+func tearDownE2E() {
 	if appInstance != nil {
-		appInstance.Server.Close()
-		appInstance.DBClient.Close()
-		_ = appInstance.Pg.Close(context.Background())
+		appInstance.server.Close()
+		appInstance.dbClient.Close()
+		_ = appInstance.pg.Close(context.Background())
 	}
 }

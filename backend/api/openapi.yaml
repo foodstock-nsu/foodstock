@@ -731,7 +731,7 @@ paths:
           $ref: "#/components/responses/InternalError"
 
   /api/v1/admin/locations/{slug}:
-    put:
+    patch:
       tags: [ Admin Locations ]
       summary: Обновить данные торговой точки
       description: Обновляет торговую точку и возвращает её новые данные
@@ -877,7 +877,7 @@ paths:
           $ref: "#/components/responses/LocationIsNotAvailableError"
         '500':
           $ref: '#/components/responses/InternalError'
-    put:
+    patch:
       tags: [ Admin Inventory ]
       summary: Обновить инвентарь торговой точки
       description: Обновляет инвентарь и возвращает обновлённые товары
@@ -1015,7 +1015,7 @@ paths:
         '500':
           $ref: "#/components/responses/InternalError"
   /api/v1/admin/items/{id}:
-    put:
+    patch:
       tags: [ Admin Items ]
       summary: Обновить данные товара
       description: Обновляет товар и возвращает его новые данные
