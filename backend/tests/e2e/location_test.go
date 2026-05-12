@@ -243,7 +243,11 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 					tt.token,
 				)
 				require.NoError(t, err)
-				defer resp.Body.Close()
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -299,7 +303,11 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/locations/%s", tt.slug)
 				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
 				require.NoError(t, err)
-				defer resp.Body.Close()
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -336,7 +344,11 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 					tt.token,
 				)
 				require.NoError(t, err)
-				defer resp.Body.Close()
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -399,7 +411,11 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/locations/%s/qrcode", tt.slug)
 				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
 				require.NoError(t, err)
-				defer resp.Body.Close()
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -478,7 +494,11 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/locations/%s", tt.slug)
 				resp, err := app.doRequestAuth("PATCH", path, tt.payload, tt.token)
 				require.NoError(t, err)
-				defer resp.Body.Close()
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -490,6 +510,62 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 	})
 
 	t.Run("Delete Location - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			slug           string
+			expectedStatus int
+			expectedError  string
+		}
 
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Slug",
+				token:          token,
+				slug:           "a",
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name:           "Unauthorized - invalid token",
+				token:          "invalid",
+				slug:           baseSlug,
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Not Found - Random Slug",
+				slug:           "random_slug",
+				token:          token,
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name:           "Gone - Location Has Deleted",
+				slug:           goneSlug,
+				token:          token,
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/admin/locations/%s", tt.slug)
+				resp, err := app.doRequestAuth("DELETE", path, nil, tt.token)
+				require.NoError(t, err)
+
+				defer func(Body io.ReadCloser) {
+					err = Body.Close()
+					require.NoError(t, err)
+				}(resp.Body)
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
 	})
 }
