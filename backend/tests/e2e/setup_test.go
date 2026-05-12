@@ -287,7 +287,7 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 		},
 	)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 

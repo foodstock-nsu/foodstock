@@ -48,7 +48,7 @@ func TestAdminAuth(t *testing.T) {
 				tt.payload,
 			)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 

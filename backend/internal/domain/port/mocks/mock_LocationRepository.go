@@ -294,6 +294,53 @@ func (_c *MockLocationRepository_List_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// SoftDelete provides a mock function with given fields: ctx, loc
+func (_m *MockLocationRepository) SoftDelete(ctx context.Context, loc *model.Location) error {
+	ret := _m.Called(ctx, loc)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Location) error); ok {
+		r0 = rf(ctx, loc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockLocationRepository_SoftDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDelete'
+type MockLocationRepository_SoftDelete_Call struct {
+	*mock.Call
+}
+
+// SoftDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - loc *model.Location
+func (_e *MockLocationRepository_Expecter) SoftDelete(ctx interface{}, loc interface{}) *MockLocationRepository_SoftDelete_Call {
+	return &MockLocationRepository_SoftDelete_Call{Call: _e.mock.On("SoftDelete", ctx, loc)}
+}
+
+func (_c *MockLocationRepository_SoftDelete_Call) Run(run func(ctx context.Context, loc *model.Location)) *MockLocationRepository_SoftDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*model.Location))
+	})
+	return _c
+}
+
+func (_c *MockLocationRepository_SoftDelete_Call) Return(_a0 error) *MockLocationRepository_SoftDelete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockLocationRepository_SoftDelete_Call) RunAndReturn(run func(context.Context, *model.Location) error) *MockLocationRepository_SoftDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, location
 func (_m *MockLocationRepository) Update(ctx context.Context, location *model.Location) error {
 	ret := _m.Called(ctx, location)

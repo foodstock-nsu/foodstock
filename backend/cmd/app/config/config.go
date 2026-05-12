@@ -66,12 +66,5 @@ func Load() (*Config, error) {
 	if err := env.Parse(cfg); err != nil {
 		return nil, fmt.Errorf("failed to load config: %v", err)
 	}
-
-	//fmt.Printf("Config loaded successfully\n")
-	//fmt.Printf("   Environment: %s\n", cfg.Environment)
-	//fmt.Printf("   Log Level: %s\n", cfg.LogLevel)
-	//fmt.Printf("   Postgres Host: %s\n", cfg.DbHost)
-	//fmt.Printf("   HTTP Port: %d\n", cfg.HttpPort)
-
 	return cfg, nil
 }

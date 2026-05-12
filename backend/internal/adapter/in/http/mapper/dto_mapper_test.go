@@ -4,6 +4,7 @@ import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	"backend/internal/adapter/in/http/mapper"
 	appdto "backend/internal/app/dto"
+	"backend/pkg/utils"
 	"reflect"
 	"testing"
 	"time"
@@ -44,9 +45,8 @@ func TestMapOutputToAdminAuth(t *testing.T) {
 // --- CATALOG ---
 
 func TestMapRequestToGetCatalog(t *testing.T) {
-	id := uuid.New()
-	req := httpdto.GetCatalogRequest{ID: id.String()}
-	expected := appdto.GetCatalogInput{LocationID: id}
+	req := httpdto.GetCatalogRequest{Slug: "new_1"}
+	expected := appdto.GetCatalogInput{Slug: "new_1"}
 	result := mapper.MapRequestToGetCatalog(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -55,28 +55,67 @@ func TestMapRequestToGetCatalog(t *testing.T) {
 
 func TestMapOutputToGetCatalog(t *testing.T) {
 	id := uuid.New()
-	desc := "desc"
-	c := 100
-	p := 10.5
-	f := 5.5
-	carbs := 20.0
-	nutritionOut := appdto.NutritionResponse{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
+	locID := uuid.New()
+	now := time.Now().UTC()
+	nutritionOut := appdto.NutritionResponse{
+		Calories: utils.VPtr(100),
+		Proteins: utils.VPtr(10.5),
+		Fats:     utils.VPtr(5.5),
+		Carbs:    utils.VPtr(20.0),
+	}
 	out := appdto.GetCatalogOutput{
+		Location: appdto.LocationResponse{
+			ID:        locID,
+			Slug:      "test_1",
+			Name:      "test name of location",
+			Address:   "address of test name of location",
+			IsActive:  true,
+			CreatedAt: now,
+			DeletedAt: nil,
+		},
 		Categories: []string{"drinks"},
 		Items: []appdto.CatalogItemResponse{
 			{
-				ID: id, Name: "name", Description: &desc, Category: "drinks",
-				PhotoURL: "url", Nutrition: &nutritionOut, Price: 100, IsAvailable: true, StockAmount: 10,
+				ItemID:      id,
+				Name:        "name",
+				Description: utils.VPtr("desc"),
+				Category:    "drinks",
+				PhotoURL:    "url",
+				Nutrition:   &nutritionOut,
+				Price:       100,
+				IsAvailable: true,
+				StockAmount: 10,
 			},
 		},
 	}
-	nutritionRes := httpdto.NutritionResponse{Calories: &c, Proteins: &p, Fats: &f, Carbs: &carbs}
+	nutritionRes := httpdto.NutritionResponse{
+		Calories: utils.VPtr(100),
+		Proteins: utils.VPtr(10.5),
+		Fats:     utils.VPtr(5.5),
+		Carbs:    utils.VPtr(20.0),
+	}
 	expected := httpdto.GetCatalogResponse{
+		Location: httpdto.LocationResponse{
+			ID:        locID.String(),
+			Slug:      "test_1",
+			Name:      "test name of location",
+			Address:   "address of test name of location",
+			IsActive:  true,
+			CreatedAt: now.String(),
+			DeletedAt: nil,
+		},
 		Categories: []string{"drinks"},
 		Items: []httpdto.CatalogItemResponse{
 			{
-				ID: id.String(), Name: "name", Description: &desc, Category: "drinks",
-				PhotoURL: "url", Nutrition: &nutritionRes, Price: 100, IsAvailable: true, StockAmount: 10,
+				ItemID:      id.String(),
+				Name:        "name",
+				Description: utils.VPtr("desc"),
+				Category:    "drinks",
+				PhotoURL:    "url",
+				Nutrition:   &nutritionRes,
+				Price:       100,
+				IsAvailable: true,
+				StockAmount: 10,
 			},
 		},
 	}
@@ -96,16 +135,16 @@ func TestMapRequestToCreateOrder(t *testing.T) {
 	req := httpdto.CreateOrderRequest{
 		LocationID: locID.String(),
 		Items: []httpdto.OrderItemRequest{
-			{itemID1.String(), 1, 200},
-			{itemID2.String(), 2, 300},
+			{ItemID: itemID1.String(), Amount: 1, Price: 200},
+			{ItemID: itemID2.String(), Amount: 2, Price: 300},
 		},
 	}
 
 	expected := appdto.CreateOrderInput{
 		LocationID: locID,
 		Items: []appdto.OrderItemInput{
-			{itemID1, 1, 200},
-			{itemID2, 2, 300},
+			{ItemID: itemID1, Amount: 1, Price: 200},
+			{ItemID: itemID2, Amount: 2, Price: 300},
 		},
 	}
 
@@ -167,17 +206,20 @@ func TestMapOutputToCreateLocation(t *testing.T) {
 }
 
 func TestMapRequestToUpdateLocation(t *testing.T) {
-	id := uuid.New()
-	slug := "slug"
-	name := "name"
-	address := "address"
-	isActive := true
 	req := httpdto.UpdateLocationRequest{
-		ID: id.String(), Slug: &slug, Name: &name, Address: &address, IsActive: &isActive,
+		Slug:     "slug",
+		Name:     utils.VPtr("name"),
+		Address:  utils.VPtr("address"),
+		IsActive: utils.VPtr(true),
 	}
+
 	expected := appdto.UpdateLocationInput{
-		ID: id, Slug: &slug, Name: &name, Address: &address, IsActive: &isActive,
+		Slug:     "slug",
+		Name:     utils.VPtr("name"),
+		Address:  utils.VPtr("address"),
+		IsActive: utils.VPtr(true),
 	}
+
 	result := mapper.MapRequestToUpdateLocation(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -187,16 +229,29 @@ func TestMapRequestToUpdateLocation(t *testing.T) {
 func TestMapOutputToUpdateLocation(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
+
 	out := appdto.UpdateLocationOutput{
 		Location: appdto.LocationResponse{
-			ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now,
+			ID:        id,
+			Slug:      "slug",
+			Name:      "name",
+			Address:   "address",
+			IsActive:  true,
+			CreatedAt: now,
 		},
 	}
+
 	expected := httpdto.UpdateLocationResponse{
 		Location: httpdto.LocationResponse{
-			ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String(),
+			ID:        id.String(),
+			Slug:      "slug",
+			Name:      "name",
+			Address:   "address",
+			IsActive:  true,
+			CreatedAt: now.String(),
 		},
 	}
+
 	result := mapper.MapOutputToUpdateLocation(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -204,9 +259,9 @@ func TestMapOutputToUpdateLocation(t *testing.T) {
 }
 
 func TestMapRequestToDeleteLocation(t *testing.T) {
-	id := uuid.New()
-	req := httpdto.DeleteLocationRequest{ID: id.String()}
-	expected := appdto.DeleteLocationInput{ID: id}
+	req := httpdto.DeleteLocationRequest{Slug: "new_1"}
+	expected := appdto.DeleteLocationInput{Slug: "new_1"}
+
 	result := mapper.MapRequestToDeleteLocation(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -218,14 +273,30 @@ func TestMapOutputToListLocations(t *testing.T) {
 	now := time.Now()
 	out := appdto.ListLocationsOutput{
 		Locations: []appdto.LocationResponse{
-			{ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now},
+			{
+				ID:        id,
+				Slug:      "slug",
+				Name:      "name",
+				Address:   "address",
+				IsActive:  true,
+				CreatedAt: now,
+			},
 		},
 	}
+
 	expected := httpdto.ListLocationsResponse{
 		Locations: []httpdto.LocationResponse{
-			{ID: id.String(), Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now.String()},
+			{
+				ID:        id.String(),
+				Slug:      "slug",
+				Name:      "name",
+				Address:   "address",
+				IsActive:  true,
+				CreatedAt: now.String(),
+			},
 		},
 	}
+
 	result := mapper.MapOutputToListLocations(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -233,9 +304,9 @@ func TestMapOutputToListLocations(t *testing.T) {
 }
 
 func TestMapRequestToGetQRCode(t *testing.T) {
-	id := uuid.New()
-	req := httpdto.GetQRCodeRequest{ID: id.String()}
-	expected := appdto.GetQRCodeInput{LocationID: id}
+	req := httpdto.GetQRCodeRequest{Slug: "new_1"}
+	expected := appdto.GetQRCodeInput{Slug: "new_1"}
+
 	result := mapper.MapRequestToGetQRCode(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
