@@ -103,6 +103,7 @@ func TestLocation_Lifecycle(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&locs)
 		require.NoError(t, err)
 
+		assert.Len(t, locs["locations"], 1)
 		assert.Equal(t, name, locs["locations"][0]["name"])
 		assert.Equal(t, address, locs["locations"][0]["address"])
 		assert.False(t, (locs["locations"][0]["is_active"]).(bool))
