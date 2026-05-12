@@ -72,7 +72,7 @@ UPDATE locations
 SET
     is_active = false,
     deleted_at = $1
-WHERE id = $2 AND deleted_at IS NULL
+WHERE id = $2
 `
 
 type DeleteLocationSoftParams struct {
@@ -95,7 +95,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE id = $1 AND deleted_at IS NULL
+WHERE id = $1
 `
 
 func (q *Queries) GetLocationByID(ctx context.Context, db DBTX, id pgtype.UUID) (Location, error) {
@@ -123,7 +123,7 @@ SELECT
     created_at,
     deleted_at
 FROM locations
-WHERE slug = $1 AND deleted_at IS NULL
+WHERE slug = $1
 `
 
 func (q *Queries) GetLocationBySlug(ctx context.Context, db DBTX, slug string) (Location, error) {
@@ -190,7 +190,7 @@ SET
     name = $1,
     address = $2,
     is_active = $3
-WHERE id = $4 AND deleted_at IS NULL
+WHERE id = $4
 `
 
 type UpdateLocationParams struct {

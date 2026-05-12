@@ -120,18 +120,57 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 	app := setupE2E(t)
 	token := app.getAdminToken(t)
 
+	/*
+		Prepare a valid location:
+		1) Create a location
+		2) Change its status to inactive (for specific errors)
+	*/
+	baseSlug := "test_base"
 	basePayload := map[string]interface{}{
-		"slug":    "test_base",
+		"slug":    baseSlug,
 		"name":    "Base Test Location",
 		"address": "Base Test Address of Location",
 	}
-	_, baseErr := app.doRequestAuth(
+	_, createErr := app.doRequestAuth(
 		"POST",
 		"/api/v1/admin/locations",
 		basePayload,
 		token,
 	)
-	require.NoError(t, baseErr)
+	require.NoError(t, createErr)
+
+	_, updErr := app.doRequestAuth(
+		"PATCH",
+		fmt.Sprintf("/api/v1/admin/locations/%s", baseSlug),
+		map[string]interface{}{"is_active": false},
+		token,
+	)
+	require.NoError(t, updErr)
+
+	/*
+		Prepare a gone location (deleted):
+		1) Create a location
+		2) Delete it
+	*/
+	goneSlug := "test_gone"
+	_, createErr = app.doRequestAuth(
+		"POST",
+		"/api/v1/admin/locations",
+		map[string]interface{}{
+			"slug":    goneSlug,
+			"name":    "Base Test Location",
+			"address": "Base Test Address of Location",
+		},
+		token,
+	)
+	require.NoError(t, createErr)
+
+	_, createErr = app.doRequestAuth(
+		"DELETE",
+		fmt.Sprintf("/api/v1/admin/locations/%s", goneSlug),
+		nil,
+		token,
+	)
 
 	t.Run("Create Location - Bad Cases", func(t *testing.T) {
 		type testCase struct {
@@ -154,7 +193,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				name:  "Bad request - invalid name",
 				token: token,
 				payload: map[string]interface{}{
-					"slug": "a",
+					"slug": "test_1",
 					"name": strings.Repeat("Invalid", 50),
 				},
 				expectedStatus: http.StatusBadRequest,
@@ -186,7 +225,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				name:  "Conflict - Duplicate Slug",
 				token: token,
 				payload: map[string]interface{}{
-					"slug":    "test_base",
+					"slug":    baseSlug,
 					"name":    "Test Location",
 					"address": "Test Address of Test Location",
 				},
@@ -215,5 +254,242 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		}
 	})
 
-	t.Run("Get Location - Bad Cases", func(t *testing.T) {})
+	t.Run("Get Location - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			slug           string
+			token          string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Slug",
+				slug:           "a",
+				token:          token,
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name:           "Unauthorized - Invalid Token",
+				slug:           baseSlug,
+				token:          "invalid",
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Not Found - Random Slug",
+				slug:           "random_slug",
+				token:          token,
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name:           "Gone - Location Has Deleted",
+				slug:           goneSlug,
+				token:          token,
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/admin/locations/%s", tt.slug)
+				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Get Locations List - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Unauthorized - Invalid Token",
+				token:          "invalid",
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				resp, err := app.doRequestAuth(
+					"GET",
+					"/api/v1/admin/locations",
+					nil,
+					tt.token,
+				)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Get Location QR-Code - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			slug           string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Slug",
+				token:          token,
+				slug:           "a",
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name:           "Unauthorized - invalid token",
+				token:          "invalid",
+				slug:           baseSlug,
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Not Found - Random Slug",
+				slug:           "random_slug",
+				token:          token,
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name:           "Gone - Location Has Deleted",
+				slug:           goneSlug,
+				token:          token,
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+			{
+				name:           "Unprocessable Entity - Location Is Inactive",
+				slug:           baseSlug,
+				token:          token,
+				expectedStatus: http.StatusUnprocessableEntity,
+				expectedError:  "location is not operational",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/admin/locations/%s/qrcode", tt.slug)
+				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Update Location - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			slug           string
+			payload        map[string]interface{}
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad request - invalid slug",
+				token:          token,
+				slug:           "a",
+				payload:        map[string]interface{}{},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name:  "Bad request - invalid name",
+				token: token,
+				slug:  baseSlug,
+				payload: map[string]interface{}{
+					"name": strings.Repeat("Invalid", 50),
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name:  "Bad request - invalid address",
+				token: token,
+				slug:  baseSlug,
+				payload: map[string]interface{}{
+					"address": "a too short one",
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name:           "Unauthorized - Invalid Token",
+				token:          "invalid",
+				slug:           "test_1",
+				payload:        map[string]interface{}{},
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Not Found - Random Slug",
+				slug:           "random_slug",
+				token:          token,
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name:           "Gone - Location Has Deleted",
+				slug:           goneSlug,
+				token:          token,
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/admin/locations/%s", tt.slug)
+				resp, err := app.doRequestAuth("PATCH", path, tt.payload, tt.token)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Delete Location - Bad Cases", func(t *testing.T) {
+
+	})
 }
