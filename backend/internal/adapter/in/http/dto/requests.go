@@ -6,7 +6,7 @@ type AdminAuthRequest struct {
 }
 
 type GetCatalogRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type CreateLocationRequest struct {
@@ -15,20 +15,23 @@ type CreateLocationRequest struct {
 	Address string `json:"address"`
 }
 
+type GetLocationRequest struct {
+	Slug string `param:"slug"`
+}
+
 type UpdateLocationRequest struct {
-	ID       string  `param:"id"`
-	Slug     *string `json:"slug"`
+	Slug     string  `param:"slug"`
 	Name     *string `json:"name"`
 	Address  *string `json:"address"`
 	IsActive *bool   `json:"is_active"`
 }
 
 type DeleteLocationRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type GetQRCodeRequest struct {
-	ID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type NutritionRequest struct {
@@ -71,7 +74,7 @@ type CreateOrderRequest struct {
 }
 
 type GetInventoryRequest struct {
-	LocationID string `param:"id"`
+	Slug string `param:"slug"`
 }
 
 type InventoryItemRequest struct {
@@ -82,6 +85,6 @@ type InventoryItemRequest struct {
 }
 
 type UpdateInventoryRequest struct {
-	LocationID string                 `param:"id"`
-	Inventory  []InventoryItemRequest `json:"inventory"`
+	Slug      string                 `param:"slug"`
+	Inventory []InventoryItemRequest `json:"inventory"`
 }

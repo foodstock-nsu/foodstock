@@ -69,7 +69,9 @@ func (q *Queries) DeleteLocation(ctx context.Context, db DBTX, id pgtype.UUID) (
 
 const deleteLocationSoft = `-- name: DeleteLocationSoft :exec
 UPDATE locations
-SET deleted_at = $1
+SET
+    is_active = false,
+    deleted_at = $1
 WHERE id = $2
 `
 
@@ -149,6 +151,9 @@ SELECT
     created_at,
     deleted_at
 FROM locations
+ORDER BY
+    (deleted_at IS NOT NULL) ASC,
+    created_at DESC
 `
 
 func (q *Queries) ListLocations(ctx context.Context, db DBTX) ([]Location, error) {
@@ -182,15 +187,13 @@ func (q *Queries) ListLocations(ctx context.Context, db DBTX) ([]Location, error
 const updateLocation = `-- name: UpdateLocation :exec
 UPDATE locations
 SET
-    slug = $1,
-    name = $2,
-    address = $3,
-    is_active = $4
-WHERE id = $5
+    name = $1,
+    address = $2,
+    is_active = $3
+WHERE id = $4
 `
 
 type UpdateLocationParams struct {
-	Slug     string
 	Name     string
 	Address  string
 	IsActive bool
@@ -199,7 +202,6 @@ type UpdateLocationParams struct {
 
 func (q *Queries) UpdateLocation(ctx context.Context, db DBTX, arg UpdateLocationParams) error {
 	_, err := db.Exec(ctx, updateLocation,
-		arg.Slug,
 		arg.Name,
 		arg.Address,
 		arg.IsActive,

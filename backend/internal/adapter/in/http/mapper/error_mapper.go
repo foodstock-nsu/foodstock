@@ -13,11 +13,14 @@ func HttpError(err error) *pkgerrs.OutErr {
 	}
 
 	switch {
-	case errors.Is(err, pkgerrs.ErrInvalidJSON):
-		return pkgerrs.NewOutError(http.StatusBadRequest, "invalid json", err)
-
-	case errors.Is(err, pkgerrs.ErrInvalidIdentifier):
-		return pkgerrs.NewOutError(http.StatusBadRequest, "invalid identifier format", err)
+	case errors.Is(err, pkgerrs.ErrInvalidJSON),
+		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
+		errors.Is(err, pkgerrs.ErrInvalidSlug):
+		return pkgerrs.NewOutError(
+			http.StatusBadRequest,
+			err.Error(),
+			err,
+		)
 	}
 
 	var w *ucerrs.WrappedError
@@ -26,7 +29,9 @@ func HttpError(err error) *pkgerrs.OutErr {
 		case errors.Is(err, ucerrs.ErrGetAdminByLoginDB),
 			errors.Is(err, ucerrs.ErrCreateLocationDB),
 			errors.Is(err, ucerrs.ErrGetLocationByIDDB),
+			errors.Is(err, ucerrs.ErrGetLocationBySlugDB),
 			errors.Is(err, ucerrs.ErrUpdateLocationDB),
+			errors.Is(err, ucerrs.ErrSoftDeleteLocationDB),
 			errors.Is(err, ucerrs.ErrDeleteLocationDB),
 			errors.Is(err, ucerrs.ErrListLocationsDB),
 			errors.Is(err, ucerrs.ErrCreateItemDB),
@@ -86,9 +91,7 @@ func HttpError(err error) *pkgerrs.OutErr {
 			nil,
 		)
 
-	case errors.Is(err, ucerrs.ErrCannotActivateLocation),
-		errors.Is(err, ucerrs.ErrCannotDeactivateLocation),
-		errors.Is(err, ucerrs.ErrLocationAlreadyExists),
+	case errors.Is(err, ucerrs.ErrLocationAlreadyExists),
 		errors.Is(err, ucerrs.ErrCannotSellItem),
 		errors.Is(err, ucerrs.ErrOrderAlreadyExists),
 		errors.Is(err, ucerrs.ErrTransactionAlreadyExists):
@@ -98,8 +101,10 @@ func HttpError(err error) *pkgerrs.OutErr {
 			nil,
 		)
 
-	case errors.Is(err, ucerrs.ErrCannotGetLocationQRCode),
-		errors.Is(err, ucerrs.ErrCannotCreateOrder):
+	case errors.Is(err, ucerrs.ErrLocationAlreadyDeleted):
+		return pkgerrs.NewOutError(http.StatusGone, err.Error(), nil)
+
+	case errors.Is(err, ucerrs.ErrLocationIsNotOperational):
 		return pkgerrs.NewOutError(
 			http.StatusUnprocessableEntity,
 			err.Error(),

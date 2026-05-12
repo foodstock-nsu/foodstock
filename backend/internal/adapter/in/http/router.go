@@ -73,7 +73,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 
 		clientLocations := client.Group("/locations")
 		{
-			clientLocations.GET("/:id/catalog", r.Client.GetCatalog)
+			clientLocations.GET("/:slug/catalog", r.Client.GetCatalog)
 		}
 
 		clientOrders := client.Group("/orders")
@@ -94,14 +94,15 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminLocations.Use(r.withAuth(r.tokenGen))
 		{
 			adminLocations.POST("", r.Location.Create)
-			adminLocations.PUT("/:id", r.Location.Update)
-			adminLocations.DELETE("/:id", r.Location.Delete)
+			adminLocations.GET("/:slug", r.Location.Get)
+			adminLocations.PATCH("/:slug", r.Location.Update)
+			adminLocations.DELETE("/:slug", r.Location.Delete)
 			adminLocations.GET("", r.Location.List)
-			adminLocations.GET("/:id/qrcode", r.Location.GetQRCode)
+			adminLocations.GET("/:slug/qrcode", r.Location.GetQRCode)
 
 			// --- INVENTORY ---
-			adminLocations.GET("/:id/inventory", r.Inventory.Get)
-			adminLocations.PUT("/:id/inventory", r.Inventory.Update)
+			adminLocations.GET("/:slug/inventory", r.Inventory.Get)
+			adminLocations.PATCH("/:slug/inventory", r.Inventory.Update)
 		}
 
 		// --- ITEMS ---
@@ -109,7 +110,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminItems.Use(r.withAuth(r.tokenGen))
 		{
 			adminItems.POST("", r.Item.Create)
-			adminItems.PUT("/:id", r.Item.Update)
+			adminItems.PATCH("/:id", r.Item.Update)
 			adminItems.DELETE("/:id", r.Item.Delete)
 			adminItems.GET("", r.Item.List)
 		}
@@ -125,14 +126,14 @@ func (r *Router) withAuth(gen *jwtinfra.Generator) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				return echo.NewHTTPError(http.StatusUnauthorized, "missing auth header")
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "missing auth header"})
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 			adminID, err := gen.Validate(tokenString)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired token")
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid or expired token"})
 			}
 
 			c.Set("admin_id", adminID)

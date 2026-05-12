@@ -7,6 +7,7 @@ import (
 	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -33,12 +34,8 @@ func NewClientHandler(
 func (h *ClientHandler) GetCatalog(c echo.Context) error {
 	var req httpdto.GetCatalogRequest
 
-	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
-	}
-
-	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.getCatalogUC.Execute(

@@ -1,27 +1,27 @@
+//go:build integration
+
 package postgres_test
 
 import (
 	adapterpostgres "backend/internal/adapter/out/postgres"
 	"backend/internal/domain/model"
-	"backend/migrations"
+	"backend/internal/testhelpers"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
 	"backend/pkg/utils"
 	"context"
-	"errors"
 	"testing"
-	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
 type LocationRepoSuite struct {
 	suite.Suite
+	pgContainer  *testhelpers.PostgresContainer
 	dbClient     *pkgpostgres.Client
 	repo         *adapterpostgres.LocationRepository
 	ctx          context.Context
@@ -30,75 +30,33 @@ type LocationRepoSuite struct {
 }
 
 func TestLocationRepoSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration tests in short mode")
-	}
 	suite.Run(t, new(LocationRepoSuite))
 }
 
-func (s *LocationRepoSuite) setupDatabase() {
-	// Version of the lowest migration to apply
+func (s *LocationRepoSuite) SetupSuite() {
 	const targetVersion = 1
 
-	dbConfig := pkgpostgres.NewConfig(
-		"localhost", 5433, "test-user",
-		"test-pass", "test-db", "disable",
-		5, 5,
-		10*time.Second, 10*time.Second,
-	)
-	dsn := "postgres://test-user:test-pass@localhost:5433/test-db?sslmode=disable"
+	ctx := context.Background()
 
-	dbClient, err := pkgpostgres.NewClient(context.Background(), dbConfig)
+	// Init postgres container
+	pgContainer, err := testhelpers.StartPostgresContainer(ctx)
 	s.Require().NoError(err)
-	s.dbClient = dbClient
 
-	sourceDriver, err := iofs.New(migrations.FS, ".")
-	s.Require().NoError(err, "failed to create iofs driver")
+	// Init postgres client
+	client, err := pkgpostgres.NewClient(ctx, pgContainer.Config)
+	s.Require().NoError(err)
 
-	m, err := migrate.NewWithSourceInstance(
-		"iofs",
-		sourceDriver,
-		dsn,
-	)
-	s.Require().NoError(err, "failed to create migration instance")
+	// Apply migrations
+	err = pgContainer.MigrateUp(targetVersion)
+	s.Require().NoError(err)
 
-	s.migrate = m
-
-	err = m.Migrate(targetVersion)
-
-	// If migration is correct - setup has done
-	if err == nil || errors.Is(err, migrate.ErrNoChange) {
-		return
-	}
-
-	// Except dirty db as a normal scenario
-	var dirtyErr migrate.ErrDirty
-	if !errors.As(err, &dirtyErr) {
-		s.FailNowf("failed to migrate up", "unexpected error: %v", err)
-	}
-
-	// ================ Restore dirty database ================
-	_ = m.Force(dirtyErr.Version)
-
-	err = m.Down()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		s.Require().NoError(err, "failed to migrate down during recovery")
-	}
-
-	err = m.Migrate(targetVersion)
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		s.Require().NoError(err, "failed to migrate up after recovery")
-	}
-}
-
-func (s *LocationRepoSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.setupDatabase()
+	s.pgContainer = pgContainer
+	s.dbClient = client
 	s.repo = adapterpostgres.NewLocationRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
-
+	s.ctx = ctx
 	s.testLocation, _ = model.NewLocation(
 		"test-slug",
 		"Test Location Name",
@@ -107,12 +65,9 @@ func (s *LocationRepoSuite) SetupSuite() {
 }
 
 func (s *LocationRepoSuite) TearDownSuite() {
-	if s.migrate != nil {
-		if err := s.migrate.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-			s.Require().NoError(err, "failed to migrate down")
-		}
-	}
+	_ = s.pgContainer.MigrateDown()
 	s.dbClient.Close()
+	_ = s.pgContainer.Close(s.ctx)
 }
 
 func (s *LocationRepoSuite) SetupTest() {
@@ -180,7 +135,6 @@ func (s *LocationRepoSuite) TestUpdate() {
 
 	// Modify the model
 	_ = s.testLocation.Update(
-		utils.VPtr("updated-slug"),
 		utils.VPtr("Updated Name"),
 		utils.VPtr("Updated Address123456789"),
 	)
@@ -191,15 +145,26 @@ func (s *LocationRepoSuite) TestUpdate() {
 
 	// Check the result
 	loc, _ := s.repo.GetByID(s.ctx, s.testLocation.ID())
-	s.Require().Equal("updated-slug", loc.Slug())
 	s.Require().Equal("Updated Name", loc.Name())
+	s.Require().Equal("Updated Address123456789", loc.Address())
+}
+
+func (s *LocationRepoSuite) TestSoftDelete() {
+	// Create the location in advance
+	_ = s.repo.Create(s.ctx, s.testLocation)
+
+	// Delete it (change state in database)
+	_ = s.testLocation.Delete()
+
+	err := s.repo.SoftDelete(s.ctx, s.testLocation)
+	s.Require().NoError(err)
 }
 
 func (s *LocationRepoSuite) TestDelete() {
 	// Create the location in advance
 	_ = s.repo.Create(s.ctx, s.testLocation)
 
-	// DeleteByItemID it
+	// Delete it
 	err := s.repo.Delete(s.ctx, s.testLocation.ID())
 	s.Require().NoError(err)
 

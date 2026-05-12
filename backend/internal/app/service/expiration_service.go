@@ -88,6 +88,10 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 				Update them in database
 			*/
 			transactions, getErr := s.transactionRepo.List(txCtx, order.ID())
+			if getErr != nil {
+				return getErr
+			}
+
 			for _, transaction := range transactions {
 				if denyErr := transaction.Deny(); denyErr != nil {
 					continue

@@ -99,7 +99,7 @@ func (p *PaymentGateway) Create(
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch yookassa api: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", "", p.parseYookassaError(resp.StatusCode, err)
@@ -129,7 +129,7 @@ func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (stri
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch yookassa api: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var result paymentResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {

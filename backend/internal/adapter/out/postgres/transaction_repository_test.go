@@ -1,26 +1,27 @@
+//go:build integration
+
 package postgres_test
 
 import (
 	adapterpostgres "backend/internal/adapter/out/postgres"
 	"backend/internal/domain/model"
-	"backend/migrations"
+	"backend/internal/testhelpers"
 	pkgerrs "backend/pkg/errs"
 	pkgpostgres "backend/pkg/postgres"
 	"context"
-	"errors"
 	"testing"
 	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
 type TransactionRepoSuite struct {
 	suite.Suite
+	pgContainer *testhelpers.PostgresContainer
 	dbClient    *pkgpostgres.Client
 	repo        *adapterpostgres.TransactionRepository
 	ctx         context.Context
@@ -30,60 +31,40 @@ type TransactionRepoSuite struct {
 }
 
 func TestTransactionRepoSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration tests in short mode")
-	}
 	suite.Run(t, new(TransactionRepoSuite))
 }
 
-func (s *TransactionRepoSuite) setupDatabase() {
+func (s *TransactionRepoSuite) SetupSuite() {
 	const targetVersion = 6
 
-	dbConfig := pkgpostgres.NewConfig(
-		"localhost", 5433, "test-user",
-		"test-pass", "test-db", "disable",
-		5, 5,
-		10*time.Second, 10*time.Second,
-	)
-	dsn := "postgres://test-user:test-pass@localhost:5433/test-db?sslmode=disable"
+	ctx := context.Background()
 
-	dbClient, err := pkgpostgres.NewClient(context.Background(), dbConfig)
-	s.Require().NoError(err)
-	s.dbClient = dbClient
-
-	sourceDriver, err := iofs.New(migrations.FS, ".")
+	// Init postgres container
+	pgContainer, err := testhelpers.StartPostgresContainer(ctx)
 	s.Require().NoError(err)
 
-	m, err := migrate.NewWithSourceInstance("iofs", sourceDriver, dsn)
+	// Init postgres client
+	client, err := pkgpostgres.NewClient(ctx, pgContainer.Config)
 	s.Require().NoError(err)
 
-	s.migrate = m
-	err = m.Migrate(targetVersion)
+	// Apply migrations
+	err = pgContainer.MigrateUp(targetVersion)
+	s.Require().NoError(err)
 
-	if err == nil || errors.Is(err, migrate.ErrNoChange) {
-		return
-	}
-
-	var dirtyErr migrate.ErrDirty
-	if errors.As(err, &dirtyErr) {
-		_ = m.Force(dirtyErr.Version)
-		_ = m.Down()
-		err = m.Migrate(targetVersion)
-		s.Require().NoError(err)
-	}
-}
-
-func (s *TransactionRepoSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.setupDatabase()
+	s.pgContainer = pgContainer
+	s.dbClient = client
 	s.repo = adapterpostgres.NewTransactionRepository(
 		s.dbClient,
 		trmpgx.DefaultCtxGetter,
 	)
+	s.ctx = ctx
 
 	locID := uuid.New()
 	locationRepo := adapterpostgres.NewLocationRepository(s.dbClient, trmpgx.DefaultCtxGetter)
-	_ = locationRepo.Create(s.ctx, model.RestoreLocation(locID, "tx_test_loc", "Shop", "Addr", true, time.Now()))
+	_ = locationRepo.Create(s.ctx, model.RestoreLocation(
+		locID, "tx_test_loc", "Shop",
+		"Addr", true, time.Now(), nil,
+	))
 
 	s.testOrderID = uuid.New()
 	orderRepo := adapterpostgres.NewOrderRepository(s.dbClient, trmpgx.DefaultCtxGetter)
@@ -101,10 +82,9 @@ func (s *TransactionRepoSuite) SetupSuite() {
 }
 
 func (s *TransactionRepoSuite) TearDownSuite() {
-	if s.migrate != nil {
-		_ = s.migrate.Down()
-	}
+	_ = s.pgContainer.MigrateDown()
 	s.dbClient.Close()
+	_ = s.pgContainer.Close(s.ctx)
 }
 
 func (s *TransactionRepoSuite) SetupTest() {

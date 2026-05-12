@@ -6,29 +6,53 @@ import (
 	"backend/internal/app/mapper"
 	"backend/internal/domain/model"
 	"backend/internal/domain/port"
+	pkgerrs "backend/pkg/errs"
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 )
 
 type GetCatalogUC struct {
+	location     port.LocationRepository
 	item         port.ItemRepository
 	locationItem port.LocationItemRepository
 }
 
 func NewGetCatalogUC(
+	location port.LocationRepository,
 	item port.ItemRepository,
 	locationItem port.LocationItemRepository,
 ) *GetCatalogUC {
 	return &GetCatalogUC{
+		location:     location,
 		item:         item,
 		locationItem: locationItem,
 	}
 }
 
 func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dto.GetCatalogOutput, error) {
+	// Get a location by slug and validate it
+	location, err := uc.location.GetBySlug(ctx, in.Slug)
+	if err != nil {
+		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
+			return dto.GetCatalogOutput{}, ucerrs.ErrLocationNotFound
+		}
+		return dto.GetCatalogOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGetLocationBySlugDB, err,
+		)
+	}
+
+	if location.IsDeleted() {
+		return dto.GetCatalogOutput{}, ucerrs.ErrLocationAlreadyDeleted
+	}
+
+	if !location.IsOperational() {
+		return dto.GetCatalogOutput{}, ucerrs.ErrLocationIsNotOperational
+	}
+
 	// Get an inventory for specified location
-	inventory, err := uc.locationItem.List(ctx, in.LocationID)
+	inventory, err := uc.locationItem.List(ctx, location.ID())
 	if err != nil {
 		return dto.GetCatalogOutput{}, ucerrs.Wrap(
 			ucerrs.ErrListLocationItemsDB, err,
@@ -59,6 +83,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 
 	// ========== Make the catalog ==========
 
+	locationMapped := mapper.MapDomainToLocationDTO(location)
 	categories := make([]string, 0)
 	items := make([]dto.CatalogItemResponse, len(inventory))
 
@@ -69,9 +94,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 		}
 
 		// Add the inventory item into output
-		items[i] = mapper.MapDomainToCatalogItemDTO(
-			inventory[i], item,
-		)
+		items[i] = mapper.MapDomainToCatalogItemDTO(inventory[i], item)
 
 		// Add the category of the item if it's not there yet
 		var found bool
@@ -87,6 +110,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 	}
 
 	return dto.GetCatalogOutput{
+		Location:   locationMapped,
 		Categories: categories,
 		Items:      items,
 	}, nil

@@ -142,13 +142,16 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	createLocationUC := usecase.NewCreateLocationUC(
 		trManager, locationRepo, itemRepo, locationItemRepo,
 	)
+	getLocationUC := usecase.NewGetLocationUC(locationRepo)
 	updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
 	deleteLocationUC := usecase.NewDeleteLocationUC(
 		trManager, locationRepo, locationItemRepo,
 	)
 	listLocationsUC := usecase.NewListLocationsUC(locationRepo)
 	getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
-	getCatalogUC := usecase.NewGetCatalogUC(itemRepo, locationItemRepo)
+	getCatalogUC := usecase.NewGetCatalogUC(
+		locationRepo, itemRepo, locationItemRepo,
+	)
 	createItemUC := usecase.NewCreateItemUC(
 		trManager, locationRepo, itemRepo, locationItemRepo,
 	)
@@ -161,8 +164,10 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		trManager, locationRepo, locationItemRepo, orderRepo,
 		orderItemRepo, transactionRepo, paymentGateway,
 	)
-	getInventoryUC := usecase.NewGetInventoryUC(locationItemRepo)
-	updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationItemRepo)
+	getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
+	updateInventoryUC := usecase.NewUpdateInventoryUC(
+		trManager, locationRepo, locationItemRepo,
+	)
 
 	// Services
 	orderCleaner := service.NewExpirationService(
@@ -174,7 +179,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
 	locationsHandler := adapterhttp.NewLocationHandler(
-		logger, createLocationUC, updateLocationUC,
+		logger, createLocationUC, getLocationUC, updateLocationUC,
 		deleteLocationUC, listLocationsUC, getQRCodeUC,
 	)
 	itemHandler := adapterhttp.NewItemHandler(

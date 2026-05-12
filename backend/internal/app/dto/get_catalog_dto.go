@@ -1,12 +1,11 @@
 package dto
 
-import "github.com/google/uuid"
-
 type GetCatalogInput struct {
-	LocationID uuid.UUID
+	Slug string
 }
 
 type GetCatalogOutput struct {
+	Location   LocationResponse
 	Categories []string
 	Items      []CatalogItemResponse
 }

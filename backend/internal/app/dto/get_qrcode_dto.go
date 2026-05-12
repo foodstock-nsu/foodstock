@@ -1,9 +1,7 @@
 package dto
 
-import "github.com/google/uuid"
-
 type GetQRCodeInput struct {
-	LocationID uuid.UUID
+	Slug string
 }
 
 type GetQRCodeOutput struct {

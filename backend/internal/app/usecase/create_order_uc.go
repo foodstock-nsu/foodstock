@@ -59,7 +59,7 @@ func (uc *CreateOrderUC) Execute(ctx context.Context, in dto.CreateOrderInput) (
 	}
 
 	if !location.IsOperational() {
-		return dto.CreateOrderOutput{}, ucerrs.ErrCannotCreateOrder
+		return dto.CreateOrderOutput{}, ucerrs.ErrLocationIsNotOperational
 	}
 
 	/*

@@ -7,14 +7,15 @@ import (
 	pkgerrs "backend/pkg/errs"
 	"log/slog"
 	"net/http"
+	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 type LocationHandler struct {
 	log              *slog.Logger
 	createLocationUC *usecase.CreateLocationUC
+	getLocationUC    *usecase.GetLocationUC
 	updateLocationUC *usecase.UpdateLocationUC
 	deleteLocationUC *usecase.DeleteLocationUC
 	listLocationsUC  *usecase.ListLocationsUC
@@ -24,6 +25,7 @@ type LocationHandler struct {
 func NewLocationHandler(
 	log *slog.Logger,
 	createLocationUC *usecase.CreateLocationUC,
+	getLocationUC *usecase.GetLocationUC,
 	updateLocationUC *usecase.UpdateLocationUC,
 	deleteLocationUC *usecase.DeleteLocationUC,
 	listLocationsUC *usecase.ListLocationsUC,
@@ -32,6 +34,7 @@ func NewLocationHandler(
 	return &LocationHandler{
 		log:              log,
 		createLocationUC: createLocationUC,
+		getLocationUC:    getLocationUC,
 		updateLocationUC: updateLocationUC,
 		deleteLocationUC: deleteLocationUC,
 		listLocationsUC:  listLocationsUC,
@@ -64,6 +67,24 @@ func (h *LocationHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateLocation(out))
 }
 
+func (h *LocationHandler) Get(c echo.Context) error {
+	var req httpdto.GetLocationRequest
+
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
+	}
+
+	out, err := h.getLocationUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToGetLocation(req),
+	)
+	if err != nil {
+		return h.returnErr(c, "failed to get location", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToGetLocation(out))
+}
+
 func (h *LocationHandler) Update(c echo.Context) error {
 	var req httpdto.UpdateLocationRequest
 
@@ -71,8 +92,8 @@ func (h *LocationHandler) Update(c echo.Context) error {
 		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidJSON)
 	}
 
-	if _, err := uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "invalid identifier format", echo.NewHTTPError(http.StatusBadRequest, "invalid identifier format"))
+	if utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.updateLocationUC.Execute(
@@ -85,11 +106,10 @@ func (h *LocationHandler) Update(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "location updated",
-		slog.String("id", req.ID),
-		slog.Any("slug", req.Slug),
-		slog.Any("name", req.Name),
-		slog.Any("address", req.Address),
-		slog.Any("is_active", req.IsActive),
+		slog.Any("slug", out.Location.Slug),
+		slog.Any("name", out.Location.Name),
+		slog.Any("address", out.Location.Address),
+		slog.Any("is_active", out.Location.IsActive),
 	)
 
 	return c.JSON(http.StatusOK, mapper.MapOutputToUpdateLocation(out))
@@ -98,16 +118,11 @@ func (h *LocationHandler) Update(c echo.Context) error {
 func (h *LocationHandler) Delete(c echo.Context) error {
 	var req httpdto.DeleteLocationRequest
 
-	err := c.Bind(&req)
-	if err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
-	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
-	}
-
-	err = h.deleteLocationUC.Execute(
+	err := h.deleteLocationUC.Execute(
 		c.Request().Context(),
 		mapper.MapRequestToDeleteLocation(req),
 	)
@@ -117,7 +132,7 @@ func (h *LocationHandler) Delete(c echo.Context) error {
 
 	h.log.InfoContext(
 		c.Request().Context(), "location deleted",
-		slog.String("id", req.ID),
+		slog.String("slug", req.Slug),
 	)
 
 	return c.NoContent(http.StatusNoContent)
@@ -135,13 +150,8 @@ func (h *LocationHandler) List(c echo.Context) error {
 func (h *LocationHandler) GetQRCode(c echo.Context) error {
 	var req httpdto.GetQRCodeRequest
 
-	err := c.Bind(&req)
-	if err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
-	}
-
-	if _, err = uuid.Parse(req.ID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	if err := c.Bind(&req); err != nil || utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.getQRCodeUC.Execute(

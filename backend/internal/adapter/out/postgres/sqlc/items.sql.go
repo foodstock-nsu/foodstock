@@ -22,7 +22,8 @@ INSERT INTO items (
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 ) VALUES (
     $1,
     $2,
@@ -33,7 +34,8 @@ INSERT INTO items (
     $7,
     $8,
     $9,
-    $10
+    $10,
+    $11
 )
 `
 
@@ -48,6 +50,7 @@ type CreateItemParams struct {
 	Fats        pgtype.Numeric
 	Carbs       pgtype.Numeric
 	CreatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
 }
 
 func (q *Queries) CreateItem(ctx context.Context, db DBTX, arg CreateItemParams) error {
@@ -62,6 +65,7 @@ func (q *Queries) CreateItem(ctx context.Context, db DBTX, arg CreateItemParams)
 		arg.Fats,
 		arg.Carbs,
 		arg.CreatedAt,
+		arg.DeletedAt,
 	)
 	return err
 }
@@ -79,6 +83,22 @@ func (q *Queries) DeleteItem(ctx context.Context, db DBTX, id pgtype.UUID) (int6
 	return result.RowsAffected(), nil
 }
 
+const deleteItemSoft = `-- name: DeleteItemSoft :exec
+UPDATE items
+SET deleted_at = $1
+WHERE id = $2
+`
+
+type DeleteItemSoftParams struct {
+	DeletedAt pgtype.Timestamptz
+	ID        pgtype.UUID
+}
+
+func (q *Queries) DeleteItemSoft(ctx context.Context, db DBTX, arg DeleteItemSoftParams) error {
+	_, err := db.Exec(ctx, deleteItemSoft, arg.DeletedAt, arg.ID)
+	return err
+}
+
 const getItem = `-- name: GetItem :one
 SELECT
     id,
@@ -90,7 +110,8 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items
 WHERE id = $1
 `
@@ -109,6 +130,7 @@ func (q *Queries) GetItem(ctx context.Context, db DBTX, id pgtype.UUID) (Item, e
 		&i.Fats,
 		&i.Carbs,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -124,7 +146,8 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items
 `
 
@@ -148,6 +171,7 @@ func (q *Queries) ListAllItems(ctx context.Context, db DBTX) ([]Item, error) {
 			&i.Fats,
 			&i.Carbs,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -170,7 +194,8 @@ SELECT
     proteins,
     fats,
     carbs,
-    created_at
+    created_at,
+    deleted_at
 FROM items
 WHERE id = ANY($1::uuid[])
 `
@@ -195,6 +220,7 @@ func (q *Queries) ListItemsByIDs(ctx context.Context, db DBTX, ids []pgtype.UUID
 			&i.Fats,
 			&i.Carbs,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

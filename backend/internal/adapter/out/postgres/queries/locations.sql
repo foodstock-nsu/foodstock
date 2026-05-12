@@ -44,7 +44,6 @@ WHERE slug = @slug;
 -- name: UpdateLocation :exec
 UPDATE locations
 SET
-    slug = @slug,
     name = @name,
     address = @address,
     is_active = @is_active
@@ -52,7 +51,9 @@ WHERE id = @id;
 
 -- name: DeleteLocationSoft :exec
 UPDATE locations
-SET deleted_at = @deleted_at
+SET
+    is_active = false,
+    deleted_at = @deleted_at
 WHERE id = @id;
 
 -- name: DeleteLocation :execrows
@@ -68,4 +69,7 @@ SELECT
     is_active,
     created_at,
     deleted_at
-FROM locations;
+FROM locations
+ORDER BY
+    (deleted_at IS NOT NULL) ASC,
+    created_at DESC;

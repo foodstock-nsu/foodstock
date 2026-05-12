@@ -43,20 +43,20 @@ func (uc *CreateLocationUC) Execute(ctx context.Context, in dto.CreateLocationIn
 		)
 	}
 
-	err = uc.trManager.Do(ctx, func(ctx context.Context) error {
+	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
 		// Save the location into database
-		err = uc.location.Create(ctx, location)
-		if err != nil {
-			if errors.Is(err, pkgerrs.ErrObjectAlreadyExists) {
+		createErr := uc.location.Create(txCtx, location)
+		if createErr != nil {
+			if errors.Is(createErr, pkgerrs.ErrObjectAlreadyExists) {
 				return ucerrs.ErrLocationAlreadyExists
 			}
-			return ucerrs.Wrap(ucerrs.ErrCreateLocationDB, err)
+			return ucerrs.Wrap(ucerrs.ErrCreateLocationDB, createErr)
 		}
 
 		// Get all items and create catalog for this location
-		items, listErr := uc.item.ListAll(ctx)
+		items, listErr := uc.item.ListAll(txCtx)
 		if listErr != nil {
-			return ucerrs.Wrap(ucerrs.ErrListAllItemsDB, err)
+			return ucerrs.Wrap(ucerrs.ErrListAllItemsDB, listErr)
 		}
 
 		for _, item := range items {
@@ -72,7 +72,7 @@ func (uc *CreateLocationUC) Execute(ctx context.Context, in dto.CreateLocationIn
 				)
 			}
 
-			createErr := uc.locationItem.Create(ctx, locationItem)
+			createErr = uc.locationItem.Create(txCtx, locationItem)
 			if createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrCreateLocationItemDB, err)
 			}

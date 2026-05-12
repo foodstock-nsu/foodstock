@@ -132,10 +132,17 @@ func NewItem(
 	photoUrl string,
 	nutrition *Nutrition,
 ) (*Item, error) {
-	if utf8.RuneCountInString(name) < 5 {
+	nameLen := utf8.RuneCountInString(name)
+	descriptionLen := 0
+
+	if description != nil {
+		descriptionLen = utf8.RuneCountInString(*description)
+	}
+
+	if nameLen < 5 || nameLen > 50 {
 		return nil, pkgerrs.NewValueInvalidError("name")
 	}
-	if description != nil && utf8.RuneCountInString(*description) < 10 {
+	if description != nil && (descriptionLen < 10 || descriptionLen > 100) {
 		return nil, pkgerrs.NewValueInvalidError("description")
 	}
 
@@ -195,10 +202,19 @@ func (i *Item) Update(
 	name, desc, cat, photo *string,
 	nutrition *Nutrition,
 ) error {
-	if name != nil && utf8.RuneCountInString(*name) < 5 {
+	var nameLen, descLen int
+
+	if name != nil {
+		nameLen = utf8.RuneCountInString(*name)
+	}
+	if desc != nil {
+		descLen = utf8.RuneCountInString(*desc)
+	}
+
+	if name != nil && (nameLen < 5 || nameLen > 50) {
 		return pkgerrs.NewValueInvalidError("name")
 	}
-	if desc != nil && utf8.RuneCountInString(*desc) < 10 {
+	if desc != nil && (descLen < 10 || descLen > 100) {
 		return pkgerrs.NewValueInvalidError("description")
 	}
 

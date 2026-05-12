@@ -3,6 +3,7 @@ package mapper
 import (
 	httpdto "backend/internal/adapter/in/http/dto"
 	appdto "backend/internal/app/dto"
+	pkgutils "backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -26,13 +27,13 @@ func MapOutputToAdminAuth(out appdto.AdminAuthOutput) httpdto.AdminAuthResponse 
 // --- CATALOG ---
 
 func MapRequestToGetCatalog(req httpdto.GetCatalogRequest) appdto.GetCatalogInput {
-	return appdto.GetCatalogInput{LocationID: uuid.MustParse(req.ID)}
+	return appdto.GetCatalogInput{Slug: req.Slug}
 }
 
 func mapOutputToCatalogItem(out appdto.CatalogItemResponse) httpdto.CatalogItemResponse {
 	nutrition := mapOutputToNutrition(*out.Nutrition)
 	return httpdto.CatalogItemResponse{
-		ID:          out.ID.String(),
+		ItemID:      out.ItemID.String(),
 		Name:        out.Name,
 		Description: out.Description,
 		Category:    out.Category,
@@ -49,7 +50,11 @@ func MapOutputToGetCatalog(out appdto.GetCatalogOutput) httpdto.GetCatalogRespon
 	for i := range out.Items {
 		items[i] = mapOutputToCatalogItem(out.Items[i])
 	}
-	return httpdto.GetCatalogResponse{Categories: out.Categories, Items: items}
+	return httpdto.GetCatalogResponse{
+		Location:   mapOutputToLocation(out.Location),
+		Categories: out.Categories,
+		Items:      items,
+	}
 }
 
 // --- ORDERS ---
@@ -93,10 +98,12 @@ func MapRequestToCreateLocation(req httpdto.CreateLocationRequest) appdto.Create
 	return appdto.CreateLocationInput{Slug: req.Slug, Name: req.Name, Address: req.Address}
 }
 
+func MapRequestToGetLocation(req httpdto.GetLocationRequest) appdto.GetLocationInput {
+	return appdto.GetLocationInput{Slug: req.Slug}
+}
+
 func MapRequestToUpdateLocation(req httpdto.UpdateLocationRequest) appdto.UpdateLocationInput {
-	id, _ := uuid.Parse(req.ID)
 	return appdto.UpdateLocationInput{
-		ID:       id,
 		Slug:     req.Slug,
 		Name:     req.Name,
 		Address:  req.Address,
@@ -105,23 +112,26 @@ func MapRequestToUpdateLocation(req httpdto.UpdateLocationRequest) appdto.Update
 }
 
 func MapRequestToDeleteLocation(req httpdto.DeleteLocationRequest) appdto.DeleteLocationInput {
-	id, _ := uuid.Parse(req.ID)
-	return appdto.DeleteLocationInput{ID: id}
+	return appdto.DeleteLocationInput{Slug: req.Slug}
 }
 
 func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
-	id, _ := uuid.Parse(req.ID)
-	return appdto.GetQRCodeInput{LocationID: id}
+	return appdto.GetQRCodeInput{Slug: req.Slug}
 }
 
-func mapOutputToLocation(out appdto.LocationResponse) httpdto.Location {
-	return httpdto.Location{
+func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
+	var deletedAt *string
+	if out.DeletedAt != nil {
+		deletedAt = pkgutils.VPtr(out.DeletedAt.String())
+	}
+	return httpdto.LocationResponse{
 		ID:        out.ID.String(),
 		Slug:      out.Slug,
 		Name:      out.Name,
 		Address:   out.Address,
 		IsActive:  out.IsActive,
 		CreatedAt: out.CreatedAt.String(),
+		DeletedAt: deletedAt,
 	}
 }
 
@@ -129,12 +139,16 @@ func MapOutputToCreateLocation(out appdto.CreateLocationOutput) httpdto.CreateLo
 	return httpdto.CreateLocationResponse{Location: mapOutputToLocation(out.Location)}
 }
 
+func MapOutputToGetLocation(out appdto.GetLocationOutput) httpdto.GetLocationResponse {
+	return httpdto.GetLocationResponse{Location: mapOutputToLocation(out.Location)}
+}
+
 func MapOutputToUpdateLocation(out appdto.UpdateLocationOutput) httpdto.UpdateLocationResponse {
 	return httpdto.UpdateLocationResponse{Location: mapOutputToLocation(out.Location)}
 }
 
 func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocationsResponse {
-	arr := make([]httpdto.Location, len(out.Locations))
+	arr := make([]httpdto.LocationResponse, len(out.Locations))
 	for i := range out.Locations {
 		arr[i] = mapOutputToLocation(out.Locations[i])
 	}
@@ -234,8 +248,7 @@ func MapOutputToListItems(out appdto.ListItemsOutput) httpdto.ListItemsResponse 
 }
 
 func MapRequestToGetInventory(req httpdto.GetInventoryRequest) appdto.GetInventoryInput {
-	locID, _ := uuid.Parse(req.LocationID)
-	return appdto.GetInventoryInput{LocationID: locID}
+	return appdto.GetInventoryInput{Slug: req.Slug}
 }
 
 func mapOutputToInventoryItem(out appdto.InventoryItemResponse) httpdto.InventoryItemResponse {
@@ -266,16 +279,14 @@ func mapRequestToInventoryItem(req httpdto.InventoryItemRequest) appdto.Inventor
 }
 
 func MapRequestToUpdateInventory(req httpdto.UpdateInventoryRequest) appdto.UpdateInventoryInput {
-	locID, _ := uuid.Parse(req.LocationID)
-
 	arr := make([]appdto.InventoryItemRequest, len(req.Inventory))
 	for i := range req.Inventory {
 		arr[i] = mapRequestToInventoryItem(req.Inventory[i])
 	}
 
 	return appdto.UpdateInventoryInput{
-		LocationID: locID,
-		Inventory:  arr,
+		Slug:      req.Slug,
+		Inventory: arr,
 	}
 }
 

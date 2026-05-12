@@ -4,6 +4,7 @@ import (
 	"backend/internal/app/dto"
 	ucerrs "backend/internal/app/errs"
 	"backend/internal/app/mapper"
+	"backend/internal/domain/model"
 	"backend/internal/domain/port"
 	pkgerrs "backend/pkg/errs"
 	"context"
@@ -31,17 +32,20 @@ func (uc *UpdateItemUC) Execute(ctx context.Context, in dto.UpdateItemInput) (dt
 	}
 
 	// Update nutrition
-	nutrition := item.Nutrition()
-	err = nutrition.Update(
-		in.Nutrition.Calories,
-		in.Nutrition.Proteins,
-		in.Nutrition.Fats,
-		in.Nutrition.Carbs,
-	)
-	if err != nil {
-		return dto.UpdateItemOutput{}, ucerrs.Wrap(
-			ucerrs.ErrInvalidInput, err,
+	var nutrition *model.Nutrition
+	if in.Nutrition != nil {
+		nutrition = item.Nutrition()
+		err = nutrition.Update(
+			in.Nutrition.Calories,
+			in.Nutrition.Proteins,
+			in.Nutrition.Fats,
+			in.Nutrition.Carbs,
 		)
+		if err != nil {
+			return dto.UpdateItemOutput{}, ucerrs.Wrap(
+				ucerrs.ErrInvalidInput, err,
+			)
+		}
 	}
 
 	// Update item

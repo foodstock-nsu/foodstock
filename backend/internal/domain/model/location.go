@@ -6,13 +6,13 @@ import (
 	"unicode/utf8"
 
 	pkgerrs "backend/pkg/errs"
+	pkgutils "backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
 var (
-	ErrCannotActivate   = errors.New("location is already activated")
-	ErrCannotDeactivate = errors.New("location is already deactivated")
+	ErrCannotDelete = errors.New("location is already deleted")
 )
 
 // ================ Rich model for Location (e.g. Fridge) ================
@@ -28,13 +28,17 @@ type Location struct {
 }
 
 func NewLocation(slug, name, address string) (*Location, error) {
-	if utf8.RuneCountInString(slug) < 4 {
+	lenSlug := utf8.RuneCountInString(slug)
+	lenName := utf8.RuneCountInString(name)
+	lenAddress := utf8.RuneCountInString(address)
+
+	if lenSlug < 4 || lenSlug > 16 {
 		return nil, pkgerrs.NewValueInvalidError("slug")
 	}
-	if utf8.RuneCountInString(name) < 4 {
+	if lenName < 4 || lenName > 100 {
 		return nil, pkgerrs.NewValueInvalidError("name")
 	}
-	if utf8.RuneCountInString(address) < 20 {
+	if lenAddress < 20 || lenAddress > 200 {
 		return nil, pkgerrs.NewValueInvalidError("address")
 	}
 
@@ -83,6 +87,8 @@ func (l *Location) IsOperational() bool {
 	return l.isActive
 }
 
+func (l *Location) IsDeleted() bool { return l.deletedAt != nil }
+
 func (l *Location) GetQRData(baseURL string) string {
 	return baseURL + "?location_id=" + l.slug
 }
@@ -93,20 +99,14 @@ func (l *Location) ValidateQRCode(slug string) bool {
 
 // ================ Mutation ================
 
-func (l *Location) Update(slug, name, address *string) error {
-	if slug != nil && utf8.RuneCountInString(*slug) < 4 {
-		return pkgerrs.NewValueInvalidError("slug")
-	}
-	if name != nil && utf8.RuneCountInString(*name) < 4 {
+func (l *Location) Update(name, address *string) error {
+	if name != nil && (utf8.RuneCountInString(*name) < 4 || utf8.RuneCountInString(*name) > 100) {
 		return pkgerrs.NewValueInvalidError("name")
 	}
-	if address != nil && utf8.RuneCountInString(*address) < 20 {
+	if address != nil && (utf8.RuneCountInString(*address) < 20 || utf8.RuneCountInString(*address) > 200) {
 		return pkgerrs.NewValueInvalidError("address")
 	}
 
-	if slug != nil {
-		l.slug = *slug
-	}
 	if name != nil {
 		l.name = *name
 	}
@@ -125,4 +125,10 @@ func (l *Location) Deactivate() {
 	l.isActive = false
 }
 
-func (l *Location) Delete()
+func (l *Location) Delete() error {
+	if l.DeletedAt() != nil {
+		return ErrCannotDelete
+	}
+	l.deletedAt = pkgutils.VPtr(time.Now().UTC())
+	return nil
+}

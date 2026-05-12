@@ -6,11 +6,10 @@ import "errors"
 ================ Validation failures ================
 */
 var (
-	ErrCannotActivateLocation   = errors.New("location is already activated")
-	ErrCannotDeactivateLocation = errors.New("location is already deactivated")
-	ErrCannotGetLocationQRCode  = errors.New("cannot get qr-code: location is not operational")
-	ErrCannotCreateOrder        = errors.New("cannot create order: location is not operational")
-	ErrCannotSellItem           = errors.New("cannot sell one of the chosen items")
+	ErrLocationAlreadyDeleted   = errors.New("location is already deleted")
+	ErrLocationIsNotOperational = errors.New("location is not operational")
+
+	ErrCannotSellItem = errors.New("cannot sell one of the chosen items")
 
 	ErrInvalidCredentials = errors.New("invalid login or password")
 	ErrInvalidInput       = errors.New("invalid input") // for rich models
@@ -30,11 +29,13 @@ var (
 var (
 	ErrGetAdminByLoginDB = errors.New("failed to get admin by login using db")
 
-	ErrCreateLocationDB  = errors.New("failed to create location using db")
-	ErrGetLocationByIDDB = errors.New("failed to get location by id using db")
-	ErrUpdateLocationDB  = errors.New("failed to update location using db")
-	ErrDeleteLocationDB  = errors.New("failed to delete location using db")
-	ErrListLocationsDB   = errors.New("failed to get a list of locations using db")
+	ErrCreateLocationDB     = errors.New("failed to create location using db")
+	ErrGetLocationByIDDB    = errors.New("failed to get location by id using db")
+	ErrGetLocationBySlugDB  = errors.New("failed to get location by slug using db")
+	ErrUpdateLocationDB     = errors.New("failed to update location using db")
+	ErrSoftDeleteLocationDB = errors.New("failed to delete location softly using db")
+	ErrDeleteLocationDB     = errors.New("failed to delete location using db")
+	ErrListLocationsDB      = errors.New("failed to get a list of locations using db")
 
 	ErrCreateItemDB     = errors.New("failed to create item using db")
 	ErrGetItemDB        = errors.New("failed to get item using db")
@@ -51,10 +52,6 @@ var (
 	ErrListLocationItemsDB                = errors.New("failed to get a list of location items using db")
 
 	ErrCreateOrderDB = errors.New("failed to create order using db")
-	ErrListRoomsDB   = errors.New("failed to get a list of rooms using db")
-	ErrGetScheduleDB = errors.New("failed to get schedule using db")
-	ErrGetSlotDB     = errors.New("failed to get slot using db")
-	ErrGetBookingDB  = errors.New("failed to get booking using db")
 
 	ErrCreateOrderItemsDB = errors.New("failed to create order items using db")
 

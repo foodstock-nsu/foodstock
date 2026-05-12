@@ -13,6 +13,7 @@ type LocationResponse struct {
 	Address   string
 	IsActive  bool
 	CreatedAt time.Time
+	DeletedAt *time.Time
 }
 
 type NutritionResponse struct {
@@ -33,7 +34,7 @@ type ItemResponse struct {
 }
 
 type CatalogItemResponse struct {
-	ID          uuid.UUID // here is a location item id, not an item id
+	ItemID      uuid.UUID
 	Name        string
 	Description *string
 	Category    string

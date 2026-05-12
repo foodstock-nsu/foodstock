@@ -3,190 +3,314 @@
 package e2e
 
 import (
+	"bytes"
 	"context"
-	"log"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
+	"sync"
 	"testing"
-	"time"
 
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
 	adapteryookassa "backend/internal/adapter/out/yookassa"
-	"backend/internal/app/service"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
 	infrapass "backend/internal/infrastructure/password"
 	infraqrcode "backend/internal/infrastructure/qrcode"
+	"backend/internal/testhelpers"
 	pkgpostgres "backend/pkg/postgres"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/stretchr/testify/require"
 )
 
-// Глобальные переменные для всех E2E тестов.
-// testApp содержит ВЕСЬ твой собранный API.
-var (
-	testApp http.Handler
-	testDB  *pkgpostgres.Client
+const (
+	migrationVersion = 7 // Убедись, что тут актуальная версия
+	apiVersion       = "v1"
 )
 
-// TestMain запускается ОДИН РАЗ перед всеми тестами в папке e2e.
-func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	// 1. ПОДНИМАЕМ TESTCONTAINERS С БАЗОЙ
-	dbName := "foodstock_test"
-	dbUser := "postgres"
-	dbPass := "postgres"
-
-	pgContainer, err := postgres.Run(ctx,
-		"postgres:15-alpine",
-		postgres.WithDatabase(dbName),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPass),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(30*time.Second)),
-	)
-	if err != nil {
-		log.Fatalf("failed to start postgres container: %v", err)
-	}
-
-	// Гарантируем, что контейнер будет убит после завершения тестов
-	defer func() {
-		if err := pgContainer.Terminate(ctx); err != nil {
-			log.Fatalf("failed to terminate container: %v", err)
-		}
-	}()
-
-	host, _ := pgContainer.Host(ctx)
-	port, _ := pgContainer.MappedPort(ctx, "5432")
-
-	// 2. ПОДКЛЮЧАЕМСЯ К ТЕСТОВОЙ БАЗЕ
-	pgConfig := pkgpostgres.NewConfig(
-		host, port.Int(), dbUser, dbPass, dbName, "disable",
-		10, 2, time.Hour, time.Minute,
-	)
-
-	testDB, err = pkgpostgres.NewClient(ctx, pgConfig)
-	if err != nil {
-		log.Fatalf("failed to connect to test db: %v", err)
-	}
-	defer testDB.Close()
-
-	// Apply migrations
-	applyTestMigrations(testDB)
-
-	// Config
-	cfg, err := config.Load()
-	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
-	}
-
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-
-	// =====================================================================
-	// ТОЧНАЯ КОПИЯ СБОРКИ ИЗ ТВОЕГО main.go (runServer)
-	// =====================================================================
-
-	// Transaction manager
-	trManager := manager.Must(trmpgx.NewDefaultFactory(testDB.Pool))
-
-	// Repositories
-	adminRepo := adapterpg.NewAdminRepository(testDB, trmpgx.DefaultCtxGetter)
-	locationRepo := adapterpg.NewLocationRepository(testDB, trmpgx.DefaultCtxGetter)
-	itemRepo := adapterpg.NewItemRepository(testDB, trmpgx.DefaultCtxGetter)
-	locationItemRepo := adapterpg.NewLocationItemRepository(testDB, trmpgx.DefaultCtxGetter)
-	orderRepo := adapterpg.NewOrderRepository(testDB, trmpgx.DefaultCtxGetter)
-	orderItemRepo := adapterpg.NewOrderItemRepository(testDB, trmpgx.DefaultCtxGetter)
-	transactionRepo := adapterpg.NewTransactionRepository(testDB, trmpgx.DefaultCtxGetter)
-
-	// Infrastructure
-	tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
-	passHasher := infrapass.NewHasher(cfg.PasswordCost)
-	qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
-
-	// Payment Gateway
-	paymentGateway := adapteryookassa.NewPaymentGateway(
-		cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout,
-	)
-
-	// Fill database with seed data
-	for _, seed := range cfg.GetAdminSeeds() {
-		hash, hashErr := passHasher.Hash(seed.Password)
-		if hashErr != nil {
-			log.Fatalf("failed to hash password for login %s: %v", seed.Login, hashErr)
-		}
-		if err := adminRepo.EnsureAdmin(ctx, seed.Login, hash); err != nil {
-			log.Fatalf("failed to ensure admin for login %s: %v", seed.Login, err)
-		}
-	}
-
-	// UseСases
-	adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
-	createLocationUC := usecase.NewCreateLocationUC(trManager, locationRepo, itemRepo, locationItemRepo)
-	updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
-	deleteLocationUC := usecase.NewDeleteLocationUC(trManager, locationRepo, locationItemRepo)
-	listLocationsUC := usecase.NewListLocationsUC(locationRepo)
-	getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
-	getCatalogUC := usecase.NewGetCatalogUC(itemRepo, locationItemRepo)
-	createItemUC := usecase.NewCreateItemUC(trManager, locationRepo, itemRepo, locationItemRepo)
-	updateItemUC := usecase.NewUpdateItemUC(itemRepo)
-	deleteItemUC := usecase.NewDeleteItemUC(trManager, itemRepo, locationItemRepo)
-	listItemsUC := usecase.NewListItemsUC(itemRepo)
-	createOrderUC := usecase.NewCreateOrderUC(trManager, locationRepo, locationItemRepo, orderRepo, orderItemRepo, transactionRepo, paymentGateway)
-	getInventoryUC := usecase.NewGetInventoryUC(locationItemRepo)
-	updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationItemRepo)
-
-	_ = service.NewExpirationService(trManager, locationItemRepo, orderRepo, orderItemRepo, transactionRepo)
-
-	// Handlers
-	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, "v1")
-	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
-	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
-	locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
-	itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, updateItemUC, deleteItemUC, listItemsUC)
-	inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
-
-	// Router
-	testApp = adapterhttp.NewRouter(
-		tokenGen,
-		systemHandler,
-		authHandler,
-		clientHandler,
-		locationsHandler,
-		itemHandler,
-		inventoryHandler,
-	).InitRoutes()
-
-	code := m.Run()
-
-	os.Exit(code)
+type testApp struct {
+	server     *httptest.Server
+	client     *http.Client
+	pg         *testhelpers.PostgresContainer
+	dbClient   *pkgpostgres.Client
+	cfg        *config.Config
+	adminToken *string
 }
 
-// applyTestMigrations создает таблицы в тестовой БД.
-func applyTestMigrations(client *pkgpostgres.Client) {
-	// СЮДА НУЖНО ВСТАВИТЬ SQL ДЛЯ СОЗДАНИЯ ТВОИХ ТАБЛИЦ.
-	// Либо, если у тебя есть инструмент миграций (golang-migrate), вызвать его здесь.
+var (
+	appInstance *testApp
+	once        sync.Once
+)
 
-	query := `
-	CREATE TABLE IF NOT EXISTS admins (
-		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		login TEXT NOT NULL UNIQUE,
-		password_hash TEXT NOT NULL,
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-	);
-	-- ТУТ ДОЛЖНЫ БЫТЬ CREATE TABLE ДЛЯ items, locations, orders и т.д.
-	`
-	_, err := client.Pool.Exec(context.Background(), query)
+func parseLogLevel(level string) slog.Level {
+	switch level {
+	case "DEBUG":
+		return slog.LevelDebug
+	case "INFO":
+		return slog.LevelInfo
+	case "WARN":
+		return slog.LevelWarn
+	case "ERROR":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
+func newLogger(level string) *slog.Logger {
+	logLevel := parseLogLevel(level)
+	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	}))
+}
+
+func newPostgresClient(ctx context.Context, cfg *config.Config) (*pkgpostgres.Client, error) {
+	pgConfig := pkgpostgres.NewConfig(
+		cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPassword,
+		cfg.DBName, cfg.DbSSLMode, cfg.DbMaxConn,
+		cfg.DbMinConn, cfg.DbMaxConnLifeTime, cfg.DbMaxConnIdleTime,
+	)
+
+	return pkgpostgres.NewClient(ctx, pgConfig)
+}
+
+func seedAdmins(
+	ctx context.Context,
+	cfg *config.Config,
+	adminRepo *adapterpg.AdminRepository,
+	passHasher *infrapass.Hasher,
+) error {
+	for _, seed := range cfg.GetAdminSeeds() {
+		hash, err := passHasher.Hash(seed.Password)
+		if err != nil {
+			return fmt.Errorf("failed to hash password for login %s: %w", seed.Login, err)
+		}
+
+		// Поскольку тут UPSERT, метод безопасно отработает как на пустой, так и на заполненной базе
+		err = adminRepo.EnsureAdmin(ctx, seed.Login, hash)
+		if err != nil {
+			return fmt.Errorf("failed to ensure admin for login %s: %w", seed.Login, err)
+		}
+	}
+	return nil
+}
+
+func setupE2E(t *testing.T) *testApp {
+	once.Do(func() {
+		ctx := context.Background()
+
+		os.Setenv("DB_HOST", "test_host")
+		os.Setenv("DB_USER", "test_user")
+		os.Setenv("DB_PASSWORD", "test_pass")
+		os.Setenv("DB_NAME", "test_db")
+
+		os.Setenv("AUTH_SECRET", "super-secret-key-for-tests-32-chars!")
+		os.Setenv("AUTH_TTL", "24h")
+		os.Setenv("ADMIN_SEEDS", "test:test123")
+
+		os.Setenv("YOOKASSA_SHOP_ID", "test_shop")
+		os.Setenv("YOOKASSA_API_KEY", "test_api_key")
+		os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
+
+		// 1. Загружаем базовый конфиг
+		cfg, err := config.Load()
+		require.NoError(t, err)
+
+		// 2. Поднимаем контейнер, передавая данные из конфига (обновленный хелпер)
+		pg, err := testhelpers.StartPostgresContainer(ctx)
+		require.NoError(t, err)
+
+		// Накатываем миграции в первый раз
+		err = pg.MigrateUp(migrationVersion)
+		require.NoError(t, err)
+
+		// 3. ВАЖНО: Подменяем хост и порт в конфиге на динамические из Testcontainers
+		cfg.DbUser = pg.Config.User
+		cfg.DbPassword = pg.Config.Password
+		cfg.DBName = pg.Config.Name
+		cfg.DbHost = pg.Config.Host
+		cfg.DbPort = pg.Config.Port
+
+		logger := newLogger(cfg.LogLevel)
+
+		// 4. Инициализируем клиент БД для приложения
+		pgClient, err := newPostgresClient(ctx, cfg)
+		require.NoError(t, err)
+
+		// Транзакционный менеджер
+		trManager := manager.Must(trmpgx.NewDefaultFactory(pgClient.Pool))
+
+		// Репозитории
+		adminRepo := adapterpg.NewAdminRepository(pgClient, trmpgx.DefaultCtxGetter)
+		locationRepo := adapterpg.NewLocationRepository(pgClient, trmpgx.DefaultCtxGetter)
+		itemRepo := adapterpg.NewItemRepository(pgClient, trmpgx.DefaultCtxGetter)
+		locationItemRepo := adapterpg.NewLocationItemRepository(pgClient, trmpgx.DefaultCtxGetter)
+		orderRepo := adapterpg.NewOrderRepository(pgClient, trmpgx.DefaultCtxGetter)
+		orderItemRepo := adapterpg.NewOrderItemRepository(pgClient, trmpgx.DefaultCtxGetter)
+		transactionRepo := adapterpg.NewTransactionRepository(pgClient, trmpgx.DefaultCtxGetter)
+
+		// Инфраструктура
+		tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
+		passHasher := infrapass.NewHasher(cfg.PasswordCost)
+		qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
+		paymentGateway := adapteryookassa.NewPaymentGateway(cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout)
+
+		// Первичное заполнение админов
+		err = seedAdmins(ctx, cfg, adminRepo, passHasher)
+		require.NoError(t, err)
+
+		// UseCases
+		adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
+		createLocationUC := usecase.NewCreateLocationUC(trManager, locationRepo, itemRepo, locationItemRepo)
+		getLocationUC := usecase.NewGetLocationUC(locationRepo)
+		updateLocationUC := usecase.NewUpdateLocationUC(locationRepo)
+		deleteLocationUC := usecase.NewDeleteLocationUC(trManager, locationRepo, locationItemRepo)
+		listLocationsUC := usecase.NewListLocationsUC(locationRepo)
+		getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
+		getCatalogUC := usecase.NewGetCatalogUC(locationRepo, itemRepo, locationItemRepo)
+		createItemUC := usecase.NewCreateItemUC(trManager, locationRepo, itemRepo, locationItemRepo)
+		updateItemUC := usecase.NewUpdateItemUC(itemRepo)
+		deleteItemUC := usecase.NewDeleteItemUC(trManager, itemRepo, locationItemRepo)
+		listItemsUC := usecase.NewListItemsUC(itemRepo)
+		createOrderUC := usecase.NewCreateOrderUC(trManager, locationRepo, locationItemRepo, orderRepo, orderItemRepo, transactionRepo, paymentGateway)
+		getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
+		updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationRepo, locationItemRepo)
+
+		// Handlers
+		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
+		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
+		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
+		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
+		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, updateItemUC, deleteItemUC, listItemsUC)
+		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
+
+		// Роутер
+		router := adapterhttp.NewRouter(
+			tokenGen, systemHandler, authHandler, clientHandler,
+			locationsHandler, itemHandler, inventoryHandler,
+		).InitRoutes()
+
+		// Запускаем тестовый сервер
+		ts := httptest.NewServer(router)
+
+		appInstance = &testApp{
+			server:   ts,
+			client:   ts.Client(),
+			pg:       pg,
+			dbClient: pgClient,
+			cfg:      cfg,
+		}
+	})
+
+	// Очищаем и подготавливаем базу ПЕРЕД каждым тестом
+	appInstance.cleanData(t, context.Background())
+
+	return appInstance
+}
+
+// cleanData использует инструменты миграций для сброса БД в чистый вид
+// и восстанавливает необходимые seed-данные.
+func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
+	tables := []string{
+		"order_items",
+		"orders",
+		"transactions",
+		"location_items",
+		"items",
+		"locations",
+		"admins",
+	}
+
+	query := fmt.Sprintf("TRUNCATE %s RESTART IDENTITY CASCADE", strings.Join(tables, ", "))
+
+	_, err := a.dbClient.Pool.Exec(ctx, query)
+	require.NoError(t, err, "failed to truncate tables")
+
+	_, _ = a.dbClient.Pool.Exec(ctx, "DISCARD PLANS")
+
+	adminRepo := adapterpg.NewAdminRepository(a.dbClient, trmpgx.DefaultCtxGetter)
+	passHasher := infrapass.NewHasher(a.cfg.PasswordCost)
+	err = seedAdmins(ctx, a.cfg, adminRepo, passHasher)
+	require.NoError(t, err, "failed to re-seed admins")
+}
+
+func (a *testApp) doRequest(method, path string, body interface{}) (*http.Response, error) {
+	var buf bytes.Buffer
+	if body != nil {
+		if err := json.NewEncoder(&buf).Encode(body); err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequest(method, a.server.URL+path, &buf)
 	if err != nil {
-		log.Fatalf("failed to apply test migrations: %v", err)
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	return a.client.Do(req)
+}
+
+func (a *testApp) doRequestAuth(method, path string, body interface{}, token string) (*http.Response, error) {
+	var buf bytes.Buffer
+	if body != nil {
+		_ = json.NewEncoder(&buf).Encode(body)
+	}
+
+	req, _ := http.NewRequest(method, a.server.URL+path, &buf)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	return a.client.Do(req)
+}
+
+func (a *testApp) getAdminToken(t *testing.T) string {
+	if a.adminToken != nil {
+		return *a.adminToken
+	}
+
+	resp, err := a.doRequest(
+		"POST",
+		"/api/v1/admin/auth",
+		map[string]interface{}{
+			"login":    "test",
+			"password": "test123",
+		},
+	)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, body["token"])
+
+	token, ok := body["token"].(string)
+	require.True(t, ok)
+
+	a.adminToken = &token
+
+	return token
+}
+
+// tearDownE2E можно вызвать при завершении пакета тестов, если нужно
+// принудительно освободить ресурсы (обычно go test сам все убивает при выходе)
+func tearDownE2E() {
+	if appInstance != nil {
+		appInstance.server.Close()
+		appInstance.dbClient.Close()
+		_ = appInstance.pg.Close(context.Background())
 	}
 }

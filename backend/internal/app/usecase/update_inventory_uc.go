@@ -15,30 +15,48 @@ import (
 
 type UpdateInventoryUC struct {
 	trManager    trm.Manager
+	location     port.LocationRepository
 	locationItem port.LocationItemRepository
 }
 
 func NewUpdateInventoryUC(
 	trManager trm.Manager,
+	location port.LocationRepository,
 	locationItem port.LocationItemRepository,
 ) *UpdateInventoryUC {
 	return &UpdateInventoryUC{
 		trManager:    trManager,
+		location:     location,
 		locationItem: locationItem,
 	}
 }
 
 func (uc *UpdateInventoryUC) Execute(ctx context.Context, in dto.UpdateInventoryInput) (dto.UpdateInventoryOutput, error) {
+	// Get the location by slug and validate it
+	location, err := uc.location.GetBySlug(ctx, in.Slug)
+	if err != nil {
+		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
+			return dto.UpdateInventoryOutput{}, ucerrs.ErrLocationNotFound
+		}
+		return dto.UpdateInventoryOutput{}, ucerrs.Wrap(
+			ucerrs.ErrGetLocationBySlugDB, err,
+		)
+	}
+
+	if location.IsDeleted() {
+		return dto.UpdateInventoryOutput{}, ucerrs.ErrLocationAlreadyDeleted
+	}
+
 	/*
 		Get each inventory item
 		Update it
 		Save fixes in database
 	*/
 	updatedItems := make([]*model.LocationItem, 0, len(in.Inventory))
-	err := uc.trManager.Do(ctx, func(txCtx context.Context) error {
+	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
 		for _, inputItem := range in.Inventory {
 			locationItem, getErr := uc.locationItem.GetByLocationAndItem(
-				txCtx, in.LocationID, inputItem.ItemID,
+				txCtx, location.ID(), inputItem.ItemID,
 			)
 			if getErr != nil {
 				if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {

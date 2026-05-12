@@ -1,10 +1,8 @@
 package dto
 
-import "github.com/google/uuid"
-
 type UpdateInventoryInput struct {
-	LocationID uuid.UUID
-	Inventory  []InventoryItemRequest
+	Slug      string
+	Inventory []InventoryItemRequest
 }
 
 type UpdateInventoryOutput struct {

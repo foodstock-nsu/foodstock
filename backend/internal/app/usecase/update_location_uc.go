@@ -19,19 +19,23 @@ func NewUpdateLocationUC(location port.LocationRepository) *UpdateLocationUC {
 }
 
 func (uc *UpdateLocationUC) Execute(ctx context.Context, in dto.UpdateLocationInput) (dto.UpdateLocationOutput, error) {
-	// Get location
-	location, err := uc.location.GetByID(ctx, in.ID)
+	// Get location by slug and validate it
+	location, err := uc.location.GetBySlug(ctx, in.Slug)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
 			return dto.UpdateLocationOutput{}, ucerrs.ErrLocationNotFound
 		}
 		return dto.UpdateLocationOutput{}, ucerrs.Wrap(
-			ucerrs.ErrGetLocationByIDDB, err,
+			ucerrs.ErrGetLocationBySlugDB, err,
 		)
 	}
 
+	if location.IsDeleted() {
+		return dto.UpdateLocationOutput{}, ucerrs.ErrLocationAlreadyDeleted
+	}
+
 	// Update
-	err = location.Update(in.Slug, in.Name, in.Address)
+	err = location.Update(in.Name, in.Address)
 	if err != nil {
 		return dto.UpdateLocationOutput{}, ucerrs.Wrap(
 			ucerrs.ErrInvalidInput, err,
@@ -40,15 +44,9 @@ func (uc *UpdateLocationUC) Execute(ctx context.Context, in dto.UpdateLocationIn
 
 	if in.IsActive != nil {
 		if *in.IsActive {
-			err = location.Activate()
-			//if err != nil {
-			//	return dto.UpdateLocationOutput{}, ucerrs.ErrCannotActivateLocation
-			//}
+			location.Activate()
 		} else {
-			err = location.Deactivate()
-			//if err != nil {
-			//	return dto.UpdateLocationOutput{}, ucerrs.ErrCannotDeactivateLocation
-			//}
+			location.Deactivate()
 		}
 	}
 

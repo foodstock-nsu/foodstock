@@ -5,6 +5,7 @@ import (
 	pkgerrs "backend/pkg/errs"
 	"backend/pkg/utils"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -226,14 +227,25 @@ func TestNewItem(t *testing.T) {
 			expect:      nil,
 		},
 		{
-			testName: "Failure - invalid name",
+			testName: "Failure - invalid name (too short)",
 			name:     "inv",
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid description",
+			testName: "Failure - invalid name (too long)",
+			name:     strings.Repeat("inv", 17),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName:    "Failure - invalid description (too short)",
 			name:        testItemName,
-			description: utils.VPtr("new desc"), // too short
+			description: utils.VPtr("new desc"),
+			expect:      pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName:    "Failure - invalid description (too long)",
+			name:        testItemName,
+			description: utils.VPtr(strings.Repeat("too long desc", 10)),
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 		{
@@ -321,13 +333,23 @@ func TestItem_Update(t *testing.T) {
 			expect:      nil,
 		},
 		{
-			testName: "Failure - invalid name",
+			testName: "Failure - invalid name (too short)",
 			name:     utils.VPtr("inv"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName:    "Failure - invalid description",
+			testName: "Failure - invalid name (too long)",
+			name:     utils.VPtr(strings.Repeat("inv", 17)),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName:    "Failure - invalid description (too short)",
 			description: utils.VPtr("new desc"),
+			expect:      pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName:    "Failure - invalid description (too long)",
+			description: utils.VPtr(strings.Repeat("too long desc", 10)),
 			expect:      pkgerrs.ErrValueIsInvalid,
 		},
 		{

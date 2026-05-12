@@ -4,6 +4,7 @@ import (
 	"backend/internal/domain/model"
 	pkgerrs "backend/pkg/errs"
 	"backend/pkg/utils"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,21 +37,39 @@ func TestNewLocation(t *testing.T) {
 			expect:   nil,
 		},
 		{
-			testName: "Failure - invalid slug",
-			slug:     "a_1", // too short
+			testName: "Failure - invalid slug (too short)",
+			slug:     "a_1",
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid locID",
+			testName: "Failure - invalid slug (too long)",
+			slug:     strings.Repeat("a", 17),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName: "Failure - invalid name (too short)",
 			slug:     testSlug,
-			locName:  "inv", // too short
+			locName:  "inv",
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid address",
+			testName: "Failure - invalid name (too long)",
+			slug:     testSlug,
+			locName:  strings.Repeat("inv", 40),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName: "Failure - invalid address (too short)",
 			slug:     testSlug,
 			locName:  testLocName,
-			address:  "Unknown", // too short
+			address:  "Unknown",
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName: "Failure - invalid address (too long)",
+			slug:     testSlug,
+			locName:  testLocName,
+			address:  strings.Repeat("Unknown", 30),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 	}
@@ -88,6 +107,7 @@ func TestLocation_BusinessLogic(t *testing.T) {
 	)
 
 	assert.True(t, loc.IsOperational())
+	assert.False(t, loc.IsDeleted())
 	assert.Contains(t, loc.GetQRData("https://new.ru"), slug)
 	assert.True(t, loc.ValidateQRCode(slug))
 }
@@ -95,7 +115,6 @@ func TestLocation_BusinessLogic(t *testing.T) {
 func TestLocation_Update(t *testing.T) {
 	type testCase struct {
 		testName string
-		slug     *string
 		locName  *string
 		address  *string
 		expect   error
@@ -104,7 +123,6 @@ func TestLocation_Update(t *testing.T) {
 	var testCases = []testCase{
 		{
 			testName: "Success",
-			slug:     utils.VPtr("nsu_2"),
 			locName:  utils.VPtr("Novosibirsk State University | Store №2"),
 			address:  utils.VPtr("Novosibirsk, another st., 6300019"),
 			expect:   nil,
@@ -114,18 +132,23 @@ func TestLocation_Update(t *testing.T) {
 			expect:   nil,
 		},
 		{
-			testName: "Failure - invalid slug",
-			slug:     utils.VPtr("a_1"),
-			expect:   pkgerrs.ErrValueIsInvalid,
-		},
-		{
-			testName: "Failure - invalid location name",
+			testName: "Failure - invalid name (too short)",
 			locName:  utils.VPtr("inv"),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 		{
-			testName: "Failure - invalid address",
+			testName: "Failure - invalid name (too long)",
+			locName:  utils.VPtr(strings.Repeat("inv", 40)),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName: "Failure - invalid address (too short)",
 			address:  utils.VPtr("Unknown"),
+			expect:   pkgerrs.ErrValueIsInvalid,
+		},
+		{
+			testName: "Failure - invalid address (too long)",
+			address:  utils.VPtr(strings.Repeat("Unknown", 70)),
 			expect:   pkgerrs.ErrValueIsInvalid,
 		},
 	}
@@ -138,13 +161,10 @@ func TestLocation_Update(t *testing.T) {
 				"Novosibirsk, some st., 6300019",
 			)
 
-			err := loc.Update(tt.slug, tt.locName, tt.address)
+			err := loc.Update(tt.locName, tt.address)
 			if tt.expect != nil {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, tt.expect)
-				if tt.slug != nil {
-					assert.NotEqual(t, *tt.slug, loc.Slug())
-				}
 				if tt.locName != nil {
 					assert.NotEqual(t, *tt.locName, loc.Name())
 				}
@@ -153,9 +173,6 @@ func TestLocation_Update(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				if tt.slug != nil {
-					assert.Equal(t, *tt.slug, loc.Slug())
-				}
 				if tt.locName != nil {
 					assert.Equal(t, *tt.locName, loc.Name())
 				}
@@ -167,7 +184,7 @@ func TestLocation_Update(t *testing.T) {
 	}
 }
 
-func TestLocation_ActivateDeactivateDelete(t *testing.T) {
+func TestLocation_ActivateDeactivate(t *testing.T) {
 	loc := model.RestoreLocation(
 		uuid.New(),
 		"nsu_1",
@@ -185,4 +202,23 @@ func TestLocation_ActivateDeactivateDelete(t *testing.T) {
 	// Activate
 	loc.Activate()
 	assert.True(t, loc.IsActive())
+}
+
+func TestLocation_DeleteIsDeleted(t *testing.T) {
+	loc, _ := model.NewLocation(
+		"nsu_1",
+		"Novosibirsk State University | Store №1",
+		"Novosibirsk, some st., 6300019",
+	)
+	assert.False(t, loc.IsDeleted())
+
+	// First case - delete successfully
+	err := loc.Delete()
+	assert.NoError(t, err)
+	assert.True(t, loc.IsDeleted())
+
+	// Second case - trying to call the method twice
+	err = loc.Delete()
+	assert.Error(t, err)
+	assert.True(t, loc.IsDeleted())
 }

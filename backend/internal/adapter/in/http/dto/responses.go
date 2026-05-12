@@ -8,13 +8,14 @@ type AdminAuthResponse struct {
 	Token string `json:"token"`
 }
 
-type Location struct {
-	ID        string `json:"id"`
-	Slug      string `json:"slug"`
-	Name      string `json:"name"`
-	Address   string `json:"address"`
-	IsActive  bool   `json:"is_active"`
-	CreatedAt string `json:"created_at"`
+type LocationResponse struct {
+	ID        string  `json:"id"`
+	Slug      string  `json:"slug"`
+	Name      string  `json:"name"`
+	Address   string  `json:"address"`
+	IsActive  bool    `json:"is_active"`
+	CreatedAt string  `json:"created_at"`
+	DeletedAt *string `json:"deleted_at"`
 }
 
 type NutritionResponse struct {
@@ -35,7 +36,7 @@ type ItemResponse struct {
 }
 
 type CatalogItemResponse struct {
-	ID          string             `json:"id"`
+	ItemID      string             `json:"item_id"`
 	Name        string             `json:"name"`
 	Description *string            `json:"description"`
 	Category    string             `json:"category"`
@@ -47,20 +48,25 @@ type CatalogItemResponse struct {
 }
 
 type GetCatalogResponse struct {
+	Location   LocationResponse      `json:"location"`
 	Categories []string              `json:"categories"`
 	Items      []CatalogItemResponse `json:"items"`
 }
 
 type CreateLocationResponse struct {
-	Location Location `json:"location"`
+	Location LocationResponse `json:"location"`
+}
+
+type GetLocationResponse struct {
+	Location LocationResponse `json:"location"`
 }
 
 type UpdateLocationResponse struct {
-	Location Location `json:"location"`
+	Location LocationResponse `json:"location"`
 }
 
 type ListLocationsResponse struct {
-	Locations []Location `json:"locations"`
+	Locations []LocationResponse `json:"locations"`
 }
 
 type CreateItemResponse struct {
