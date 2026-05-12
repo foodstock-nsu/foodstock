@@ -1,3 +1,5 @@
+//go:build e2e
+
 package e2e
 
 import (
@@ -212,13 +214,9 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "invalid input",
 			},
 			{
-				name:  "Unauthorized - invalid token",
-				token: "invalid-token",
-				payload: map[string]interface{}{
-					"slug":    "test_1",
-					"name":    "Test Location №1",
-					"address": "Address of Test Location №1",
-				},
+				name:           "Unauthorized - invalid token",
+				token:          "invalid-token",
+				payload:        map[string]interface{}{},
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
 			},
