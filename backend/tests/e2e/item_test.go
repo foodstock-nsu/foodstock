@@ -1,4 +1,4 @@
-///go:build e2e
+//go:build e2e
 
 package e2e
 
@@ -109,7 +109,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	token := app.getAdminToken(t)
 
 	/*
-		Prepare the valid baseItem:
+		Prepare the valid item:
 		1) Create it
 		2) Save its id for upcoming tests
 	*/
@@ -144,7 +144,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	require.NoError(t, baseErr)
 
 	/*
-		Prepare a gone baseItem (deleted):
+		Prepare a gone item (deleted):
 		1) Create an item
 		2) Delete it
 	*/
@@ -173,6 +173,14 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 
 	goneItemID = goneItem["item"]["id"].(string)
 	_, goneErr = uuid.Parse(goneItemID)
+	require.NoError(t, goneErr)
+
+	_, goneErr = app.doRequestAuth(
+		"DELETE",
+		fmt.Sprintf("/api/v1/admin/items/%s", goneItemID),
+		nil,
+		token,
+	)
 	require.NoError(t, goneErr)
 
 	t.Run("Create Item - Bad Cases", func(t *testing.T) {
@@ -389,7 +397,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         uuid.New().String(),
 				payload:        map[string]interface{}{},
 				expectedStatus: http.StatusNotFound,
-				expectedError:  "baseItem not found",
+				expectedError:  "item not found",
 			},
 			{
 				name:           "Gone - Item Has Deleted",
@@ -397,7 +405,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         goneItemID,
 				payload:        map[string]interface{}{},
 				expectedStatus: http.StatusGone,
-				expectedError:  "baseItem is already deleted",
+				expectedError:  "item is already deleted",
 			},
 		}
 
@@ -450,14 +458,14 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				token:          token,
 				itemID:         uuid.New().String(),
 				expectedStatus: http.StatusNotFound,
-				expectedError:  "baseItem not found",
+				expectedError:  "item not found",
 			},
 			{
 				name:           "Gone - Item Has Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
-				expectedError:  "baseItem is already deleted",
+				expectedError:  "item is already deleted",
 			},
 		}
 

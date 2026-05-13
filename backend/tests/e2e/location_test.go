@@ -174,6 +174,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		nil,
 		token,
 	)
+	require.NoError(t, createErr)
 
 	t.Run("Create Location - Bad Cases", func(t *testing.T) {
 		type testCase struct {
