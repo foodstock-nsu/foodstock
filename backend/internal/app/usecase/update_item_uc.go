@@ -20,7 +20,7 @@ func NewUpdateItemUC(item port.ItemRepository) *UpdateItemUC {
 }
 
 func (uc *UpdateItemUC) Execute(ctx context.Context, in dto.UpdateItemInput) (dto.UpdateItemOutput, error) {
-	// Get item
+	// Get item and validate it
 	item, err := uc.item.Get(ctx, in.ID)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
@@ -29,6 +29,10 @@ func (uc *UpdateItemUC) Execute(ctx context.Context, in dto.UpdateItemInput) (dt
 		return dto.UpdateItemOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGetItemDB, err,
 		)
+	}
+
+	if item.IsDeleted() {
+		return dto.UpdateItemOutput{}, ucerrs.ErrItemAlreadyDeleted
 	}
 
 	// Update nutrition

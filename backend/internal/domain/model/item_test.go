@@ -293,6 +293,7 @@ func TestNewItem(t *testing.T) {
 					assert.Equal(t, tt.nutrition, item.Nutrition())
 				}
 				assert.False(t, item.CreatedAt().After(time.Now().UTC()))
+				assert.Nil(t, item.DeletedAt())
 			}
 		})
 	}
@@ -379,6 +380,7 @@ func TestItem_Update(t *testing.T) {
 					utils.VPtr(float64(10)),
 				),
 				time.Now().UTC(),
+				nil,
 			)
 
 			err := item.Update(
@@ -408,4 +410,22 @@ func TestItem_Update(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestItem_DeleteIsDeleted(t *testing.T) {
+	item, _ := model.NewItem(
+		"Козинак `Дружба`", nil, "snacks",
+		"https://photo-storage.ru/123.jpg", nil,
+	)
+	assert.False(t, item.IsDeleted())
+
+	// First case - successful delete
+	err := item.Delete()
+	require.NoError(t, err)
+	assert.True(t, item.IsDeleted())
+	assert.NotNil(t, item.DeletedAt())
+
+	// Second case - failure (already deleted)
+	err = item.Delete()
+	require.Error(t, err)
 }

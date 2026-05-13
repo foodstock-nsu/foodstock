@@ -40,16 +40,17 @@ func (uc *DeleteLocationUC) Execute(ctx context.Context, in dto.DeleteLocationIn
 			return ucerrs.Wrap(ucerrs.ErrGetLocationBySlugDB, getErr)
 		}
 
-		if delErr := location.Delete(); delErr != nil {
+		delErr := location.Delete()
+		if delErr != nil {
 			return ucerrs.ErrLocationAlreadyDeleted
 		}
 
 		// Delete whole inventory of this location
-		if err := uc.locationItem.DeleteByLocationID(txCtx, location.ID()); err != nil {
-			return ucerrs.Wrap(ucerrs.ErrDeleteLocationItemByLocationIDDB, err)
+		if delErr = uc.locationItem.DeleteByLocationID(txCtx, location.ID()); delErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrDeleteLocationItemByLocationIDDB, delErr)
 		}
 
-		if delErr := uc.location.SoftDelete(txCtx, location); delErr != nil {
+		if delErr = uc.location.SoftDelete(txCtx, location); delErr != nil {
 			return ucerrs.Wrap(ucerrs.ErrSoftDeleteLocationDB, delErr)
 		}
 

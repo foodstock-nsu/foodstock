@@ -135,13 +135,53 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	)
 	require.NoError(t, baseErr)
 
-	var item map[string]map[string]interface{}
-	baseErr = json.NewDecoder(baseResp.Body).Decode(&item)
+	var baseItem map[string]map[string]interface{}
+	baseErr = json.NewDecoder(baseResp.Body).Decode(&baseItem)
 	require.NoError(t, baseErr)
 
-	baseItemID = item["item"]["id"].(string)
+	baseItemID = baseItem["item"]["id"].(string)
 	_, baseErr = uuid.Parse(baseItemID)
 	require.NoError(t, baseErr)
+
+	/*
+		Prepare a gone item (deleted):
+		1) Create an item
+		2) Delete it
+	*/
+
+	var goneItemID string
+
+	gonePayload := map[string]interface{}{
+		"name":        "Сэндвич с говядиной",
+		"description": "Сэндвич с говядиной и острым соусом",
+		"category":    "breakfast",
+		"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
+		"nutrition":   map[string]interface{}{},
+	}
+	goneResp, goneErr := app.doRequestAuth(
+		"POST",
+		"/api/v1/admin/items",
+		gonePayload,
+		token,
+	)
+	require.NoError(t, goneErr)
+
+	var goneItem map[string]map[string]interface{}
+
+	goneErr = json.NewDecoder(goneResp.Body).Decode(&goneItem)
+	require.NoError(t, goneErr)
+
+	goneItemID = goneItem["item"]["id"].(string)
+	_, goneErr = uuid.Parse(goneItemID)
+	require.NoError(t, goneErr)
+
+	_, goneErr = app.doRequestAuth(
+		"DELETE",
+		fmt.Sprintf("/api/v1/admin/items/%s", goneItemID),
+		nil,
+		token,
+	)
+	require.NoError(t, goneErr)
 
 	t.Run("Create Item - Bad Cases", func(t *testing.T) {
 		type testCase struct {
@@ -359,6 +399,14 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedStatus: http.StatusNotFound,
 				expectedError:  "item not found",
 			},
+			{
+				name:           "Gone - Item Has Deleted",
+				token:          token,
+				itemID:         goneItemID,
+				payload:        map[string]interface{}{},
+				expectedStatus: http.StatusGone,
+				expectedError:  "item is already deleted",
+			},
 		}
 
 		for _, tt := range tests {
@@ -411,6 +459,13 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         uuid.New().String(),
 				expectedStatus: http.StatusNotFound,
 				expectedError:  "item not found",
+			},
+			{
+				name:           "Gone - Item Has Deleted",
+				token:          token,
+				itemID:         goneItemID,
+				expectedStatus: http.StatusGone,
+				expectedError:  "item is already deleted",
 			},
 		}
 

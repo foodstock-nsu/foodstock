@@ -82,7 +82,9 @@ func (s *OrderItemRepoSuite) SetupSuite() {
 				utils.VPtr(float64(1)),
 				utils.VPtr(float64(1)),
 				utils.VPtr(float64(1))),
-			time.Now().UTC()))
+			time.Now().UTC(),
+			nil,
+		))
 
 	s.testOrderID = uuid.New()
 	orderRepo := adapterpostgres.NewOrderRepository(s.dbClient, trmpgx.DefaultCtxGetter)

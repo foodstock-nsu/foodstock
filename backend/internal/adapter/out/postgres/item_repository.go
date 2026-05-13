@@ -80,6 +80,11 @@ func (r *ItemRepository) Update(ctx context.Context, item *model.Item) error {
 	return r.q.UpdateItem(ctx, db, params)
 }
 
+func (r *ItemRepository) SoftDelete(ctx context.Context, item *model.Item) error {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+	return r.q.DeleteItemSoft(ctx, db, mapper.MapItemToSQLCSoftDelete(item))
+}
+
 func (r *ItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
