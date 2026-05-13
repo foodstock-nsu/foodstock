@@ -5,7 +5,6 @@ package e2e
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -53,6 +52,13 @@ func TestItem_LifeCycle(t *testing.T) {
 
 		itemID, err = uuid.Parse(item["item"]["id"].(string))
 		require.NoError(t, err)
+	})
+
+	t.Run("Get Created Item", func(t *testing.T) {
+		path := fmt.Sprintf("/api/v1/admin/items/%s", itemID)
+		resp, err := app.doRequestAuth("GET", path, nil, token)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	t.Run("Update Item", func(t *testing.T) {
@@ -265,10 +271,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -306,10 +309,64 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Get Item - Bad cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			token          string
+			itemID         string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Item ID",
+				token:          token,
+				itemID:         "invalid-uuid",
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid identifier format",
+			},
+			{
+				name:           "Unauthorized - Invalid Token",
+				token:          "invalid-token",
+				itemID:         baseItemID,
+				expectedStatus: http.StatusUnauthorized,
+				expectedError:  "invalid or expired token",
+			},
+			{
+				name:           "Not Found - Random Item ID",
+				token:          token,
+				itemID:         uuid.New().String(),
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "item not found",
+			},
+			{
+				name:           "Gone - Item Has Deleted",
+				token:          token,
+				itemID:         goneItemID,
+				expectedStatus: http.StatusGone,
+				expectedError:  "item is already deleted",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/admin/items/%s", tt.itemID)
+				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -415,10 +472,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("PATCH", path, tt.payload, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -475,10 +529,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("DELETE", path, nil, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 

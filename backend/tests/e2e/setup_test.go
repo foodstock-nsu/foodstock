@@ -178,6 +178,7 @@ func setupE2E(t *testing.T) *testApp {
 		getQRCodeUC := usecase.NewGetQRCodeUC(locationRepo, qrCodeGen)
 		getCatalogUC := usecase.NewGetCatalogUC(locationRepo, itemRepo, locationItemRepo)
 		createItemUC := usecase.NewCreateItemUC(trManager, locationRepo, itemRepo, locationItemRepo)
+		getItemUC := usecase.NewGetItemUC(itemRepo)
 		updateItemUC := usecase.NewUpdateItemUC(itemRepo)
 		deleteItemUC := usecase.NewDeleteItemUC(trManager, itemRepo, locationItemRepo)
 		listItemsUC := usecase.NewListItemsUC(itemRepo)
@@ -190,7 +191,7 @@ func setupE2E(t *testing.T) *testApp {
 		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
 		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
-		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, updateItemUC, deleteItemUC, listItemsUC)
+		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
 
 		// Роутер
