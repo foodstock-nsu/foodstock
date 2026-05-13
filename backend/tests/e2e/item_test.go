@@ -156,7 +156,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 		"description": "Сэндвич с говядиной и острым соусом",
 		"category":    "breakfast",
 		"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
-		"nutrition":   nil,
+		"nutrition":   map[string]interface{}{},
 	}
 	goneResp, goneErr := app.doRequestAuth(
 		"POST",
