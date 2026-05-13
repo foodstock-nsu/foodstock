@@ -109,7 +109,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	token := app.getAdminToken(t)
 
 	/*
-		Prepare the valid item:
+		Prepare the valid baseItem:
 		1) Create it
 		2) Save its id for upcoming tests
 	*/
@@ -135,16 +135,16 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	)
 	require.NoError(t, baseErr)
 
-	var item map[string]map[string]interface{}
-	baseErr = json.NewDecoder(baseResp.Body).Decode(&item)
+	var baseItem map[string]map[string]interface{}
+	baseErr = json.NewDecoder(baseResp.Body).Decode(&baseItem)
 	require.NoError(t, baseErr)
 
-	baseItemID = item["item"]["id"].(string)
+	baseItemID = baseItem["item"]["id"].(string)
 	_, baseErr = uuid.Parse(baseItemID)
 	require.NoError(t, baseErr)
 
 	/*
-		Prepare a gone item (deleted):
+		Prepare a gone baseItem (deleted):
 		1) Create an item
 		2) Delete it
 	*/
@@ -166,10 +166,12 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	)
 	require.NoError(t, goneErr)
 
-	goneErr = json.NewDecoder(goneResp.Body).Decode(&item)
+	var goneItem map[string]map[string]interface{}
+
+	goneErr = json.NewDecoder(goneResp.Body).Decode(&goneItem)
 	require.NoError(t, goneErr)
 
-	goneItemID = item["item"]["id"].(string)
+	goneItemID = goneItem["item"]["id"].(string)
 	_, goneErr = uuid.Parse(goneItemID)
 	require.NoError(t, goneErr)
 
@@ -387,7 +389,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         uuid.New().String(),
 				payload:        map[string]interface{}{},
 				expectedStatus: http.StatusNotFound,
-				expectedError:  "item not found",
+				expectedError:  "baseItem not found",
 			},
 			{
 				name:           "Gone - Item Has Deleted",
@@ -395,7 +397,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         goneItemID,
 				payload:        map[string]interface{}{},
 				expectedStatus: http.StatusGone,
-				expectedError:  "item is already deleted",
+				expectedError:  "baseItem is already deleted",
 			},
 		}
 
@@ -448,14 +450,14 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				token:          token,
 				itemID:         uuid.New().String(),
 				expectedStatus: http.StatusNotFound,
-				expectedError:  "item not found",
+				expectedError:  "baseItem not found",
 			},
 			{
 				name:           "Gone - Item Has Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
-				expectedError:  "item is already deleted",
+				expectedError:  "baseItem is already deleted",
 			},
 		}
 
