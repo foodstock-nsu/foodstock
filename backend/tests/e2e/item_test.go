@@ -143,6 +143,37 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	_, baseErr = uuid.Parse(baseItemID)
 	require.NoError(t, baseErr)
 
+	/*
+		Prepare a gone item (deleted):
+		1) Create a item
+		2) Delete it
+	*/
+
+	var goneItemID string
+
+	gonePayload := map[string]interface{}{
+		"name":        "Сэндвич с говядиной",
+		"description": "Сэндвич с говядиной и острым соусом",
+		"category":    "breakfast",
+		"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
+		"nutrition":   nil,
+	}
+	goneResp, goneErr := app.doRequestAuth(
+		"POST",
+		"/api/v1/admin/items",
+		basePayload,
+		token,
+	)
+	require.NoError(t, goneErr)
+
+	var goneItem map[string]map[string]interface{}
+	goneErr = json.NewDecoder(goneResp.Body).Decode(&goneItem)
+	require.NoError(t, goneErr)
+
+	goneItemID = goneItem["item"]["id"].(string)
+	_, goneErr = uuid.Parse(goneItemID)
+	require.NoError(t, goneErr)
+
 	t.Run("Create Item - Bad Cases", func(t *testing.T) {
 		type testCase struct {
 			name           string
@@ -359,6 +390,14 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedStatus: http.StatusNotFound,
 				expectedError:  "item not found",
 			},
+			{
+				name:           "Gone - Item Has Deleted",
+				token:          token,
+				itemID:         goneItemID,
+				payload:        map[string]interface{}{},
+				expectedStatus: http.StatusGone,
+				expectedError:  "item is already deleted",
+			},
 		}
 
 		for _, tt := range tests {
@@ -411,6 +450,13 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				itemID:         uuid.New().String(),
 				expectedStatus: http.StatusNotFound,
 				expectedError:  "item not found",
+			},
+			{
+				name:           "Gone - Item Has Deleted",
+				token:          token,
+				itemID:         goneItemID,
+				expectedStatus: http.StatusGone,
+				expectedError:  "item is already deleted",
 			},
 		}
 
