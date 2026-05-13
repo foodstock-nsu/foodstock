@@ -101,6 +101,7 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 				utils.VPtr(float64(10)),
 				utils.VPtr(float64(30))),
 			time.Now().UTC(),
+			nil,
 		),
 	)
 	_ = itemRepo.Create(
@@ -117,6 +118,7 @@ func (s *LocationItemRepoSuite) SetupSuite() {
 				utils.VPtr(float64(10)),
 				utils.VPtr(float64(30))),
 			time.Now().UTC(),
+			nil,
 		),
 	)
 

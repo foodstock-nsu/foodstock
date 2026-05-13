@@ -15,23 +15,21 @@ import (
 )
 
 func TestMapItemToSQLCCreate(t *testing.T) {
-	desc := "Test Description"
-	photo := "https://example.com/photo.jpg"
 	nutrition := model.RestoreNutrition(
 		utils.VPtr(100),
 		utils.VPtr(10.5),
 		utils.VPtr(5.5),
 		utils.VPtr(20.5),
 	)
-
 	item := model.RestoreItem(
 		uuid.New(),
 		"Test Item",
-		&desc,
+		utils.VPtr("Test Description"),
 		model.ItemLunch,
-		photo,
+		"https://example.com/photo.jpg",
 		nutrition,
 		time.Now().UTC(),
+		nil,
 	)
 
 	mapped := mapper.MapItemToSQLCCreate(item)
@@ -88,7 +86,6 @@ func TestMapSQLCToItem(t *testing.T) {
 }
 
 func TestMapItemToSQLCUpdate(t *testing.T) {
-	desc := "Update Description"
 	nutrition := model.RestoreNutrition(
 		utils.VPtr(150),
 		utils.VPtr(12.0),
@@ -99,11 +96,12 @@ func TestMapItemToSQLCUpdate(t *testing.T) {
 	item := model.RestoreItem(
 		uuid.New(),
 		"Update Item",
-		&desc,
+		utils.VPtr("Update Description"),
 		model.ItemDrinks,
 		"https://example.com/photo.jpg",
 		nutrition,
 		time.Now().UTC(),
+		nil,
 	)
 
 	mapped := mapper.MapItemToSQLCUpdate(item)
@@ -114,6 +112,25 @@ func TestMapItemToSQLCUpdate(t *testing.T) {
 	assert.Equal(t, *item.Description(), mapped.Description.String)
 	assert.True(t, mapped.Calories.Valid)
 	assert.Equal(t, int32(*item.Nutrition().Calories()), mapped.Calories.Int32)
+}
+
+func TestMapItemToSQLCSoftDelete(t *testing.T) {
+	item := model.RestoreItem(
+		uuid.New(),
+		"Update Item",
+		nil,
+		model.ItemDrinks,
+		"https://example.com/photo.jpg",
+		nil,
+		time.Now().UTC(),
+		utils.VPtr(time.Now().UTC().Add(time.Second)),
+	)
+
+	mapped := mapper.MapItemToSQLCSoftDelete(item)
+
+	require.True(t, mapped.ID.Valid)
+	require.True(t, mapped.DeletedAt.Valid)
+	assert.Equal(t, *item.DeletedAt(), mapped.DeletedAt.Time)
 }
 
 func TestMapSQLCToItems(t *testing.T) {

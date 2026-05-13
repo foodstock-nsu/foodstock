@@ -70,6 +70,7 @@ func (s *ItemRepoSuite) SetupSuite() {
 			utils.VPtr(float64(5)),
 			utils.VPtr(float64(15))),
 		time.Now().UTC().Truncate(time.Microsecond),
+		nil,
 	)
 }
 
@@ -133,6 +134,7 @@ func (s *ItemRepoSuite) TestUpdate() {
 			utils.VPtr(float64(10)),
 			utils.VPtr(float64(30))),
 		s.testItem.CreatedAt(),
+		nil,
 	)
 
 	err = s.repo.Update(s.ctx, updatedItem)
@@ -145,12 +147,12 @@ func (s *ItemRepoSuite) TestUpdate() {
 	s.Require().Equal(100, *res.Nutrition().Calories())
 }
 
-func (s *LocationRepoSuite) TestSoftDelete() {
+func (s *ItemRepoSuite) TestSoftDelete() {
 	// Create the location in advance
 	_ = s.repo.Create(s.ctx, s.testItem)
 
 	// Delete it (change state in database)
-	_ = s.testLocation.Delete()
+	_ = s.testItem.Delete()
 
 	err := s.repo.SoftDelete(s.ctx, s.testItem)
 	s.Require().NoError(err)
@@ -192,6 +194,7 @@ func (s *ItemRepoSuite) TestListAll() {
 			utils.VPtr(float64(10)),
 			utils.VPtr(float64(30))),
 		time.Now().UTC(),
+		nil,
 	)
 	err = s.repo.Create(s.ctx, item2)
 	s.Require().NoError(err)
@@ -218,6 +221,7 @@ func (s *ItemRepoSuite) TestListByIDs() {
 			utils.VPtr(float64(10)),
 			utils.VPtr(float64(30))),
 		time.Now().UTC(),
+		nil,
 	)
 	err = s.repo.Create(s.ctx, item2)
 	s.Require().NoError(err)
