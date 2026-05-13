@@ -37,6 +37,7 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrCreateItemDB),
 			errors.Is(err, ucerrs.ErrGetItemDB),
 			errors.Is(err, ucerrs.ErrUpdateItemDB),
+			errors.Is(err, ucerrs.ErrSoftDeleteItemDB),
 			errors.Is(err, ucerrs.ErrDeleteItemDB),
 			errors.Is(err, ucerrs.ErrListAllItemsDB),
 			errors.Is(err, ucerrs.ErrListItemsByIDsDB),
@@ -101,7 +102,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 			nil,
 		)
 
-	case errors.Is(err, ucerrs.ErrLocationAlreadyDeleted):
+	case errors.Is(err, ucerrs.ErrLocationAlreadyDeleted),
+		errors.Is(err, ucerrs.ErrItemAlreadyDeleted):
 		return pkgerrs.NewOutError(http.StatusGone, err.Error(), nil)
 
 	case errors.Is(err, ucerrs.ErrLocationIsNotOperational):

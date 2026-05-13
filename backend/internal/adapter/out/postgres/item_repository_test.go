@@ -145,6 +145,17 @@ func (s *ItemRepoSuite) TestUpdate() {
 	s.Require().Equal(100, *res.Nutrition().Calories())
 }
 
+func (s *LocationRepoSuite) TestSoftDelete() {
+	// Create the location in advance
+	_ = s.repo.Create(s.ctx, s.testItem)
+
+	// Delete it (change state in database)
+	_ = s.testLocation.Delete()
+
+	err := s.repo.SoftDelete(s.ctx, s.testItem)
+	s.Require().NoError(err)
+}
+
 func (s *ItemRepoSuite) TestDelete() {
 	err := s.repo.Create(s.ctx, s.testItem)
 	s.Require().NoError(err)

@@ -490,6 +490,14 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "location is already deleted"
+    ItemIsNotAvailableError:
+      description: Товар недоступен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "item is already deleted"
 
     LocationIsNotOperationalError:
       description: Указанная торговая точка не принимает заказы
@@ -1112,6 +1120,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/ItemNotFoundError'
+        '410':
+          $ref: "#/components/responses/ItemIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"
     delete:
@@ -1136,5 +1146,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/ItemNotFoundError'
+        '410':
+          $ref: "#/components/responses/ItemIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"

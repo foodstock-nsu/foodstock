@@ -5,6 +5,7 @@ import (
 	"backend/internal/domain/model"
 	pkgpostgres "backend/pkg/postgres"
 	"backend/pkg/utils"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -55,9 +56,16 @@ func MapItemToSQLCCreate(item *model.Item) sqlc.CreateItemParams {
 }
 
 func MapSQLCToItem(raw sqlc.Item) *model.Item {
-	var desc *string
+	var (
+		desc      *string
+		deletedAt *time.Time
+	)
+
 	if raw.Description.Valid {
 		desc = &raw.Description.String
+	}
+	if raw.DeletedAt.Valid {
+		deletedAt = &raw.DeletedAt.Time
 	}
 
 	proteins, _ := pkgpostgres.NumericToFloat64(raw.Proteins)
@@ -77,6 +85,7 @@ func MapSQLCToItem(raw sqlc.Item) *model.Item {
 			utils.VPtr(carbs),
 		),
 		raw.CreatedAt.Time,
+		deletedAt,
 	)
 }
 
@@ -117,6 +126,23 @@ func MapItemToSQLCUpdate(item *model.Item) sqlc.UpdateItemParams {
 		Proteins:    proteins,
 		Fats:        fats,
 		Carbs:       carbs,
+	}
+}
+
+func MapItemToSQLCSoftDelete(item *model.Item) sqlc.DeleteItemSoftParams {
+	var deletedAt pgtype.Timestamptz
+	if item.DeletedAt() != nil {
+		deletedAt = pgtype.Timestamptz{
+			Time:  *item.DeletedAt(),
+			Valid: true,
+		}
+	}
+	return sqlc.DeleteItemSoftParams{
+		ID: pgtype.UUID{
+			Bytes: item.ID(),
+			Valid: true,
+		},
+		DeletedAt: deletedAt,
 	}
 }
 

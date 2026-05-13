@@ -2,11 +2,15 @@ package model
 
 import (
 	pkgerrs "backend/pkg/errs"
+	"backend/pkg/utils"
+	"errors"
 	"time"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
+
+var ErrCannotDeleteItem = errors.New("item is already deleted")
 
 type ItemCategory string
 
@@ -123,6 +127,7 @@ type Item struct {
 	photoUrl    string
 	nutrition   *Nutrition
 	createdAt   time.Time
+	deletedAt   *time.Time
 }
 
 func NewItem(
@@ -163,6 +168,7 @@ func NewItem(
 		photoUrl:    photoUrl,
 		nutrition:   nutrition,
 		createdAt:   time.Now().UTC(),
+		deletedAt:   nil,
 	}, nil
 }
 
@@ -174,6 +180,7 @@ func RestoreItem(
 	photoUrl string,
 	nutrition *Nutrition,
 	createdAt time.Time,
+	deletedAt *time.Time,
 ) *Item {
 	return &Item{
 		id:          id,
@@ -183,6 +190,7 @@ func RestoreItem(
 		photoUrl:    photoUrl,
 		nutrition:   nutrition,
 		createdAt:   createdAt,
+		deletedAt:   deletedAt,
 	}
 }
 
@@ -195,6 +203,11 @@ func (i *Item) Category() ItemCategory { return i.category }
 func (i *Item) PhotoURL() string       { return i.photoUrl }
 func (i *Item) Nutrition() *Nutrition  { return i.nutrition }
 func (i *Item) CreatedAt() time.Time   { return i.createdAt }
+func (i *Item) DeletedAt() *time.Time  { return i.deletedAt }
+
+// ================ Business Logic ================
+
+func (i *Item) IsDeleted() bool { return i.deletedAt != nil }
 
 // ================ Mutation ================
 
@@ -249,5 +262,13 @@ func (i *Item) Update(
 		i.nutrition = nutrition
 	}
 
+	return nil
+}
+
+func (i *Item) Delete() error {
+	if i.deletedAt != nil {
+		return ErrCannotDeleteItem
+	}
+	i.deletedAt = utils.VPtr(time.Now().UTC())
 	return nil
 }

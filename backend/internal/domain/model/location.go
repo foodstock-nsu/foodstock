@@ -11,9 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrCannotDelete = errors.New("location is already deleted")
-)
+var ErrCannotDeleteLocation = errors.New("location is already deleted")
 
 // ================ Rich model for Location (e.g. Fridge) ================
 
@@ -127,7 +125,7 @@ func (l *Location) Deactivate() {
 
 func (l *Location) Delete() error {
 	if l.DeletedAt() != nil {
-		return ErrCannotDelete
+		return ErrCannotDeleteLocation
 	}
 	l.deletedAt = pkgutils.VPtr(time.Now().UTC())
 	return nil

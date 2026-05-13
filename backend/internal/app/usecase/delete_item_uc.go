@@ -31,21 +31,28 @@ func NewDeleteItemUC(
 
 func (uc *DeleteItemUC) Execute(ctx context.Context, in dto.DeleteItemInput) error {
 	err := uc.trManager.Do(ctx, func(ctx context.Context) error {
-		// Delete item in each catalog
-		deleteErr := uc.locationItem.DeleteByItemID(ctx, in.ID)
-		if deleteErr != nil {
-			return ucerrs.Wrap(
-				ucerrs.ErrDeleteLocationItemsByItemIDDB, deleteErr,
-			)
-		}
-
-		// Delete item in items list
-		deleteErr = uc.item.Delete(ctx, in.ID)
-		if deleteErr != nil {
-			if errors.Is(deleteErr, pkgerrs.ErrObjectNotFound) {
+		// Get item by id
+		item, getErr := uc.item.Get(ctx, in.ID)
+		if getErr != nil {
+			if errors.Is(getErr, pkgerrs.ErrObjectNotFound) {
 				return ucerrs.ErrItemNotFound
 			}
-			return ucerrs.Wrap(ucerrs.ErrDeleteItemDB, deleteErr)
+			return ucerrs.Wrap(ucerrs.ErrGetItemDB, getErr)
+		}
+
+		// Delete it in items list
+		delErr := item.Delete()
+		if delErr != nil {
+			return ucerrs.ErrItemAlreadyDeleted
+		}
+
+		if delErr = uc.item.SoftDelete(ctx, item); delErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrSoftDeleteItemDB, delErr)
+		}
+
+		// Delete item in each catalog
+		if delErr = uc.locationItem.DeleteByItemID(ctx, item.ID()); delErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrDeleteLocationItemsByItemIDDB, delErr)
 		}
 
 		return nil
