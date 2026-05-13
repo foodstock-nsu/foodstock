@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -166,11 +166,10 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	)
 	require.NoError(t, goneErr)
 
-	var goneItem map[string]map[string]interface{}
-	goneErr = json.NewDecoder(goneResp.Body).Decode(&goneItem)
+	goneErr = json.NewDecoder(goneResp.Body).Decode(&item)
 	require.NoError(t, goneErr)
 
-	goneItemID = goneItem["item"]["id"].(string)
+	goneItemID = item["item"]["id"].(string)
 	_, goneErr = uuid.Parse(goneItemID)
 	require.NoError(t, goneErr)
 
