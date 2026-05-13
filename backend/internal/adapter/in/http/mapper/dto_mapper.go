@@ -190,6 +190,11 @@ func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInpu
 	}
 }
 
+func MapRequestToGetItem(req httpdto.GetItemRequest) appdto.GetItemInput {
+	id, _ := uuid.Parse(req.ID)
+	return appdto.GetItemInput{ID: id}
+}
+
 func MapRequestToUpdateItem(req httpdto.UpdateItemRequest) appdto.UpdateItemInput {
 	id, _ := uuid.Parse(req.ID)
 
@@ -233,6 +238,10 @@ func mapOutputToItemResponse(out appdto.ItemOutput) httpdto.ItemResponse {
 
 func MapOutputToCreateItem(out appdto.CreateItemOutput) httpdto.CreateItemResponse {
 	return httpdto.CreateItemResponse{Item: mapOutputToItemResponse(out.Item)}
+}
+
+func MapOutputToGetItem(out appdto.GetItemOutput) httpdto.GetItemResponse {
+	return httpdto.GetItemResponse{Item: mapOutputToItemResponse(out.Item)}
 }
 
 func MapOutputToUpdateItem(out appdto.UpdateItemOutput) httpdto.UpdateItemResponse {

@@ -15,6 +15,7 @@ import (
 type ItemHandler struct {
 	log          *slog.Logger
 	createItemUC *usecase.CreateItemUC
+	getItemUC    *usecase.GetItemUC
 	updateItemUC *usecase.UpdateItemUC
 	deleteItemUC *usecase.DeleteItemUC
 	listItemsUC  *usecase.ListItemsUC
@@ -23,6 +24,7 @@ type ItemHandler struct {
 func NewItemHandler(
 	log *slog.Logger,
 	createItemUC *usecase.CreateItemUC,
+	getItemUC *usecase.GetItemUC,
 	updateItemUC *usecase.UpdateItemUC,
 	deleteItemUC *usecase.DeleteItemUC,
 	listItemsUC *usecase.ListItemsUC,
@@ -30,6 +32,7 @@ func NewItemHandler(
 	return &ItemHandler{
 		log:          log,
 		createItemUC: createItemUC,
+		getItemUC:    getItemUC,
 		updateItemUC: updateItemUC,
 		deleteItemUC: deleteItemUC,
 		listItemsUC:  listItemsUC,
@@ -61,6 +64,29 @@ func (h *ItemHandler) Create(c echo.Context) error {
 	)
 
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateItem(out))
+}
+
+func (h *ItemHandler) Get(c echo.Context) error {
+	var req httpdto.GetItemRequest
+
+	err := c.Bind(&req)
+	if err != nil {
+		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	if _, err = uuid.Parse(req.ID); err != nil {
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	out, err := h.getItemUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToGetItem(req),
+	)
+	if err != nil {
+		return h.returnErr(c, "failed to get item", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToGetItem(out))
 }
 
 func (h *ItemHandler) Update(c echo.Context) error {

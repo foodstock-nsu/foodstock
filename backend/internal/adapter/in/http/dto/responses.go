@@ -73,6 +73,10 @@ type CreateItemResponse struct {
 	Item ItemResponse `json:"item"`
 }
 
+type GetItemResponse struct {
+	Item ItemResponse `json:"item"`
+}
+
 type UpdateItemResponse struct {
 	Item ItemResponse `json:"item"`
 }

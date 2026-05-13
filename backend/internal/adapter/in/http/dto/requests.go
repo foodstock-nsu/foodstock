@@ -49,6 +49,10 @@ type CreateItemRequest struct {
 	Nutrition   *NutritionRequest `json:"nutrition"`
 }
 
+type GetItemRequest struct {
+	ID string `param:"id"`
+}
+
 type UpdateItemRequest struct {
 	ID          string            `param:"id"`
 	Name        *string           `json:"name"`
