@@ -161,7 +161,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	goneResp, goneErr := app.doRequestAuth(
 		"POST",
 		"/api/v1/admin/items",
-		basePayload,
+		gonePayload,
 		token,
 	)
 	require.NoError(t, goneErr)
