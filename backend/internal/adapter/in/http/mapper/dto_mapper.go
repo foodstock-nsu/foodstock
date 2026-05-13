@@ -30,7 +30,7 @@ func MapRequestToGetCatalog(req httpdto.GetCatalogRequest) appdto.GetCatalogInpu
 	return appdto.GetCatalogInput{Slug: req.Slug}
 }
 
-func mapOutputToCatalogItem(out appdto.CatalogItemResponse) httpdto.CatalogItemResponse {
+func mapOutputToCatalogItem(out appdto.CatalogItemOutput) httpdto.CatalogItemResponse {
 	nutrition := mapOutputToNutrition(*out.Nutrition)
 	return httpdto.CatalogItemResponse{
 		ItemID:      out.ItemID.String(),
@@ -119,7 +119,7 @@ func MapRequestToGetQRCode(req httpdto.GetQRCodeRequest) appdto.GetQRCodeInput {
 	return appdto.GetQRCodeInput{Slug: req.Slug}
 }
 
-func mapOutputToLocation(out appdto.LocationResponse) httpdto.LocationResponse {
+func mapOutputToLocation(out appdto.LocationOutput) httpdto.LocationResponse {
 	var deletedAt *string
 	if out.DeletedAt != nil {
 		deletedAt = pkgutils.VPtr(out.DeletedAt.String())
@@ -157,8 +157,8 @@ func MapOutputToListLocations(out appdto.ListLocationsOutput) httpdto.ListLocati
 
 // --- ITEMS & NUTRITION ---
 
-func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionResponse {
-	return appdto.NutritionResponse{
+func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionOutput {
+	return appdto.NutritionOutput{
 		Calories: req.Calories,
 		Proteins: req.Proteins,
 		Fats:     req.Fats,
@@ -166,7 +166,7 @@ func mapRequestToNutrition(req httpdto.NutritionRequest) appdto.NutritionRespons
 	}
 }
 
-func mapOutputToNutrition(out appdto.NutritionResponse) httpdto.NutritionResponse {
+func mapOutputToNutrition(out appdto.NutritionOutput) httpdto.NutritionResponse {
 	return httpdto.NutritionResponse{
 		Calories: out.Calories,
 		Proteins: out.Proteins,
@@ -176,7 +176,7 @@ func mapOutputToNutrition(out appdto.NutritionResponse) httpdto.NutritionRespons
 }
 
 func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInput {
-	var nutrition *appdto.NutritionResponse
+	var nutrition *appdto.NutritionOutput
 	if req.Nutrition != nil {
 		mapped := mapRequestToNutrition(*req.Nutrition)
 		nutrition = &mapped
@@ -193,7 +193,7 @@ func MapRequestToCreateItem(req httpdto.CreateItemRequest) appdto.CreateItemInpu
 func MapRequestToUpdateItem(req httpdto.UpdateItemRequest) appdto.UpdateItemInput {
 	id, _ := uuid.Parse(req.ID)
 
-	var nutrition *appdto.NutritionResponse
+	var nutrition *appdto.NutritionOutput
 	if req.Nutrition != nil {
 		mapped := mapRequestToNutrition(*req.Nutrition)
 		nutrition = &mapped
@@ -214,7 +214,7 @@ func MapRequestToDeleteItem(req httpdto.DeleteItemRequest) appdto.DeleteItemInpu
 	return appdto.DeleteItemInput{ID: id}
 }
 
-func mapOutputToItemResponse(out appdto.ItemResponse) httpdto.ItemResponse {
+func mapOutputToItemResponse(out appdto.ItemOutput) httpdto.ItemResponse {
 	var nutrition *httpdto.NutritionResponse
 	if out.Nutrition != nil {
 		mapped := mapOutputToNutrition(*out.Nutrition)
@@ -251,7 +251,7 @@ func MapRequestToGetInventory(req httpdto.GetInventoryRequest) appdto.GetInvento
 	return appdto.GetInventoryInput{Slug: req.Slug}
 }
 
-func mapOutputToInventoryItem(out appdto.InventoryItemResponse) httpdto.InventoryItemResponse {
+func mapOutputToInventoryItem(out appdto.InventoryItemOutput) httpdto.InventoryItemResponse {
 	return httpdto.InventoryItemResponse{
 		ItemID:      out.ItemID.String(),
 		Price:       out.Price,
@@ -268,9 +268,9 @@ func MapOutputToGetInventory(out appdto.GetInventoryOutput) httpdto.GetInventory
 	return httpdto.GetInventoryResponse{Inventory: arr}
 }
 
-func mapRequestToInventoryItem(req httpdto.InventoryItemRequest) appdto.InventoryItemRequest {
+func mapRequestToInventoryItem(req httpdto.InventoryItemRequest) appdto.InventoryItemInput {
 	itemID, _ := uuid.Parse(req.ItemID)
-	return appdto.InventoryItemRequest{
+	return appdto.InventoryItemInput{
 		ItemID:      itemID,
 		Price:       req.Price,
 		IsAvailable: req.IsAvailable,
@@ -279,7 +279,7 @@ func mapRequestToInventoryItem(req httpdto.InventoryItemRequest) appdto.Inventor
 }
 
 func MapRequestToUpdateInventory(req httpdto.UpdateInventoryRequest) appdto.UpdateInventoryInput {
-	arr := make([]appdto.InventoryItemRequest, len(req.Inventory))
+	arr := make([]appdto.InventoryItemInput, len(req.Inventory))
 	for i := range req.Inventory {
 		arr[i] = mapRequestToInventoryItem(req.Inventory[i])
 	}

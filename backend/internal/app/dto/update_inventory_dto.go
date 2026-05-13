@@ -2,9 +2,9 @@ package dto
 
 type UpdateInventoryInput struct {
 	Slug      string
-	Inventory []InventoryItemRequest
+	Inventory []InventoryItemInput
 }
 
 type UpdateInventoryOutput struct {
-	Inventory []InventoryItemResponse
+	Inventory []InventoryItemOutput
 }

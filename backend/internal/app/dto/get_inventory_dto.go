@@ -5,5 +5,5 @@ type GetInventoryInput struct {
 }
 
 type GetInventoryOutput struct {
-	Inventory []InventoryItemResponse
+	Inventory []InventoryItemOutput
 }

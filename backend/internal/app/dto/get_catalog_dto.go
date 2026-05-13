@@ -5,7 +5,7 @@ type GetCatalogInput struct {
 }
 
 type GetCatalogOutput struct {
-	Location   LocationResponse
+	Location   LocationOutput
 	Categories []string
-	Items      []CatalogItemResponse
+	Items      []CatalogItemOutput
 }
