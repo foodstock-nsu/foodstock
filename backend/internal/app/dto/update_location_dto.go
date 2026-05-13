@@ -8,5 +8,5 @@ type UpdateLocationInput struct {
 }
 
 type UpdateLocationOutput struct {
-	Location LocationResponse
+	Location LocationOutput
 }

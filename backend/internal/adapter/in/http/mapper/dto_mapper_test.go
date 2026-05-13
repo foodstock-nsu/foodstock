@@ -57,14 +57,14 @@ func TestMapOutputToGetCatalog(t *testing.T) {
 	id := uuid.New()
 	locID := uuid.New()
 	now := time.Now().UTC()
-	nutritionOut := appdto.NutritionResponse{
+	nutritionOut := appdto.NutritionOutput{
 		Calories: utils.VPtr(100),
 		Proteins: utils.VPtr(10.5),
 		Fats:     utils.VPtr(5.5),
 		Carbs:    utils.VPtr(20.0),
 	}
 	out := appdto.GetCatalogOutput{
-		Location: appdto.LocationResponse{
+		Location: appdto.LocationOutput{
 			ID:        locID,
 			Slug:      "test_1",
 			Name:      "test name of location",
@@ -74,7 +74,7 @@ func TestMapOutputToGetCatalog(t *testing.T) {
 			DeletedAt: nil,
 		},
 		Categories: []string{"drinks"},
-		Items: []appdto.CatalogItemResponse{
+		Items: []appdto.CatalogItemOutput{
 			{
 				ItemID:      id,
 				Name:        "name",
@@ -190,7 +190,7 @@ func TestMapOutputToCreateLocation(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 	out := appdto.CreateLocationOutput{
-		Location: appdto.LocationResponse{
+		Location: appdto.LocationOutput{
 			ID: id, Slug: "slug", Name: "name", Address: "address", IsActive: true, CreatedAt: now,
 		},
 	}
@@ -231,7 +231,7 @@ func TestMapOutputToUpdateLocation(t *testing.T) {
 	now := time.Now()
 
 	out := appdto.UpdateLocationOutput{
-		Location: appdto.LocationResponse{
+		Location: appdto.LocationOutput{
 			ID:        id,
 			Slug:      "slug",
 			Name:      "name",
@@ -271,8 +271,9 @@ func TestMapRequestToDeleteLocation(t *testing.T) {
 func TestMapOutputToListLocations(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
+
 	out := appdto.ListLocationsOutput{
-		Locations: []appdto.LocationResponse{
+		Locations: []appdto.LocationOutput{
 			{
 				ID:        id,
 				Slug:      "slug",
@@ -316,23 +317,35 @@ func TestMapRequestToGetQRCode(t *testing.T) {
 // --- ITEMS & NUTRITION ---
 
 func TestMapRequestToCreateItem(t *testing.T) {
-	desc := "description"
-	cal := 100
 	req := httpdto.CreateItemRequest{
 		Name:        "name",
-		Description: &desc,
+		Description: utils.VPtr("description"),
 		Category:    "cat",
 		PhotoURL:    "url",
-		Nutrition:   &httpdto.NutritionRequest{Calories: &cal},
+		Nutrition:   &httpdto.NutritionRequest{Calories: utils.VPtr(100)},
 	}
+
 	expected := appdto.CreateItemInput{
 		Name:        "name",
-		Description: &desc,
+		Description: utils.VPtr("description"),
 		Category:    "cat",
 		PhotoURL:    "url",
-		Nutrition:   &appdto.NutritionResponse{Calories: &cal},
+		Nutrition:   &appdto.NutritionOutput{Calories: utils.VPtr(100)},
 	}
+
 	result := mapper.MapRequestToCreateItem(req)
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
+	}
+}
+
+func TestMapRequestToGetItem(t *testing.T) {
+	id := uuid.New()
+
+	req := httpdto.GetItemRequest{ID: id.String()}
+	expected := appdto.GetItemInput{ID: id}
+
+	result := mapper.MapRequestToGetItem(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}
@@ -340,18 +353,19 @@ func TestMapRequestToCreateItem(t *testing.T) {
 
 func TestMapRequestToUpdateItem(t *testing.T) {
 	id := uuid.New()
-	name := "new name"
-	cal := 200
+
 	req := httpdto.UpdateItemRequest{
 		ID:        id.String(),
-		Name:      &name,
-		Nutrition: &httpdto.NutritionRequest{Calories: &cal},
+		Name:      utils.VPtr("new name"),
+		Nutrition: &httpdto.NutritionRequest{Calories: utils.VPtr(200)},
 	}
+
 	expected := appdto.UpdateItemInput{
 		ID:        id,
-		Name:      &name,
-		Nutrition: &appdto.NutritionResponse{Calories: &cal},
+		Name:      utils.VPtr("new name"),
+		Nutrition: &appdto.NutritionOutput{Calories: utils.VPtr(200)},
 	}
+
 	result := mapper.MapRequestToUpdateItem(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -360,8 +374,10 @@ func TestMapRequestToUpdateItem(t *testing.T) {
 
 func TestMapRequestToDeleteItem(t *testing.T) {
 	id := uuid.New()
+
 	req := httpdto.DeleteItemRequest{ID: id.String()}
 	expected := appdto.DeleteItemInput{ID: id}
+
 	result := mapper.MapRequestToDeleteItem(req)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -371,36 +387,55 @@ func TestMapRequestToDeleteItem(t *testing.T) {
 func TestMapOutputToCreateItem(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
-	calories := 640
 	out := appdto.CreateItemOutput{
-		Item: appdto.ItemResponse{
-			ID:       id,
-			Name:     "name",
-			Category: "cat",
-			Nutrition: &appdto.NutritionResponse{
-				Calories: &calories,
-				Proteins: nil,
-				Fats:     nil,
-				Carbs:    nil,
-			},
+		Item: appdto.ItemOutput{
+			ID:        id,
+			Name:      "name",
+			Category:  "cat",
+			Nutrition: &appdto.NutritionOutput{Calories: utils.VPtr(640)},
 			CreatedAt: now,
 		},
 	}
+
 	expected := httpdto.CreateItemResponse{
 		Item: httpdto.ItemResponse{
-			ID:       id.String(),
-			Name:     "name",
-			Category: "cat",
-			Nutrition: &httpdto.NutritionResponse{
-				Calories: &calories,
-				Proteins: nil,
-				Fats:     nil,
-				Carbs:    nil,
-			},
+			ID:        id.String(),
+			Name:      "name",
+			Category:  "cat",
+			Nutrition: &httpdto.NutritionResponse{Calories: utils.VPtr(640)},
 			CreatedAt: now.String(),
 		},
 	}
+
 	result := mapper.MapOutputToCreateItem(out)
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
+	}
+}
+
+func TestMapOutputToGetItem(t *testing.T) {
+	id := uuid.New()
+	now := time.Now()
+
+	out := appdto.GetItemOutput{
+		Item: appdto.ItemOutput{
+			ID:        id,
+			Name:      "updated",
+			Category:  "cat",
+			CreatedAt: now,
+		},
+	}
+
+	expected := httpdto.GetItemResponse{
+		Item: httpdto.ItemResponse{
+			ID:        id.String(),
+			Name:      "updated",
+			Category:  "cat",
+			CreatedAt: now.String(),
+		},
+	}
+
+	result := mapper.MapOutputToGetItem(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}
@@ -409,16 +444,25 @@ func TestMapOutputToCreateItem(t *testing.T) {
 func TestMapOutputToUpdateItem(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
+
 	out := appdto.UpdateItemOutput{
-		Item: appdto.ItemResponse{
-			ID: id, Name: "updated", Category: "cat", CreatedAt: now,
+		Item: appdto.ItemOutput{
+			ID:        id,
+			Name:      "updated",
+			Category:  "cat",
+			CreatedAt: now,
 		},
 	}
+
 	expected := httpdto.UpdateItemResponse{
 		Item: httpdto.ItemResponse{
-			ID: id.String(), Name: "updated", Category: "cat", CreatedAt: now.String(),
+			ID:        id.String(),
+			Name:      "updated",
+			Category:  "cat",
+			CreatedAt: now.String(),
 		},
 	}
+
 	result := mapper.MapOutputToUpdateItem(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
@@ -428,16 +472,29 @@ func TestMapOutputToUpdateItem(t *testing.T) {
 func TestMapOutputToListItems(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
+
 	out := appdto.ListItemsOutput{
-		Items: []appdto.ItemResponse{
-			{ID: id, Name: "name", Category: "cat", CreatedAt: now},
+		Items: []appdto.ItemOutput{
+			{
+				ID:        id,
+				Name:      "name",
+				Category:  "cat",
+				CreatedAt: now,
+			},
 		},
 	}
+
 	expected := httpdto.ListItemsResponse{
 		Items: []httpdto.ItemResponse{
-			{ID: id.String(), Name: "name", Category: "cat", CreatedAt: now.String()},
+			{
+				ID:        id.String(),
+				Name:      "name",
+				Category:  "cat",
+				CreatedAt: now.String(),
+			},
 		},
 	}
+
 	result := mapper.MapOutputToListItems(out)
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)

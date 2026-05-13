@@ -45,7 +45,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 
 	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
@@ -110,6 +110,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		adminItems.Use(r.withAuth(r.tokenGen))
 		{
 			adminItems.POST("", r.Item.Create)
+			adminItems.GET("/:id", r.Item.Get)
 			adminItems.PATCH("/:id", r.Item.Update)
 			adminItems.DELETE("/:id", r.Item.Delete)
 			adminItems.GET("", r.Item.List)

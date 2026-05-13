@@ -328,6 +328,12 @@ components:
         item:
           $ref: "#/components/schemas/ItemResponse"
 
+    GetItemResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/ItemResponse"
+
     UpdateItemRequest:
       type: object
       properties:
@@ -1060,6 +1066,36 @@ paths:
         '500':
           $ref: "#/components/responses/InternalError"
   /api/v1/admin/items/{id}:
+    get:
+      tags: [ Admin Items ]
+      summary: Получить товар по ID
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      responses:
+        '200':
+          description: Объект товара
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetItemResponse'
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/ItemNotFoundError'
+        '410':
+          $ref: "#/components/responses/ItemIsNotAvailableError"
+        '500':
+          $ref: "#/components/responses/InternalError"
     patch:
       tags: [ Admin Items ]
       summary: Обновить данные товара

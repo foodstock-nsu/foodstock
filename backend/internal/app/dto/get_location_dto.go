@@ -5,5 +5,5 @@ type GetLocationInput struct {
 }
 
 type GetLocationOutput struct {
-	Location LocationResponse
+	Location LocationOutput
 }

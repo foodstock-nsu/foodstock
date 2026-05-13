@@ -36,6 +36,8 @@ func TestLocation_Lifecycle(t *testing.T) {
 		)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		_ = resp.Body.Close()
 	})
 
 	t.Run("Get Created Location", func(t *testing.T) {
@@ -49,6 +51,8 @@ func TestLocation_Lifecycle(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&loc)
 		require.NoError(t, err)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		assert.Equal(t, name, loc["location"]["name"])
 		assert.Equal(t, address, loc["location"]["address"])
 		assert.True(t, (loc["location"]["is_active"]).(bool))
@@ -60,6 +64,8 @@ func TestLocation_Lifecycle(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, "image/png", resp.Header.Get("Content-Type"))
+
+		defer func() { _ = resp.Body.Close() }()
 
 		bodyBytes, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
@@ -86,6 +92,8 @@ func TestLocation_Lifecycle(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&loc)
 		require.NoError(t, err)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		assert.Equal(t, name, loc["location"]["name"])
 		assert.Equal(t, address, loc["location"]["address"])
 		assert.False(t, (loc["location"]["is_active"]).(bool))
@@ -105,6 +113,8 @@ func TestLocation_Lifecycle(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&locs)
 		require.NoError(t, err)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		assert.Len(t, locs["locations"], 1)
 		assert.Equal(t, name, locs["locations"][0]["name"])
 		assert.Equal(t, address, locs["locations"][0]["address"])
@@ -116,6 +126,7 @@ func TestLocation_Lifecycle(t *testing.T) {
 		resp, err := app.doRequestAuth("DELETE", path, nil, token)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		_ = resp.Body.Close()
 	})
 }
 
@@ -244,10 +255,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -304,10 +312,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -345,10 +350,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -412,10 +414,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -495,10 +494,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("PATCH", path, tt.payload, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
@@ -555,10 +551,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				resp, err := app.doRequestAuth("DELETE", path, nil, tt.token)
 				require.NoError(t, err)
 
-				defer func(Body io.ReadCloser) {
-					err = Body.Close()
-					require.NoError(t, err)
-				}(resp.Body)
+				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 

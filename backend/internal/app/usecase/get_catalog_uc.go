@@ -85,7 +85,7 @@ func (uc *GetCatalogUC) Execute(ctx context.Context, in dto.GetCatalogInput) (dt
 
 	locationMapped := mapper.MapDomainToLocationDTO(location)
 	categories := make([]string, 0)
-	items := make([]dto.CatalogItemResponse, len(inventory))
+	items := make([]dto.CatalogItemOutput, len(inventory))
 
 	for i := range inventory {
 		item, ok := allItemsMap[inventory[i].ItemID()]
