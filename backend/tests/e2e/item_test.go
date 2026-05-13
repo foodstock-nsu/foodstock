@@ -145,7 +145,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 
 	/*
 		Prepare a gone item (deleted):
-		1) Create a item
+		1) Create an item
 		2) Delete it
 	*/
 

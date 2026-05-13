@@ -12,8 +12,9 @@ import (
 
 func MapItemToSQLCCreate(item *model.Item) sqlc.CreateItemParams {
 	var (
-		desc     pgtype.Text
-		calories pgtype.Int4
+		desc                  pgtype.Text
+		calories              pgtype.Int4
+		proteins, fats, carbs pgtype.Numeric
 	)
 
 	if item.Description() != nil {
@@ -23,16 +24,26 @@ func MapItemToSQLCCreate(item *model.Item) sqlc.CreateItemParams {
 		}
 	}
 
-	if item.Nutrition().Calories() != nil {
-		calories = pgtype.Int4{
-			Int32: int32(*item.Nutrition().Calories()),
-			Valid: true,
+	if item.Nutrition() != nil {
+		if item.Nutrition().Calories() != nil {
+			calories = pgtype.Int4{
+				Int32: int32(*item.Nutrition().Calories()),
+				Valid: true,
+			}
+		}
+
+		if item.Nutrition().Proteins() != nil {
+			proteins, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Proteins(), 1)
+		}
+
+		if item.Nutrition().Fats() != nil {
+			fats, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Fats(), 1)
+		}
+
+		if item.Nutrition().Carbs() != nil {
+			carbs, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Carbs(), 1)
 		}
 	}
-
-	proteins, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Proteins(), 1)
-	fats, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Fats(), 1)
-	carbs, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Carbs(), 1)
 
 	return sqlc.CreateItemParams{
 		ID: pgtype.UUID{
@@ -91,8 +102,9 @@ func MapSQLCToItem(raw sqlc.Item) *model.Item {
 
 func MapItemToSQLCUpdate(item *model.Item) sqlc.UpdateItemParams {
 	var (
-		desc     pgtype.Text
-		calories pgtype.Int4
+		desc                  pgtype.Text
+		calories              pgtype.Int4
+		proteins, fats, carbs pgtype.Numeric
 	)
 
 	if item.Description() != nil {
@@ -102,16 +114,26 @@ func MapItemToSQLCUpdate(item *model.Item) sqlc.UpdateItemParams {
 		}
 	}
 
-	if item.Nutrition().Calories() != nil {
-		calories = pgtype.Int4{
-			Int32: int32(*item.Nutrition().Calories()),
-			Valid: true,
+	if item.Nutrition() != nil {
+		if item.Nutrition().Calories() != nil {
+			calories = pgtype.Int4{
+				Int32: int32(*item.Nutrition().Calories()),
+				Valid: true,
+			}
+		}
+
+		if item.Nutrition().Proteins() != nil {
+			proteins, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Proteins(), 1)
+		}
+
+		if item.Nutrition().Fats() != nil {
+			fats, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Fats(), 1)
+		}
+
+		if item.Nutrition().Carbs() != nil {
+			carbs, _ = pkgpostgres.Float64ToNumeric(*item.Nutrition().Carbs(), 1)
 		}
 	}
-
-	proteins, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Proteins(), 1)
-	fats, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Fats(), 1)
-	carbs, _ := pkgpostgres.Float64ToNumeric(*item.Nutrition().Carbs(), 1)
 
 	return sqlc.UpdateItemParams{
 		ID: pgtype.UUID{
