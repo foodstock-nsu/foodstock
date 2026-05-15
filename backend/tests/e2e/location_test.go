@@ -139,19 +139,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		1) Create a location
 		2) Change its status to inactive (for specific errors)
 	*/
-	baseSlug := "test_base"
-	basePayload := map[string]interface{}{
-		"slug":    baseSlug,
-		"name":    "Base Test Location",
-		"address": "Base Test Address of Location",
-	}
-	_, createErr := app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/locations",
-		basePayload,
-		token,
-	)
-	require.NoError(t, createErr)
+	baseSlug := app.createLocation(t, nil, nil, nil)
 
 	_, updErr := app.doRequestAuth(
 		"PATCH",
@@ -167,25 +155,15 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		2) Delete it
 	*/
 	goneSlug := "test_gone"
-	_, createErr = app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/locations",
-		map[string]interface{}{
-			"slug":    goneSlug,
-			"name":    "Base Test Location",
-			"address": "Base Test Address of Location",
-		},
-		token,
-	)
-	require.NoError(t, createErr)
+	app.createLocation(t, goneSlug, nil, nil)
 
-	_, createErr = app.doRequestAuth(
+	_, delErr := app.doRequestAuth(
 		"DELETE",
 		fmt.Sprintf("/api/v1/admin/locations/%s", goneSlug),
 		nil,
 		token,
 	)
-	require.NoError(t, createErr)
+	require.NoError(t, delErr)
 
 	t.Run("Create Location - Bad Cases", func(t *testing.T) {
 		type testCase struct {

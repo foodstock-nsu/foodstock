@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -29,6 +29,7 @@ import (
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -306,12 +307,103 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 	return token
 }
 
-// tearDownE2E можно вызвать при завершении пакета тестов, если нужно
-// принудительно освободить ресурсы (обычно go test сам все убивает при выходе)
-func tearDownE2E() {
-	if appInstance != nil {
-		appInstance.server.Close()
-		appInstance.dbClient.Close()
-		_ = appInstance.pg.Close(context.Background())
+/*
+Helper for e2e tests.
+Creates the new location with specified parameters.  **
+Returns external id of the created location.
+
+** If the slug, name or the address are not specified, then it uses default values instead.
+*/
+func (a *testApp) createLocation(t *testing.T, slug *string, name, address *string) string {
+	const path = "/api/v1/admin/locations"
+
+	var locSlug, locName, locAddress string
+
+	if slug != nil {
+		locSlug = *slug
+	} else {
+		locSlug = "test_1"
 	}
+
+	if name != nil {
+		locName = *name
+	} else {
+		locName = "Test Location"
+	}
+
+	if address != nil {
+		locAddress = *address
+	} else {
+		locAddress = "Address Of Test Location"
+	}
+
+	payload := map[string]interface{}{
+		"slug":    locSlug,
+		"name":    locName,
+		"address": locAddress,
+	}
+
+	_, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
+	require.NoError(t, err)
+
+	return locSlug
+}
+
+/*
+Helper for e2e tests.
+Creates the new item with default values.
+Returns external id of the created item.
+*/
+func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) string {
+	const path = "/api/v1/admin/items"
+
+	if payload == nil {
+		payload = map[string]interface{}{
+			"name":        "Сэндвич с курицей",
+			"description": "Сэндвич с курицей и соусом тар-тар",
+			"category":    "breakfast",
+			"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
+			"nutrition": map[string]interface{}{
+				"calories": 200,
+				"proteins": 23.6,
+				"fats":     1.9,
+				"carbs":    0.3,
+			},
+		}
+	}
+
+	resp, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var item map[string]map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&item)
+	require.NoError(t, err)
+
+	idStr := item["item"]["id"].(string)
+
+	_, err = uuid.Parse(idStr)
+	require.NoError(t, err)
+
+	return idStr
+}
+
+/*
+Helper for e2e tests.
+Sends some requests to prepare app for tests:
+ 1. Create location with default values
+ 2. Create several items with default values as well
+
+Returns: slug of location, ids of created items as a slice
+*/
+func (a *testApp) seedInventoryData(t *testing.T) (string, []string) {
+	app := setupE2E(t)
+
+	slug := app.createLocation(t, nil, nil, nil)
+	itemID1 := app.createItem(t, nil)
+	itemID2 := app.createItem(t, nil)
+	itemID3 := app.createItem(t, nil)
+
+	return slug, []string{itemID1, itemID2, itemID3}
 }
