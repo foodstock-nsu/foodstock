@@ -155,15 +155,8 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		2) Delete it
 	*/
 	goneSlug := "test_gone"
-	app.createLocation(t, goneSlug, nil, nil)
-
-	_, delErr := app.doRequestAuth(
-		"DELETE",
-		fmt.Sprintf("/api/v1/admin/locations/%s", goneSlug),
-		nil,
-		token,
-	)
-	require.NoError(t, delErr)
+	app.createLocation(t, &goneSlug, nil, nil)
+	app.deleteLocation(t, goneSlug)
 
 	t.Run("Create Location - Bad Cases", func(t *testing.T) {
 		type testCase struct {

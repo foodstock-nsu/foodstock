@@ -925,7 +925,16 @@ paths:
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
         '410':
-          $ref: "#/components/responses/LocationIsNotAvailableError"
+          description: Торговая точка или товар недоступны
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                location_is_unavailable:
+                  $ref: "#/components/responses/LocationIsNotAvailableError"
+                item_is_unavailable:
+                  $ref: "#/components/responses/ItemIsNotAvailableError"
         '500':
           $ref: '#/components/responses/InternalError'
     patch:
@@ -990,7 +999,16 @@ paths:
                   value:
                     error: "location item not found"
         '410':
-          $ref: "#/components/responses/LocationIsNotAvailableError"
+          description: Торговая точка или товар недоступны
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                location_is_unavailable:
+                  $ref: "#/components/responses/LocationIsNotAvailableError"
+                item_is_unavailable:
+                  $ref: "#/components/responses/ItemIsNotAvailableError"
         '500':
           $ref: "#/components/responses/InternalError"
 

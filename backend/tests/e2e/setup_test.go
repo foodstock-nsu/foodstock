@@ -310,9 +310,9 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 /*
 Helper for e2e tests.
 Creates the new location with specified parameters.  **
-Returns external id of the created location.
+Returns the slug of the created location.
 
-** If the slug, name or the address are not specified, then it uses default values instead.
+** If a slug, name or an address are not specified, then it uses default values instead.
 */
 func (a *testApp) createLocation(t *testing.T, slug *string, name, address *string) string {
 	const path = "/api/v1/admin/locations"
@@ -389,6 +389,12 @@ func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) strin
 	return idStr
 }
 
+func (a *testApp) deleteLocation(t *testing.T, slug string) {
+	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
+	_, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
+	require.NoError(t, err)
+}
+
 /*
 Helper for e2e tests.
 Sends some requests to prepare app for tests:
@@ -397,13 +403,15 @@ Sends some requests to prepare app for tests:
 
 Returns: slug of location, ids of created items as a slice
 */
-func (a *testApp) seedInventoryData(t *testing.T) (string, []string) {
+func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []string) {
 	app := setupE2E(t)
 
 	slug := app.createLocation(t, nil, nil, nil)
-	itemID1 := app.createItem(t, nil)
-	itemID2 := app.createItem(t, nil)
-	itemID3 := app.createItem(t, nil)
 
-	return slug, []string{itemID1, itemID2, itemID3}
+	itemIDs := make([]string, 0, itemsCount)
+	for i := 0; i < itemsCount; i++ {
+		itemIDs = append(itemIDs, app.createItem(t, nil))
+	}
+
+	return slug, itemIDs
 }

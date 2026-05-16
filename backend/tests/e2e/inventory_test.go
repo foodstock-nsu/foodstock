@@ -1,3 +1,5 @@
+///go:build e2e
+
 package e2e
 
 import (
@@ -14,10 +16,10 @@ func TestInventory_LifeCycle(t *testing.T) {
 	app := setupE2E(t)
 	token := app.getAdminToken(t)
 
-	slug, itemIDs := app.seedInventoryData(t)
+	slug, itemIDs := app.seedInventoryData(t, 3)
 
 	t.Run("Get Inventory", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/admin/inventory/%s", slug)
+		path := fmt.Sprintf("/api/v1/admin/locations/%s/inventory", slug)
 
 		resp, err := app.doRequestAuth("GET", path, nil, token)
 		require.NoError(t, err)
@@ -32,15 +34,15 @@ func TestInventory_LifeCycle(t *testing.T) {
 	})
 
 	t.Run("Update Inventory", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/admin/inventory/%s", slug)
+		path := fmt.Sprintf("/api/v1/admin/locations/%s/inventory", slug)
 
 		var (
 			price, stockAmount = 20050, 10
 			isAvailable        bool
 		)
 
-		inventoryPayload := make([]map[string]interface{}, len(itemIDs))
-		for itemID := range itemIDs {
+		inventoryPayload := make([]map[string]interface{}, 0, len(itemIDs))
+		for _, itemID := range itemIDs {
 			itemPayload := map[string]interface{}{
 				"item_id":      itemID,
 				"price":        price,
@@ -64,9 +66,16 @@ func TestInventory_LifeCycle(t *testing.T) {
 		require.NoError(t, err)
 
 		for i := range inventory["inventory"] {
-			assert.Equal(t, price, inventory["inventory"][i]["price"])
+			assert.Equal(t, price, int(inventory["inventory"][i]["price"].(float64)))
 			assert.Equal(t, isAvailable, inventory["inventory"][i]["is_available"])
-			assert.Equal(t, isAvailable, inventory["inventory"][i]["stock_amount"])
+			assert.Equal(t, stockAmount, int(inventory["inventory"][i]["stock_amount"].(float64)))
 		}
 	})
 }
+
+//func TestInventory_ValidateAndConflicts(t *testing.T) {
+//	app := setupE2E(t)
+//	token := app.getAdminToken(t)
+//
+//	validSlug, itemIDs := app.seedInventoryData(t, 1)
+//}
