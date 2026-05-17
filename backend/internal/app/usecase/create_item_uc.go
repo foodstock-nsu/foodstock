@@ -67,9 +67,9 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 		)
 	}
 
-	err = uc.trManager.Do(ctx, func(ctx context.Context) error {
+	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
 		// Save the item into database
-		err = uc.item.Create(ctx, item)
+		err = uc.item.Create(txCtx, item)
 		if err != nil {
 			return ucerrs.Wrap(ucerrs.ErrCreateItemDB, err)
 		}
@@ -94,7 +94,7 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 				)
 			}
 
-			createErr := uc.locationItem.Create(ctx, locationItem)
+			createErr := uc.locationItem.Create(txCtx, locationItem)
 			if createErr != nil {
 				return ucerrs.Wrap(ucerrs.ErrCreateLocationItemDB, err)
 			}
