@@ -69,15 +69,15 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 
 	err = uc.trManager.Do(ctx, func(txCtx context.Context) error {
 		// Save the item into database
-		err = uc.item.Create(txCtx, item)
-		if err != nil {
-			return ucerrs.Wrap(ucerrs.ErrCreateItemDB, err)
+		createErr := uc.item.Create(txCtx, item)
+		if createErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrCreateItemDB, createErr)
 		}
 
 		// Get all locations
-		locations, listLocsErr := uc.location.List(ctx)
-		if listLocsErr != nil {
-			return ucerrs.Wrap(ucerrs.ErrListLocationsDB, err)
+		locations, listErr := uc.location.List(ctx)
+		if listErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrListLocationsDB, listErr)
 		}
 
 		// Create location item for each location and save it into database
@@ -89,14 +89,12 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 				0,
 			)
 			if locItemErr != nil {
-				return ucerrs.Wrap(
-					ucerrs.ErrInvalidInput, locItemErr,
-				)
+				return ucerrs.Wrap(ucerrs.ErrInvalidInput, locItemErr)
 			}
 
-			createErr := uc.locationItem.Create(txCtx, locationItem)
+			createErr = uc.locationItem.Create(txCtx, locationItem)
 			if createErr != nil {
-				return ucerrs.Wrap(ucerrs.ErrCreateLocationItemDB, err)
+				return ucerrs.Wrap(ucerrs.ErrCreateLocationItemDB, createErr)
 			}
 		}
 
@@ -107,7 +105,5 @@ func (uc *CreateItemUC) Execute(ctx context.Context, in dto.CreateItemInput) (dt
 		return dto.CreateItemOutput{}, err
 	}
 
-	return dto.CreateItemOutput{
-		Item: mapper.MapDomainToItemDTO(item),
-	}, nil
+	return dto.CreateItemOutput{Item: mapper.MapDomainToItemDTO(item)}, nil
 }
