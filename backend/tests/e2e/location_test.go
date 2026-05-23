@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -139,15 +139,8 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		1) Create a location
 		2) Change its status to inactive (for specific errors)
 	*/
-	baseSlug := app.createLocation(t, nil, nil, nil)
-
-	_, updErr := app.doRequestAuth(
-		"PATCH",
-		fmt.Sprintf("/api/v1/admin/locations/%s", baseSlug),
-		map[string]interface{}{"is_active": false},
-		token,
-	)
-	require.NoError(t, updErr)
+	inactiveSlug := app.createLocation(t, nil, nil, nil)
+	app.deactivateLocation(t, inactiveSlug)
 
 	/*
 		Prepare a gone location (deleted):
@@ -207,7 +200,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				name:  "Conflict - Duplicate Slug",
 				token: token,
 				payload: map[string]interface{}{
-					"slug":    baseSlug,
+					"slug":    inactiveSlug,
 					"name":    "Test Location",
 					"address": "Test Address of Test Location",
 				},
@@ -256,7 +249,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			},
 			{
 				name:           "Unauthorized - Invalid Token",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				token:          "invalid",
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
@@ -269,7 +262,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -352,7 +345,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:           "Unauthorized - invalid token",
 				token:          "invalid",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
 			},
@@ -364,7 +357,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -372,7 +365,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			},
 			{
 				name:           "Unprocessable Entity - Location Is Inactive",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				token:          token,
 				expectedStatus: http.StatusUnprocessableEntity,
 				expectedError:  "location is not operational",
@@ -418,7 +411,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:  "Bad request - invalid name",
 				token: token,
-				slug:  baseSlug,
+				slug:  inactiveSlug,
 				payload: map[string]interface{}{
 					"name": strings.Repeat("Invalid", 50),
 				},
@@ -428,7 +421,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:  "Bad request - invalid address",
 				token: token,
-				slug:  baseSlug,
+				slug:  inactiveSlug,
 				payload: map[string]interface{}{
 					"address": "a too short one",
 				},
@@ -451,7 +444,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -496,7 +489,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:           "Unauthorized - invalid token",
 				token:          "invalid",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
 			},
@@ -508,7 +501,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,

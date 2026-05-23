@@ -349,6 +349,22 @@ func (a *testApp) createLocation(t *testing.T, slug *string, name, address *stri
 	return locSlug
 }
 
+func (a *testApp) deleteLocation(t *testing.T, slug string) {
+	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
+	_, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
+	require.NoError(t, err)
+}
+
+func (a *testApp) deactivateLocation(t *testing.T, slug string) {
+	_, err := a.doRequestAuth(
+		"PATCH",
+		fmt.Sprintf("/api/v1/admin/locations/%s", slug),
+		map[string]interface{}{"is_active": false},
+		a.getAdminToken(t),
+	)
+	require.NoError(t, err)
+}
+
 /*
 Helper for e2e tests.
 Creates the new item with default values.
@@ -389,9 +405,13 @@ func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) strin
 	return idStr
 }
 
-func (a *testApp) deleteLocation(t *testing.T, slug string) {
-	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
-	_, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
+func (a *testApp) deleteItem(t *testing.T, itemID string) {
+	_, err := a.doRequestAuth(
+		"DELETE",
+		fmt.Sprintf("/api/v1/admin/items/%s", itemID),
+		nil,
+		a.getAdminToken(t),
+	)
 	require.NoError(t, err)
 }
 

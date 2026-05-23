@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -131,14 +131,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	// Prepare items for test
 	baseItemID := app.createItem(t, nil)
 	goneItemID := app.createItem(t, nil)
-
-	_, delErr := app.doRequestAuth(
-		"DELETE",
-		fmt.Sprintf("/api/v1/admin/items/%s", goneItemID),
-		nil,
-		token,
-	)
-	require.NoError(t, delErr)
+	app.deleteItem(t, goneItemID)
 
 	t.Run("Create Item - Bad Cases", func(t *testing.T) {
 		type testCase struct {
@@ -301,7 +294,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
@@ -406,7 +399,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				payload:        map[string]interface{}{},
@@ -464,7 +457,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
