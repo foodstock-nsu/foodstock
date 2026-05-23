@@ -417,9 +417,9 @@ func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []str
 		itemIDs = append(itemIDs, app.createItem(t, nil))
 	}
 
-	for _, id := range itemIDs {
-		resp, err := a.doRequestAuth("PATCH")
-	}
+	//for _, id := range itemIDs {
+	//	resp, err := a.doRequestAuth("PATCH")
+	//}
 
 	return slug, itemIDs
 }
