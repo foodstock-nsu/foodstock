@@ -85,10 +85,7 @@ func TestInventory_ValidateAndConflicts(t *testing.T) {
 		3) Create the second location
 		4) Delete it (to make it "gone")
 	*/
-	validSlug, itemIDs := app.seedInventoryData(t, 2)
-
-	validItemID, goneItemID := itemIDs[0], itemIDs[1]
-	app.deleteItem(t, goneItemID)
+	validSlug, itemIDs := app.seedInventoryData(t, 1)
 
 	goneSlug := "test_gone"
 	app.createLocation(t, &goneSlug, nil, nil)
@@ -174,7 +171,7 @@ func TestInventory_ValidateAndConflicts(t *testing.T) {
 				name: "Bad Request - Invalid Price",
 				slug: validSlug,
 				payload: map[string][]map[string]interface{}{
-					"inventory": {{"item_id": validItemID, "price": -1}},
+					"inventory": {{"item_id": itemIDs[0], "price": -1}},
 				},
 				token:          token,
 				expectedStatus: http.StatusBadRequest,
@@ -184,7 +181,7 @@ func TestInventory_ValidateAndConflicts(t *testing.T) {
 				name: "Bad Request - Invalid Stock Amount",
 				slug: validSlug,
 				payload: map[string][]map[string]interface{}{
-					"inventory": {{"item_id": validItemID, "stock_amount": -1}},
+					"inventory": {{"item_id": itemIDs[0], "stock_amount": -1}},
 				},
 				token:          token,
 				expectedStatus: http.StatusBadRequest,
@@ -208,7 +205,7 @@ func TestInventory_ValidateAndConflicts(t *testing.T) {
 			},
 			{
 				name: "Not Found - Random Item ID",
-				slug: "random_slug",
+				slug: validSlug,
 				payload: map[string][]map[string]interface{}{
 					"inventory": {{"item_id": uuid.New().String(), "price": 10000}},
 				},
@@ -220,21 +217,11 @@ func TestInventory_ValidateAndConflicts(t *testing.T) {
 				name: "Gone - Location Has Been Deleted",
 				slug: goneSlug,
 				payload: map[string][]map[string]interface{}{
-					"inventory": {{"item_id": validItemID, "price": 10000}},
+					"inventory": {{"item_id": itemIDs[0], "price": 10000}},
 				},
 				token:          token,
 				expectedStatus: http.StatusGone,
 				expectedError:  "location is already deleted",
-			},
-			{
-				name: "Gone - Item Has Been Deleted",
-				slug: validSlug,
-				payload: map[string][]map[string]interface{}{
-					"inventory": {{"item_id": goneItemID, "price": 10000}},
-				},
-				token:          token,
-				expectedStatus: http.StatusGone,
-				expectedError:  "item is already deleted",
 			},
 		}
 

@@ -999,20 +999,13 @@ paths:
                   value:
                     error: "location item not found"
         '410':
-          description: Торговая точка или конкретный товар недоступны
+          description: Торговая точка недоступна
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                location_already_deleted:
-                  summary: Торговая точка недоступна
-                  value:
-                    error: "location is already deleted"
-                item_already_deleted:
-                  summary: Товар недоступен
-                  value:
-                    error: "item is already deleted"
+              example:
+                error: "location is already deleted"
         '500':
           $ref: "#/components/responses/InternalError"
 
