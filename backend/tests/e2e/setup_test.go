@@ -109,32 +109,28 @@ func setupE2E(t *testing.T) *testApp {
 	once.Do(func() {
 		ctx := context.Background()
 
-		os.Setenv("DB_HOST", "test_host")
-		os.Setenv("DB_USER", "test_user")
-		os.Setenv("DB_PASSWORD", "test_pass")
-		os.Setenv("DB_NAME", "test_db")
+		_ = os.Setenv("DB_HOST", "test_host")
+		_ = os.Setenv("DB_USER", "test_user")
+		_ = os.Setenv("DB_PASSWORD", "test_pass")
+		_ = os.Setenv("DB_NAME", "test_db")
 
-		os.Setenv("AUTH_SECRET", "super-secret-key-for-tests-32-chars!")
-		os.Setenv("AUTH_TTL", "24h")
-		os.Setenv("ADMIN_SEEDS", "test:test123")
+		_ = os.Setenv("AUTH_SECRET", "super-secret-key-for-tests-32-chars!")
+		_ = os.Setenv("AUTH_TTL", "24h")
+		_ = os.Setenv("ADMIN_SEEDS", "test:test123")
 
-		os.Setenv("YOOKASSA_SHOP_ID", "test_shop")
-		os.Setenv("YOOKASSA_API_KEY", "test_api_key")
-		os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
+		_ = os.Setenv("YOOKASSA_SHOP_ID", "test_shop")
+		_ = os.Setenv("YOOKASSA_API_KEY", "test_api_key")
+		_ = os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
 
-		// 1. Загружаем базовый конфиг
 		cfg, err := config.Load()
 		require.NoError(t, err)
 
-		// 2. Поднимаем контейнер, передавая данные из конфига (обновленный хелпер)
 		pg, err := testhelpers.StartPostgresContainer(ctx)
 		require.NoError(t, err)
 
-		// Накатываем миграции в первый раз
 		err = pg.MigrateUp(migrationVersion)
 		require.NoError(t, err)
 
-		// 3. ВАЖНО: Подменяем хост и порт в конфиге на динамические из Testcontainers
 		cfg.DbUser = pg.Config.User
 		cfg.DbPassword = pg.Config.Password
 		cfg.DBName = pg.Config.Name
@@ -143,14 +139,11 @@ func setupE2E(t *testing.T) *testApp {
 
 		logger := newLogger(cfg.LogLevel)
 
-		// 4. Инициализируем клиент БД для приложения
 		pgClient, err := newPostgresClient(ctx, cfg)
 		require.NoError(t, err)
 
-		// Транзакционный менеджер
 		trManager := manager.Must(trmpgx.NewDefaultFactory(pgClient.Pool))
 
-		// Репозитории
 		adminRepo := adapterpg.NewAdminRepository(pgClient, trmpgx.DefaultCtxGetter)
 		locationRepo := adapterpg.NewLocationRepository(pgClient, trmpgx.DefaultCtxGetter)
 		itemRepo := adapterpg.NewItemRepository(pgClient, trmpgx.DefaultCtxGetter)
@@ -159,17 +152,14 @@ func setupE2E(t *testing.T) *testApp {
 		orderItemRepo := adapterpg.NewOrderItemRepository(pgClient, trmpgx.DefaultCtxGetter)
 		transactionRepo := adapterpg.NewTransactionRepository(pgClient, trmpgx.DefaultCtxGetter)
 
-		// Инфраструктура
 		tokenGen := infrajwt.NewGenerator(cfg.AuthSecret, cfg.AuthTTL)
 		passHasher := infrapass.NewHasher(cfg.PasswordCost)
 		qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
 		paymentGateway := adapteryookassa.NewPaymentGateway(cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout)
 
-		// Первичное заполнение админов
 		err = seedAdmins(ctx, cfg, adminRepo, passHasher)
 		require.NoError(t, err)
 
-		// UseCases
 		adminAuthUC := usecase.NewAdminAuthUC(adminRepo, passHasher, tokenGen)
 		createLocationUC := usecase.NewCreateLocationUC(trManager, locationRepo, itemRepo, locationItemRepo)
 		getLocationUC := usecase.NewGetLocationUC(locationRepo)
@@ -187,7 +177,6 @@ func setupE2E(t *testing.T) *testApp {
 		getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
 		updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationRepo, locationItemRepo)
 
-		// Handlers
 		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
 		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
@@ -195,13 +184,11 @@ func setupE2E(t *testing.T) *testApp {
 		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
 
-		// Роутер
 		router := adapterhttp.NewRouter(
 			tokenGen, systemHandler, authHandler, clientHandler,
 			locationsHandler, itemHandler, inventoryHandler,
 		).InitRoutes()
 
-		// Запускаем тестовый сервер
 		ts := httptest.NewServer(router)
 
 		appInstance = &testApp{
@@ -213,14 +200,13 @@ func setupE2E(t *testing.T) *testApp {
 		}
 	})
 
-	// Очищаем и подготавливаем базу ПЕРЕД каждым тестом
 	appInstance.cleanData(t, context.Background())
 
 	return appInstance
 }
 
-// cleanData использует инструменты миграций для сброса БД в чистый вид
-// и восстанавливает необходимые seed-данные.
+// cleanData Uses migration tools to reset the database in its pure form
+// and provides the necessary seed data.
 func (a *testApp) cleanData(t *testing.T, ctx context.Context) {
 	tables := []string{
 		"order_items",
@@ -307,13 +293,10 @@ func (a *testApp) getAdminToken(t *testing.T) string {
 	return token
 }
 
-/*
-Helper for e2e tests.
-Creates the new location with specified parameters.  **
-Returns the slug of the created location.
-
-** If a slug, name or an address are not specified, then it uses default values instead.
-*/
+// Helper for e2e tests.
+// Creates the new location with specified parameters.  **
+// Returns the slug of the created location.
+// ** If a slug, name or an address are not specified, then it uses default values instead.
 func (a *testApp) createLocation(t *testing.T, slug *string, name, address *string) string {
 	const path = "/api/v1/admin/locations"
 
@@ -343,33 +326,34 @@ func (a *testApp) createLocation(t *testing.T, slug *string, name, address *stri
 		"address": locAddress,
 	}
 
-	_, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
+	resp, err := a.doRequestAuth("POST", path, payload, a.getAdminToken(t))
 	require.NoError(t, err)
+	_ = resp.Body.Close()
 
 	return locSlug
 }
 
 func (a *testApp) deleteLocation(t *testing.T, slug string) {
 	path := fmt.Sprintf("/api/v1/admin/locations/%s", slug)
-	_, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
+	resp, err := a.doRequestAuth("DELETE", path, nil, a.getAdminToken(t))
 	require.NoError(t, err)
+	_ = resp.Body.Close()
 }
 
 func (a *testApp) deactivateLocation(t *testing.T, slug string) {
-	_, err := a.doRequestAuth(
+	resp, err := a.doRequestAuth(
 		"PATCH",
 		fmt.Sprintf("/api/v1/admin/locations/%s", slug),
 		map[string]interface{}{"is_active": false},
 		a.getAdminToken(t),
 	)
 	require.NoError(t, err)
+	_ = resp.Body.Close()
 }
 
-/*
-Helper for e2e tests.
-Creates the new item with default values.
-Returns external id of the created item.
-*/
+// Helper for e2e tests.
+// Creates the new item with default values.
+// Returns external id of the created item.
 func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) string {
 	const path = "/api/v1/admin/items"
 
@@ -406,23 +390,23 @@ func (a *testApp) createItem(t *testing.T, payload map[string]interface{}) strin
 }
 
 func (a *testApp) deleteItem(t *testing.T, itemID string) {
-	_, err := a.doRequestAuth(
+	resp, err := a.doRequestAuth(
 		"DELETE",
 		fmt.Sprintf("/api/v1/admin/items/%s", itemID),
 		nil,
 		a.getAdminToken(t),
 	)
 	require.NoError(t, err)
+	_ = resp.Body.Close()
 }
 
-/*
-Helper for e2e tests.
-Sends some requests to prepare app for tests:
- 1. Create location with default values
- 2. Create several items with default values as well
-
-Returns: slug of location, ids of created items as a slice
-*/
+// Helper for e2e tests.
+// Sends some requests to prepare app for tests:
+//  1. Create location with default values
+//  2. Create several items with default values as well
+//  3. Update location items with default price and stock amount
+//
+// Returns: slug of location, ids of created items as a slice
 func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []string) {
 	app := setupE2E(t)
 
@@ -431,6 +415,10 @@ func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []str
 	itemIDs := make([]string, 0, itemsCount)
 	for i := 0; i < itemsCount; i++ {
 		itemIDs = append(itemIDs, app.createItem(t, nil))
+	}
+
+	for _, id := range itemIDs {
+		resp, err := a.doRequestAuth("PATCH")
 	}
 
 	return slug, itemIDs

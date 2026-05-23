@@ -1,5 +1,7 @@
 package e2e
 
-//func TestClient_AllEndpoints(t *testing.T) {
-//
-//}
+import "testing"
+
+func TestClient_AllEndpoints(t *testing.T) {
+
+}
