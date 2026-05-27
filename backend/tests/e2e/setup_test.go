@@ -417,9 +417,22 @@ func (a *testApp) seedInventoryData(t *testing.T, itemsCount int) (string, []str
 		itemIDs = append(itemIDs, app.createItem(t, nil))
 	}
 
-	//for _, id := range itemIDs {
-	//	resp, err := a.doRequestAuth("PATCH")
-	//}
+	inventory := make([]map[string]interface{}, 0, len(itemIDs))
+	for _, id := range itemIDs {
+		inventory = append(inventory, map[string]interface{}{
+			"item_id":      id,
+			"price":        20050,
+			"is_available": true,
+			"stock_amount": 5,
+		})
+	}
+
+	path := fmt.Sprintf("/api/v1/admin/locations/%s/inventory", slug)
+	body := map[string][]map[string]interface{}{"inventory": inventory}
+
+	resp, err := a.doRequestAuth("PATCH", path, body, app.getAdminToken(t))
+	require.NoError(t, err)
+	_ = resp.Body.Close()
 
 	return slug, itemIDs
 }
