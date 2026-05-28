@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +28,6 @@ func TestClient_AllEndpoints(t *testing.T) {
 
 		defer func() { _ = resp.Body.Close() }()
 
-		// 1. Описываем структуру ответа строго по твоей OpenAPI документации
 		var catalogResponse struct {
 			Location struct {
 				ID       string `json:"id"`
@@ -65,21 +65,56 @@ func TestClient_AllEndpoints(t *testing.T) {
 
 		assert.Len(t, catalogResponse.Items, len(itemIDs))
 
-		// Проверяем первый элемент в массиве для примера
 		if len(catalogResponse.Items) > 0 {
 			firstItem := catalogResponse.Items[0]
 
-			// Проверяем, что IDшник товара входит в список тех, что мы засидили
 			assert.Contains(t, itemIDs, firstItem.ItemID)
-
-			// Базовые проверки на типы и наполненность данных
 			assert.NotEmpty(t, firstItem.Name)
 			assert.NotEmpty(t, firstItem.Category)
 			assert.Greater(t, firstItem.Price, 0)
-
-			// Проверяем вложенную структуру КБЖУ (Nutrition)
 			assert.GreaterOrEqual(t, firstItem.Nutrition.Calories, 0)
 			assert.GreaterOrEqual(t, firstItem.Nutrition.Proteins, 0.0)
 		}
+	})
+
+	t.Run("Create Order", func(t *testing.T) {
+		path := "/api/v1/client/orders"
+
+		println(itemIDs[0])
+
+		itemsPayload := []map[string]interface{}{
+			{
+				"item_id": itemIDs[0],
+				"amount":  2,
+				"price":   20050,
+			},
+		}
+		payload := map[string]interface{}{
+			"location_slug": slug,
+			"items":         itemsPayload,
+		}
+
+		resp, err := app.doRequestAuth("POST", path, payload, token)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		defer func() { _ = resp.Body.Close() }()
+
+		var orderData map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&orderData)
+		require.NoError(t, err)
+
+		// Check the order id
+		id := orderData["order_id"].(string)
+		assert.NotEmpty(t, id)
+
+		_, err = uuid.Parse(id)
+		assert.NoError(t, err)
+
+		// Check the total price
+		assert.Equal(t, 2*20050, orderData["total_price"].(int))
+
+		// Check the payment url
+		assert.NotEmpty(t, orderData["payment_url"])
 	})
 }

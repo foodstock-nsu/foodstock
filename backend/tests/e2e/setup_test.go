@@ -403,7 +403,7 @@ func (a *testApp) deleteItem(t *testing.T, itemID string) {
 // Helper for e2e tests.
 // Sends some requests to prepare app for tests:
 //  1. Create location with default values
-//  2. Create several items with default values as well
+//  2. Create several items with default values as well (price is 20050)
 //  3. Update location items with default price and stock amount
 //
 // Returns: slug of location, ids of created items as a slice
