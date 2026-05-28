@@ -48,13 +48,13 @@ func (uc *CreateOrderUC) Execute(ctx context.Context, in dto.CreateOrderInput) (
 	/*
 		Get the location and check if it accepts orders
 	*/
-	location, err := uc.location.GetByID(ctx, in.LocationID)
+	location, err := uc.location.GetBySlug(ctx, in.Slug)
 	if err != nil {
 		if errors.Is(err, pkgerrs.ErrObjectNotFound) {
 			return dto.CreateOrderOutput{}, ucerrs.ErrLocationNotFound
 		}
 		return dto.CreateOrderOutput{}, ucerrs.Wrap(
-			ucerrs.ErrGetLocationByIDDB, err,
+			ucerrs.ErrGetLocationBySlugDB, err,
 		)
 	}
 

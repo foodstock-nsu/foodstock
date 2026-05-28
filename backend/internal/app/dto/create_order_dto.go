@@ -9,8 +9,8 @@ type OrderItemInput struct {
 }
 
 type CreateOrderInput struct {
-	LocationID uuid.UUID
-	Items      []OrderItemInput
+	Slug  string
+	Items []OrderItemInput
 }
 
 type CreateOrderOutput struct {

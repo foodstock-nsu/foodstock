@@ -118,8 +118,8 @@ func setupE2E(t *testing.T) *testApp {
 		_ = os.Setenv("AUTH_TTL", "24h")
 		_ = os.Setenv("ADMIN_SEEDS", "test:test123")
 
-		_ = os.Setenv("YOOKASSA_SHOP_ID", "test_shop")
-		_ = os.Setenv("YOOKASSA_API_KEY", "test_api_key")
+		_ = os.Setenv("YOOKASSA_SHOP_ID", "1344511")
+		_ = os.Setenv("YOOKASSA_API_KEY", "test_ivvXDKubIzQ-vo5_RMv5Z9a4zSQ9BHfhr7VybxhzabE")
 		_ = os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
 
 		cfg, err := config.Load()

@@ -80,8 +80,6 @@ func TestClient_AllEndpoints(t *testing.T) {
 	t.Run("Create Order", func(t *testing.T) {
 		path := "/api/v1/client/orders"
 
-		println(itemIDs[0])
-
 		itemsPayload := []map[string]interface{}{
 			{
 				"item_id": itemIDs[0],
@@ -90,8 +88,8 @@ func TestClient_AllEndpoints(t *testing.T) {
 			},
 		}
 		payload := map[string]interface{}{
-			"location_slug": slug,
-			"items":         itemsPayload,
+			"slug":  slug,
+			"items": itemsPayload,
 		}
 
 		resp, err := app.doRequestAuth("POST", path, payload, token)
@@ -112,7 +110,7 @@ func TestClient_AllEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Check the total price
-		assert.Equal(t, 2*20050, orderData["total_price"].(int))
+		assert.Equal(t, float64(2*20050), orderData["total_price"].(float64))
 
 		// Check the payment url
 		assert.NotEmpty(t, orderData["payment_url"])

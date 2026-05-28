@@ -128,12 +128,12 @@ func TestMapOutputToGetCatalog(t *testing.T) {
 // --- ORDERS ---
 
 func TestMapRequestToCreateOrder(t *testing.T) {
-	locID := uuid.New()
+	locSlug := "test_1"
 	itemID1 := uuid.New()
 	itemID2 := uuid.New()
 
 	req := httpdto.CreateOrderRequest{
-		LocationID: locID.String(),
+		Slug: locSlug,
 		Items: []httpdto.OrderItemRequest{
 			{ItemID: itemID1.String(), Amount: 1, Price: 200},
 			{ItemID: itemID2.String(), Amount: 2, Price: 300},
@@ -141,7 +141,7 @@ func TestMapRequestToCreateOrder(t *testing.T) {
 	}
 
 	expected := appdto.CreateOrderInput{
-		LocationID: locID,
+		Slug: locSlug,
 		Items: []appdto.OrderItemInput{
 			{ItemID: itemID1, Amount: 1, Price: 200},
 			{ItemID: itemID2, Amount: 2, Price: 300},

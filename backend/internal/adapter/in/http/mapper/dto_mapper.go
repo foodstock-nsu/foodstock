@@ -77,10 +77,9 @@ func mapRequestToOrderItems(rawItems []httpdto.OrderItemRequest) []appdto.OrderI
 }
 
 func MapRequestToCreateOrder(req httpdto.CreateOrderRequest) appdto.CreateOrderInput {
-	id, _ := uuid.Parse(req.LocationID)
 	return appdto.CreateOrderInput{
-		LocationID: id,
-		Items:      mapRequestToOrderItems(req.Items),
+		Slug:  req.Slug,
+		Items: mapRequestToOrderItems(req.Items),
 	}
 }
 

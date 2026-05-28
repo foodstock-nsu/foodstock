@@ -73,8 +73,8 @@ type OrderItemRequest struct {
 }
 
 type CreateOrderRequest struct {
-	LocationID string             `json:"location_id"`
-	Items      []OrderItemRequest `json:"items"`
+	Slug  string             `json:"slug"`
+	Items []OrderItemRequest `json:"items"`
 }
 
 type GetInventoryRequest struct {

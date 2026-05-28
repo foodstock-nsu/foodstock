@@ -158,7 +158,7 @@ components:
     CreateOrderRequest:
       type: object
       properties:
-        location_slug:
+        slug:
           type: string
           example: "nsu_1"
         items:
