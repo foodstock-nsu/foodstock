@@ -52,27 +52,6 @@ jobs:
         working-directory: ./backend
         run: go test -v -tags=integration -coverprofile=integration.out ./internal/adapter/...
 
-      - name: Merge Coverage Profiles
-        working-directory: ./backend
-        run: |
-          cat unit.out > coverage.txt
-          grep -v "mode:" integration.out >> coverage.txt
-
-      - name: Generate Full Coverage Report
-        working-directory: ./backend
-        run: |
-          echo "### 📊 Полное покрытие всего проекта тестами" > report.md
-          echo "\`\`\`text" >> report.md
-          go tool cover -func=coverage.txt >> report.md
-          echo "\`\`\`" >> report.md
-            
-      - name: Post Coverage Comment
-        uses: marocchino/sticky-pull-request-comment@v3.0.4
-        with:
-          header: total-coverage
-          path: backend/report.md
-        if: github.event_name == 'pull_request'
-
       - name: Run E2E Tests
         working-directory: ./backend/tests/e2e
         run: go test -v -tags=e2e
