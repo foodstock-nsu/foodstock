@@ -1,4 +1,4 @@
-///go:build e2e
+//go:build e2e
 
 package e2e
 
@@ -186,14 +186,14 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 
 	t.Run("Create Order - Bad Cases", func(t *testing.T) {
 		type item struct {
-			itemID string
-			amount int
-			price  float64
+			ItemID string  `json:"item_id"`
+			Amount int     `json:"amount"`
+			Price  float64 `json:"price"`
 		}
 
 		type respStruct struct {
-			slug  string
-			items []item
+			Slug  string `json:"slug"`
+			Items []item `json:"items"`
 		}
 
 		type testCase struct {
@@ -206,15 +206,15 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 		tests := []testCase{
 			{
 				name:           "Bad Request - Invalid Slug",
-				payload:        respStruct{slug: "a"},
+				payload:        respStruct{Slug: "a"},
 				expectedStatus: http.StatusBadRequest,
 				expectedError:  "invalid slug",
 			},
 			{
 				name: "Bad Request - Empty Items List",
 				payload: respStruct{
-					slug:  baseSlug,
-					items: []item{},
+					Slug:  baseSlug,
+					Items: []item{},
 				},
 				expectedStatus: http.StatusBadRequest,
 				expectedError:  "invalid input",
@@ -222,11 +222,11 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Not Found - Random Slug",
 				payload: respStruct{
-					slug: "random_slug",
-					items: []item{{
-						itemID: itemIDs[0],
-						amount: 1,
-						price:  20050,
+					Slug: "random_slug",
+					Items: []item{{
+						ItemID: itemIDs[0],
+						Amount: 1,
+						Price:  20050,
 					}},
 				},
 				expectedStatus: http.StatusNotFound,
@@ -235,8 +235,8 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Not Found - Random Item ID",
 				payload: respStruct{
-					slug:  baseSlug,
-					items: []item{{itemID: uuid.New().String()}},
+					Slug:  baseSlug,
+					Items: []item{{ItemID: uuid.New().String()}},
 				},
 				expectedStatus: http.StatusNotFound,
 				expectedError:  "location item not found",
@@ -244,11 +244,11 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Conflict - Invalid Item Price",
 				payload: respStruct{
-					slug: baseSlug,
-					items: []item{{
-						itemID: itemIDs[0],
-						amount: 1,
-						price:  90000, // <-- random price
+					Slug: baseSlug,
+					Items: []item{{
+						ItemID: itemIDs[0],
+						Amount: 1,
+						Price:  90000, // <-- random price
 					}},
 				},
 				expectedStatus: http.StatusConflict,
@@ -257,11 +257,11 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Conflict - Invalid Item Amount",
 				payload: respStruct{
-					slug: baseSlug,
-					items: []item{{
-						itemID: itemIDs[0],
-						amount: 100, // <-- random amount
-						price:  20050,
+					Slug: baseSlug,
+					Items: []item{{
+						ItemID: itemIDs[0],
+						Amount: 100, // <-- random amount
+						Price:  20050,
 					}},
 				},
 				expectedStatus: http.StatusConflict,
@@ -270,11 +270,11 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Gone - Location Has Been Deleted",
 				payload: respStruct{
-					slug: goneSlug,
-					items: []item{{
-						itemID: itemIDs[0],
-						amount: 1,
-						price:  20050,
+					Slug: goneSlug,
+					Items: []item{{
+						ItemID: itemIDs[0],
+						Amount: 1,
+						Price:  20050,
 					}},
 				},
 				expectedStatus: http.StatusGone,
@@ -283,11 +283,11 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 			{
 				name: "Unprocessable - Location Is Not Operational",
 				payload: respStruct{
-					slug: inactiveSlug,
-					items: []item{{
-						itemID: itemIDs[0],
-						amount: 1,
-						price:  20050,
+					Slug: inactiveSlug,
+					Items: []item{{
+						ItemID: itemIDs[0],
+						Amount: 1,
+						Price:  20050,
 					}},
 				},
 				expectedStatus: http.StatusUnprocessableEntity,
