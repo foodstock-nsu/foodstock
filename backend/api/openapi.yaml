@@ -559,6 +559,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetCatalogResponse'
+        '400':
+          description: Некорректный slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid slug"
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
         '410':
@@ -597,10 +605,10 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
-                incorrect_location_id:
-                  summary: Некорректный идентификатор торговой точки
+                incorrect_slug:
+                  summary: Некорректный slug
                   value:
-                    error: "invalid input"
+                    error: "invalid slug"
                 incorrect_items:
                   summary: Некорректный массив товаров (пустой или содержит невалидные объекты)
                   value:
@@ -636,6 +644,8 @@ paths:
                   description: "Возникает, если цена изменилась или товара нет в нужном количестве"
                   value:
                     error: "cannot sell one of the chosen items"
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '422':
           $ref: "#/components/responses/LocationIsNotOperationalError"
         '500':

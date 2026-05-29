@@ -45,6 +45,12 @@ func NewCreateOrderUC(
 }
 
 func (uc *CreateOrderUC) Execute(ctx context.Context, in dto.CreateOrderInput) (dto.CreateOrderOutput, error) {
+	if len(in.Items) == 0 {
+		return dto.CreateOrderOutput{}, ucerrs.Wrap(
+			ucerrs.ErrInvalidInput, errors.New("empty items list"),
+		)
+	}
+
 	/*
 		Get the location and check if it accepts orders
 	*/
@@ -56,6 +62,10 @@ func (uc *CreateOrderUC) Execute(ctx context.Context, in dto.CreateOrderInput) (
 		return dto.CreateOrderOutput{}, ucerrs.Wrap(
 			ucerrs.ErrGetLocationBySlugDB, err,
 		)
+	}
+
+	if location.IsDeleted() {
+		return dto.CreateOrderOutput{}, ucerrs.ErrLocationAlreadyDeleted
 	}
 
 	if !location.IsOperational() {

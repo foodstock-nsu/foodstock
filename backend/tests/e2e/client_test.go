@@ -1,8 +1,9 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
 import (
+	"backend/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,14 +16,12 @@ import (
 
 func TestClient_AllEndpoints(t *testing.T) {
 	app := setupE2E(t)
-	token := app.getAdminToken(t)
-
 	slug, itemIDs := app.seedInventoryData(t, 3)
 
 	t.Run("Get Catalog", func(t *testing.T) {
 		path := fmt.Sprintf("/api/v1/client/locations/%s/catalog", slug)
 
-		resp, err := app.doRequestAuth("GET", path, nil, token)
+		resp, err := app.doRequest("GET", path, nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -92,7 +91,7 @@ func TestClient_AllEndpoints(t *testing.T) {
 			"items": itemsPayload,
 		}
 
-		resp, err := app.doRequestAuth("POST", path, payload, token)
+		resp, err := app.doRequest("POST", path, payload)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
@@ -114,5 +113,202 @@ func TestClient_AllEndpoints(t *testing.T) {
 
 		// Check the payment url
 		assert.NotEmpty(t, orderData["payment_url"])
+	})
+}
+
+func TestClient_ValidateAndConflicts(t *testing.T) {
+	app := setupE2E(t)
+
+	/*
+		Prepare the test catalog:
+			1) Create a location and some items
+			2)
+	*/
+	baseSlug, itemIDs := app.seedInventoryData(t, 1)
+
+	goneSlug := app.createLocation(t, utils.VPtr("gone_1"), nil, nil)
+	app.deleteLocation(t, goneSlug)
+
+	inactiveSlug := app.createLocation(t, utils.VPtr("inactive_1"), nil, nil)
+	app.deactivateLocation(t, inactiveSlug)
+
+	t.Run("Get Catalog - Bad cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			slug           string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Slug",
+				slug:           "a",
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name:           "Not Found - Random Slug",
+				slug:           "random_slug",
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name:           "Gone - Location Has Been Deleted",
+				slug:           goneSlug,
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+			{
+				name:           "Unprocessable - Location Is Not Operational",
+				slug:           inactiveSlug,
+				expectedStatus: http.StatusUnprocessableEntity,
+				expectedError:  "location is not operational",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/client/locations/%s/catalog", tt.slug)
+				resp, err := app.doRequest("GET", path, nil)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Create Order - Bad Cases", func(t *testing.T) {
+		type item struct {
+			itemID string
+			amount int
+			price  float64
+		}
+
+		type respStruct struct {
+			slug  string
+			items []item
+		}
+
+		type testCase struct {
+			name           string
+			payload        respStruct
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Slug",
+				payload:        respStruct{slug: "a"},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid slug",
+			},
+			{
+				name: "Bad Request - Empty Items List",
+				payload: respStruct{
+					slug:  baseSlug,
+					items: []item{},
+				},
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid input",
+			},
+			{
+				name: "Not Found - Random Slug",
+				payload: respStruct{
+					slug: "random_slug",
+					items: []item{{
+						itemID: itemIDs[0],
+						amount: 1,
+						price:  20050,
+					}},
+				},
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location not found",
+			},
+			{
+				name: "Not Found - Random Item ID",
+				payload: respStruct{
+					slug:  baseSlug,
+					items: []item{{itemID: uuid.New().String()}},
+				},
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "location item not found",
+			},
+			{
+				name: "Conflict - Invalid Item Price",
+				payload: respStruct{
+					slug: baseSlug,
+					items: []item{{
+						itemID: itemIDs[0],
+						amount: 1,
+						price:  90000, // <-- random price
+					}},
+				},
+				expectedStatus: http.StatusConflict,
+				expectedError:  "cannot sell one of the chosen items",
+			},
+			{
+				name: "Conflict - Invalid Item Amount",
+				payload: respStruct{
+					slug: baseSlug,
+					items: []item{{
+						itemID: itemIDs[0],
+						amount: 100, // <-- random amount
+						price:  20050,
+					}},
+				},
+				expectedStatus: http.StatusConflict,
+				expectedError:  "cannot sell one of the chosen items",
+			},
+			{
+				name: "Gone - Location Has Been Deleted",
+				payload: respStruct{
+					slug: goneSlug,
+					items: []item{{
+						itemID: itemIDs[0],
+						amount: 1,
+						price:  20050,
+					}},
+				},
+				expectedStatus: http.StatusGone,
+				expectedError:  "location is already deleted",
+			},
+			{
+				name: "Unprocessable - Location Is Not Operational",
+				payload: respStruct{
+					slug: inactiveSlug,
+					items: []item{{
+						itemID: itemIDs[0],
+						amount: 1,
+						price:  20050,
+					}},
+				},
+				expectedStatus: http.StatusUnprocessableEntity,
+				expectedError:  "location is not operational",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := "/api/v1/client/orders"
+				resp, err := app.doRequest("POST", path, tt.payload)
+				require.NoError(t, err)
+
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
 	})
 }

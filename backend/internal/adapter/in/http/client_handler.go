@@ -52,7 +52,11 @@ func (h *ClientHandler) CreateOrder(c echo.Context) error {
 	var req httpdto.CreateOrderRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+		return h.returnErr(c, "invalid json", pkgerrs.ErrInvalidJSON)
+	}
+
+	if utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.createOrderUC.Execute(
