@@ -139,27 +139,8 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		1) Create a location
 		2) Change its status to inactive (for specific errors)
 	*/
-	baseSlug := "test_base"
-	basePayload := map[string]interface{}{
-		"slug":    baseSlug,
-		"name":    "Base Test Location",
-		"address": "Base Test Address of Location",
-	}
-	_, createErr := app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/locations",
-		basePayload,
-		token,
-	)
-	require.NoError(t, createErr)
-
-	_, updErr := app.doRequestAuth(
-		"PATCH",
-		fmt.Sprintf("/api/v1/admin/locations/%s", baseSlug),
-		map[string]interface{}{"is_active": false},
-		token,
-	)
-	require.NoError(t, updErr)
+	inactiveSlug := app.createLocation(t, nil, nil, nil)
+	app.deactivateLocation(t, inactiveSlug)
 
 	/*
 		Prepare a gone location (deleted):
@@ -167,25 +148,8 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 		2) Delete it
 	*/
 	goneSlug := "test_gone"
-	_, createErr = app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/locations",
-		map[string]interface{}{
-			"slug":    goneSlug,
-			"name":    "Base Test Location",
-			"address": "Base Test Address of Location",
-		},
-		token,
-	)
-	require.NoError(t, createErr)
-
-	_, createErr = app.doRequestAuth(
-		"DELETE",
-		fmt.Sprintf("/api/v1/admin/locations/%s", goneSlug),
-		nil,
-		token,
-	)
-	require.NoError(t, createErr)
+	app.createLocation(t, &goneSlug, nil, nil)
+	app.deleteLocation(t, goneSlug)
 
 	t.Run("Create Location - Bad Cases", func(t *testing.T) {
 		type testCase struct {
@@ -236,7 +200,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				name:  "Conflict - Duplicate Slug",
 				token: token,
 				payload: map[string]interface{}{
-					"slug":    baseSlug,
+					"slug":    inactiveSlug,
 					"name":    "Test Location",
 					"address": "Test Address of Test Location",
 				},
@@ -285,7 +249,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			},
 			{
 				name:           "Unauthorized - Invalid Token",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				token:          "invalid",
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
@@ -298,7 +262,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -381,7 +345,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:           "Unauthorized - invalid token",
 				token:          "invalid",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
 			},
@@ -393,7 +357,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -401,7 +365,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			},
 			{
 				name:           "Unprocessable Entity - Location Is Inactive",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				token:          token,
 				expectedStatus: http.StatusUnprocessableEntity,
 				expectedError:  "location is not operational",
@@ -447,7 +411,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:  "Bad request - invalid name",
 				token: token,
-				slug:  baseSlug,
+				slug:  inactiveSlug,
 				payload: map[string]interface{}{
 					"name": strings.Repeat("Invalid", 50),
 				},
@@ -457,7 +421,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:  "Bad request - invalid address",
 				token: token,
-				slug:  baseSlug,
+				slug:  inactiveSlug,
 				payload: map[string]interface{}{
 					"address": "a too short one",
 				},
@@ -480,7 +444,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,
@@ -525,7 +489,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 			{
 				name:           "Unauthorized - invalid token",
 				token:          "invalid",
-				slug:           baseSlug,
+				slug:           inactiveSlug,
 				expectedStatus: http.StatusUnauthorized,
 				expectedError:  "invalid or expired token",
 			},
@@ -537,7 +501,7 @@ func TestLocation_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "location not found",
 			},
 			{
-				name:           "Gone - Location Has Deleted",
+				name:           "Gone - Location Has Been Deleted",
 				slug:           goneSlug,
 				token:          token,
 				expectedStatus: http.StatusGone,

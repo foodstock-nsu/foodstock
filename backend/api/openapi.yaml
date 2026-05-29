@@ -158,7 +158,7 @@ components:
     CreateOrderRequest:
       type: object
       properties:
-        location_slug:
+        slug:
           type: string
           example: "nsu_1"
         items:
@@ -559,6 +559,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetCatalogResponse'
+        '400':
+          description: Некорректный slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid slug"
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
         '410':
@@ -597,10 +605,10 @@ paths:
                   summary: Битый JSON
                   value:
                     error: "invalid json"
-                incorrect_location_id:
-                  summary: Некорректный идентификатор торговой точки
+                incorrect_slug:
+                  summary: Некорректный slug
                   value:
-                    error: "invalid input"
+                    error: "invalid slug"
                 incorrect_items:
                   summary: Некорректный массив товаров (пустой или содержит невалидные объекты)
                   value:
@@ -636,6 +644,8 @@ paths:
                   description: "Возникает, если цена изменилась или товара нет в нужном количестве"
                   value:
                     error: "cannot sell one of the chosen items"
+        '410':
+          $ref: "#/components/responses/LocationIsNotAvailableError"
         '422':
           $ref: "#/components/responses/LocationIsNotOperationalError"
         '500':
@@ -925,7 +935,13 @@ paths:
         '404':
           $ref: '#/components/responses/LocationNotFoundError'
         '410':
-          $ref: "#/components/responses/LocationIsNotAvailableError"
+          description: Торговая точка недоступна
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "location is already deleted"
         '500':
           $ref: '#/components/responses/InternalError'
     patch:
@@ -990,7 +1006,20 @@ paths:
                   value:
                     error: "location item not found"
         '410':
-          $ref: "#/components/responses/LocationIsNotAvailableError"
+          description: Торговая точка или товар недоступны
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                location_is_unavailable:
+                  summary: Торговая точка недоступна
+                  value:
+                    error: "location is already deleted"
+                item_is_unavailable:
+                  summary: Товар недоступен
+                  value:
+                    error: "item is already deleted"
         '500':
           $ref: "#/components/responses/InternalError"
 

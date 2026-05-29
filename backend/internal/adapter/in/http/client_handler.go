@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,11 +52,11 @@ func (h *ClientHandler) CreateOrder(c echo.Context) error {
 	var req httpdto.CreateOrderRequest
 
 	if err := c.Bind(&req); err != nil {
-		return h.returnErr(c, "binding failed", pkgerrs.ErrInvalidIdentifier)
+		return h.returnErr(c, "invalid json", pkgerrs.ErrInvalidJSON)
 	}
 
-	if _, err := uuid.Parse(req.LocationID); err != nil {
-		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	if utf8.RuneCountInString(req.Slug) < 4 {
+		return h.returnErr(c, "invalid slug", pkgerrs.ErrInvalidSlug)
 	}
 
 	out, err := h.createOrderUC.Execute(

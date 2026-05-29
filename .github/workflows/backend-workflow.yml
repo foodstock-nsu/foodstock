@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: '1.26.2'
+          cache: true
           cache-dependency-path: backend/go.sum
 
       - name: Run golangci-lint
@@ -29,6 +30,9 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
 
+    permissions:
+      pull-requests: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -37,15 +41,16 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: '1.26.2'
+          cache: true
           cache-dependency-path: backend/go.sum
 
       - name: Run Unit Tests
         working-directory: ./backend
-        run: go test -v -short ./internal/...
+        run: go test -v -short -coverprofile=unit.out -covermode=atomic ./internal/...
 
       - name: Run Integration Tests
         working-directory: ./backend
-        run: go test -v -tags=integration ./internal/adapter/...
+        run: go test -v -tags=integration -coverprofile=integration.out ./internal/adapter/...
 
       - name: Run E2E Tests
         working-directory: ./backend/tests/e2e

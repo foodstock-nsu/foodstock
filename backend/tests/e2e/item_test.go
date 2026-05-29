@@ -18,7 +18,7 @@ func TestItem_LifeCycle(t *testing.T) {
 	app := setupE2E(t)
 	token := app.getAdminToken(t)
 
-	var itemID uuid.UUID
+	var itemID string
 
 	name := "Сэндвич с курицей"
 	desc := "Сэндвич с курицей и соусом тар-тар"
@@ -45,20 +45,27 @@ func TestItem_LifeCycle(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		// Get the id of the new object
 		var item map[string]map[string]interface{}
 		err = json.NewDecoder(resp.Body).Decode(&item)
 		require.NoError(t, err)
 
-		itemID, err = uuid.Parse(item["item"]["id"].(string))
+		itemID = item["item"]["id"].(string)
+
+		_, err = uuid.Parse(itemID)
 		require.NoError(t, err)
 	})
 
 	t.Run("Get Created Item", func(t *testing.T) {
 		path := fmt.Sprintf("/api/v1/admin/items/%s", itemID)
+
 		resp, err := app.doRequestAuth("GET", path, nil, token)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		_ = resp.Body.Close()
 	})
 
 	t.Run("Update Item", func(t *testing.T) {
@@ -72,12 +79,14 @@ func TestItem_LifeCycle(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		// Check the new object
 		var item map[string]map[string]interface{}
 		err = json.NewDecoder(resp.Body).Decode(&item)
 		require.NoError(t, err)
 
-		assert.Equal(t, itemID.String(), item["item"]["id"])
+		assert.Equal(t, itemID, item["item"]["id"])
 		assert.Equal(t, name, item["item"]["name"])
 		assert.Equal(t, desc, item["item"]["description"])
 	})
@@ -92,21 +101,26 @@ func TestItem_LifeCycle(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
+		defer func() { _ = resp.Body.Close() }()
+
 		var items map[string][]map[string]interface{}
 		err = json.NewDecoder(resp.Body).Decode(&items)
 		require.NoError(t, err)
 
 		assert.Len(t, items["items"], 1)
-		assert.Equal(t, itemID.String(), items["items"][0]["id"])
+		assert.Equal(t, itemID, items["items"][0]["id"])
 		assert.Equal(t, name, items["items"][0]["name"])
 		assert.Equal(t, desc, items["items"][0]["description"])
 	})
 
 	t.Run("Delete Item", func(t *testing.T) {
 		path := fmt.Sprintf("/api/v1/admin/items/%s", itemID)
+
 		resp, err := app.doRequestAuth("DELETE", path, nil, token)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+
+		defer func() { _ = resp.Body.Close() }()
 	})
 }
 
@@ -114,80 +128,10 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 	app := setupE2E(t)
 	token := app.getAdminToken(t)
 
-	/*
-		Prepare the valid item:
-		1) Create it
-		2) Save its id for upcoming tests
-	*/
-	var baseItemID string
-
-	basePayload := map[string]interface{}{
-		"name":        "Сэндвич с курицей",
-		"description": "Сэндвич с курицей и соусом тар-тар",
-		"category":    "breakfast",
-		"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
-		"nutrition": map[string]interface{}{
-			"calories": 200,
-			"proteins": 23.6,
-			"fats":     1.9,
-			"carbs":    0.3,
-		},
-	}
-	baseResp, baseErr := app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/items",
-		basePayload,
-		token,
-	)
-	require.NoError(t, baseErr)
-
-	var baseItem map[string]map[string]interface{}
-	baseErr = json.NewDecoder(baseResp.Body).Decode(&baseItem)
-	require.NoError(t, baseErr)
-
-	baseItemID = baseItem["item"]["id"].(string)
-	_, baseErr = uuid.Parse(baseItemID)
-	require.NoError(t, baseErr)
-
-	/*
-		Prepare a gone item (deleted):
-		1) Create an item
-		2) Delete it
-	*/
-
-	var goneItemID string
-
-	gonePayload := map[string]interface{}{
-		"name":        "Сэндвич с говядиной",
-		"description": "Сэндвич с говядиной и острым соусом",
-		"category":    "breakfast",
-		"photo_url":   "https://photos-storage/exsa129csa7690/chicken_sandwich.png",
-		"nutrition":   map[string]interface{}{},
-	}
-	goneResp, goneErr := app.doRequestAuth(
-		"POST",
-		"/api/v1/admin/items",
-		gonePayload,
-		token,
-	)
-	require.NoError(t, goneErr)
-
-	var goneItem map[string]map[string]interface{}
-
-	goneErr = json.NewDecoder(goneResp.Body).Decode(&goneItem)
-	require.NoError(t, goneErr)
-
-	goneItemID = goneItem["item"]["id"].(string)
-	_, goneErr = uuid.Parse(goneItemID)
-	require.NoError(t, goneErr)
-
-	_, goneErr = app.doRequestAuth(
-		"DELETE",
-		fmt.Sprintf("/api/v1/admin/items/%s", goneItemID),
-		nil,
-		token,
-	)
-	require.NoError(t, goneErr)
+	// Prepare items for test
+	baseItemID := app.createItem(t, nil)
+	goneItemID := app.createItem(t, nil)
+	app.deleteItem(t, goneItemID)
 
 	t.Run("Create Item - Bad Cases", func(t *testing.T) {
 		type testCase struct {
@@ -270,10 +214,9 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 					tt.token,
 				)
 				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				defer func() { _ = resp.Body.Close() }()
-
-				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)
@@ -308,10 +251,9 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 					tt.token,
 				)
 				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				defer func() { _ = resp.Body.Close() }()
-
-				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)
@@ -352,7 +294,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
@@ -363,12 +305,12 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/items/%s", tt.itemID)
+
 				resp, err := app.doRequestAuth("GET", path, nil, tt.token)
 				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				defer func() { _ = resp.Body.Close() }()
-
-				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)
@@ -457,7 +399,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				payload:        map[string]interface{}{},
@@ -469,12 +411,12 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/items/%s", tt.itemID)
+
 				resp, err := app.doRequestAuth("PATCH", path, tt.payload, tt.token)
 				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				defer func() { _ = resp.Body.Close() }()
-
-				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)
@@ -515,7 +457,7 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 				expectedError:  "item not found",
 			},
 			{
-				name:           "Gone - Item Has Deleted",
+				name:           "Gone - Item Has Been Deleted",
 				token:          token,
 				itemID:         goneItemID,
 				expectedStatus: http.StatusGone,
@@ -526,12 +468,12 @@ func TestItem_ValidateAndConflicts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				path := fmt.Sprintf("/api/v1/admin/items/%s", tt.itemID)
+
 				resp, err := app.doRequestAuth("DELETE", path, nil, tt.token)
 				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				defer func() { _ = resp.Body.Close() }()
-
-				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)
