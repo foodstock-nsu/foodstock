@@ -1,6 +1,7 @@
 package yookassa
 
 import (
+	"backend/internal/domain/model"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -113,7 +114,7 @@ func (p *PaymentGateway) Create(
 	return result.ID, result.Confirmation.ConfirmationURL, nil
 }
 
-func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (string, error) {
+func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (model.TransactionStatus, error) {
 	apiURL := fmt.Sprintf("https://api.yookassa.ru/v3/payments/%s", externalID)
 
 	httpReq, err := http.NewRequestWithContext(
@@ -136,5 +137,16 @@ func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (stri
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return result.Status, nil
+	var status model.TransactionStatus
+
+	switch result.Status {
+	case "pending":
+		status = model.TransactionPending
+	case "succeeded":
+		status = model.TransactionSuccess
+	case "canceled":
+		status = model.TransactionFailed
+	}
+
+	return status, nil
 }

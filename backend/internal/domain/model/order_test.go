@@ -76,7 +76,7 @@ func TestNewOrderItem(t *testing.T) {
 	}
 }
 
-func TestNewOrder(t *testing.T) {
+func TestNewOrderAndIsPending(t *testing.T) {
 	var (
 		testLocID = uuid.New()
 		testPrice = int64(10000)
@@ -155,6 +155,7 @@ func TestNewOrder(t *testing.T) {
 				assert.Equal(t, tt.locID, order.LocationID())
 				assert.ElementsMatch(t, tt.items, order.Items())
 				assert.Equal(t, model.OrderPending, order.Status())
+				assert.True(t, order.IsPending())
 				assert.Equal(t, string(model.OrderPending), order.Status().String())
 				assert.Equal(t, tt.totalPrice, order.TotalPrice())
 				assert.False(t, order.CreatedAt().After(time.Now().UTC()))

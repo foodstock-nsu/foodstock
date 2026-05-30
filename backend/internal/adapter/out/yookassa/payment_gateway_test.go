@@ -4,6 +4,7 @@ package yookassa_test
 
 import (
 	"backend/internal/adapter/out/yookassa"
+	"backend/internal/domain/model"
 	"context"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func TestPaymentGateway_Integration(t *testing.T) {
 
 	gateway := yookassa.NewPaymentGateway(shopID, apiKey, 15*time.Second)
 
-	t.Run("CreatePayment Success", func(t *testing.T) {
+	t.Run("Create Payment Success", func(t *testing.T) {
 		paymentID, payURL, err := gateway.Create(ctx, amount, returnURL, orderID)
 
 		require.NoError(t, err)
@@ -35,10 +36,10 @@ func TestPaymentGateway_Integration(t *testing.T) {
 		t.Logf("Payment ID: %s", paymentID)
 		t.Logf("Pay URL: %s", payURL)
 
-		t.Run("GetStatus Success", func(t *testing.T) {
+		t.Run("Get Status Success", func(t *testing.T) {
 			status, err := gateway.GetStatus(ctx, paymentID)
 			require.NoError(t, err)
-			assert.Equal(t, "pending", status)
+			assert.Equal(t, model.TransactionPending, status)
 		})
 	})
 
