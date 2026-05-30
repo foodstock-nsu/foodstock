@@ -87,7 +87,7 @@ func (r *TransactionRepository) GetLatestByOrderID(ctx context.Context, orderID 
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, pkgerrs.NewObjectNotFoundError("transaction", sbpID)
+			return nil, pkgerrs.NewObjectNotFoundError("transaction", orderID)
 		}
 		return nil, err
 	}
