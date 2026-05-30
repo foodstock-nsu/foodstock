@@ -29,6 +29,20 @@ SELECT
 FROM transactions
 WHERE id = @id;
 
+-- name: GetLatestTransactionByOrderID :one
+SELECT
+    id,
+    order_id,
+    sbp_transaction_id,
+    amount,
+    status,
+    paid_at,
+    created_at
+FROM transactions
+WHERE order_id = @order_id
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: GetTransactionBySbpID :one
 SELECT
     id,

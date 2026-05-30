@@ -39,5 +39,14 @@ func (uc *GetOrderStatusUC) Execute(ctx context.Context, in dto.GetOrderStatusIn
 		)
 	}
 
-	if order.
+	// Check edge cases
+	if order.IsPaid() || order.IsCancelled() {
+		return dto.GetOrderStatusOutput{Status: order.Status().String()}, nil
+	}
+
+	// Get the last transaction
+	transaction, err := uc.transaction.GetB
+
+	// Fetch payment gateway to update the order status
+	uc.payment.GetStatus(ctx, order.S)
 }
