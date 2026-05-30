@@ -132,7 +132,7 @@ func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (stri
 	defer func() { _ = resp.Body.Close() }()
 
 	var result paymentResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 

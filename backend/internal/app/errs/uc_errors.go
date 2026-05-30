@@ -54,6 +54,7 @@ var (
 	ErrListLocationItemsDB                = errors.New("failed to get a list of location items using db")
 
 	ErrCreateOrderDB = errors.New("failed to create order using db")
+	ErrGetOrderDB    = errors.New("failed to get order using db")
 
 	ErrCreateOrderItemsDB = errors.New("failed to create order items using db")
 
@@ -62,7 +63,7 @@ var (
 	ErrLocationNotFound     = errors.New("location not found")
 	ErrItemNotFound         = errors.New("item not found")
 	ErrLocationItemNotFound = errors.New("location item not found")
-	ErrSlotNotFound         = errors.New("slot not found")
+	ErrOrderNotFound        = errors.New("order not found")
 	ErrBookingNotFound      = errors.New("booking not found")
 
 	ErrLocationAlreadyExists    = errors.New("location with given slug already exists")

@@ -48,6 +48,7 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrDeleteLocationItemByLocationIDDB),
 			errors.Is(err, ucerrs.ErrListLocationItemsDB),
 			errors.Is(err, ucerrs.ErrCreateOrderDB),
+			errors.Is(err, ucerrs.ErrGetOrderDB),
 			errors.Is(err, ucerrs.ErrCreateOrderItemsDB),
 			errors.Is(err, ucerrs.ErrGenerateToken),
 			errors.Is(err, ucerrs.ErrGenerateQRCode),
@@ -85,7 +86,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 
 	case errors.Is(err, ucerrs.ErrLocationNotFound),
 		errors.Is(err, ucerrs.ErrItemNotFound),
-		errors.Is(err, ucerrs.ErrLocationItemNotFound):
+		errors.Is(err, ucerrs.ErrLocationItemNotFound),
+		errors.Is(err, ucerrs.ErrOrderNotFound):
 		return pkgerrs.NewOutError(
 			http.StatusNotFound,
 			err.Error(),
