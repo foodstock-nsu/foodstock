@@ -15,7 +15,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 	switch {
 	case errors.Is(err, pkgerrs.ErrInvalidJSON),
 		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
-		errors.Is(err, pkgerrs.ErrInvalidSlug):
+		errors.Is(err, pkgerrs.ErrInvalidSlug),
+		errors.Is(err, pkgerrs.ErrValueIsInvalid):
 		return pkgerrs.NewOutError(
 			http.StatusBadRequest,
 			err.Error(),

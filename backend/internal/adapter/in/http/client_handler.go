@@ -9,24 +9,28 @@ import (
 	"net/http"
 	"unicode/utf8"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 type ClientHandler struct {
-	log           *slog.Logger
-	getCatalogUC  *usecase.GetCatalogUC
-	createOrderUC *usecase.CreateOrderUC
+	log              *slog.Logger
+	getCatalogUC     *usecase.GetCatalogUC
+	createOrderUC    *usecase.CreateOrderUC
+	getOrderStatusUC *usecase.GetOrderStatusUC
 }
 
 func NewClientHandler(
 	log *slog.Logger,
 	getCatalogUC *usecase.GetCatalogUC,
 	createOrderUC *usecase.CreateOrderUC,
+	getOrderStatusUC *usecase.GetOrderStatusUC,
 ) *ClientHandler {
 	return &ClientHandler{
-		log:           log,
-		getCatalogUC:  getCatalogUC,
-		createOrderUC: createOrderUC,
+		log:              log,
+		getCatalogUC:     getCatalogUC,
+		createOrderUC:    createOrderUC,
+		getOrderStatusUC: getOrderStatusUC,
 	}
 }
 
@@ -75,6 +79,28 @@ func (h *ClientHandler) CreateOrder(c echo.Context) error {
 	)
 
 	return c.JSON(http.StatusCreated, mapper.MapOutputToCreateOrder(out))
+}
+
+func (h *ClientHandler) GetOrderStatus(c echo.Context) error {
+	var req httpdto.GetOrderStatusRequest
+
+	if err := c.Bind(&req); err != nil {
+		return h.returnErr(c, "invalid order id", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	if _, err := uuid.Parse(req.OrderID); err != nil {
+		return h.returnErr(c, "failed to parse uuid", pkgerrs.ErrInvalidIdentifier)
+	}
+
+	out, err := h.getOrderStatusUC.Execute(
+		c.Request().Context(),
+		mapper.MapRequestToGetOrderStatus(req),
+	)
+	if err != nil {
+		return h.returnErr(c, "failed to get order status", err)
+	}
+
+	return c.JSON(http.StatusOK, mapper.MapOutputToGetOrderStatus(out))
 }
 
 func (h *ClientHandler) returnErr(c echo.Context, msg string, err error) error {

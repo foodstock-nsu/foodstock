@@ -91,6 +91,15 @@ func MapOutputToCreateOrder(out appdto.CreateOrderOutput) httpdto.CreateOrderRes
 	}
 }
 
+func MapRequestToGetOrderStatus(req httpdto.GetOrderStatusRequest) appdto.GetOrderStatusInput {
+	id, _ := uuid.Parse(req.OrderID)
+	return appdto.GetOrderStatusInput{OrderID: id}
+}
+
+func MapOutputToGetOrderStatus(out appdto.GetOrderStatusOutput) httpdto.GetOrderStatusResponse {
+	return httpdto.GetOrderStatusResponse{Status: out.Status}
+}
+
 // --- LOCATIONS ---
 
 func MapRequestToCreateLocation(req httpdto.CreateLocationRequest) appdto.CreateLocationInput {

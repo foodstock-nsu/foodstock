@@ -77,6 +77,10 @@ type CreateOrderRequest struct {
 	Items []OrderItemRequest `json:"items"`
 }
 
+type GetOrderStatusRequest struct {
+	OrderID string `param:"order_id"`
+}
+
 type GetInventoryRequest struct {
 	Slug string `param:"slug"`
 }
