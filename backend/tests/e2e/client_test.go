@@ -359,7 +359,7 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				path := fmt.Sprintf("/api/v1/admin/orders/%s/status", tt.orderID)
+				path := fmt.Sprintf("/api/v1/client/orders/%s/status", tt.orderID)
 
 				resp, err := app.doRequest("GET", path, nil)
 				require.NoError(t, err)

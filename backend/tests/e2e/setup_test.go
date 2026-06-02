@@ -176,10 +176,11 @@ func setupE2E(t *testing.T) *testApp {
 		createOrderUC := usecase.NewCreateOrderUC(trManager, locationRepo, locationItemRepo, orderRepo, orderItemRepo, transactionRepo, paymentGateway)
 		getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
 		updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationRepo, locationItemRepo)
+		getOrderStatusUC := usecase.NewGetOrderStatusUC(trManager, orderRepo, transactionRepo, paymentGateway)
 
 		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
-		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
+		clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC, getOrderStatusUC)
 		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
 		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
