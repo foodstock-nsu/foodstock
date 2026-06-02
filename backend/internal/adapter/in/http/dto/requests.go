@@ -78,7 +78,7 @@ type CreateOrderRequest struct {
 }
 
 type GetOrderStatusRequest struct {
-	OrderID string `param:"order_id"`
+	OrderID string `param:"id"`
 }
 
 type GetInventoryRequest struct {

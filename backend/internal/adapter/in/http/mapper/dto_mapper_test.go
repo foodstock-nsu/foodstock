@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 // --- COMMON & ERRORS ---
@@ -173,6 +174,26 @@ func TestMapOutputToCreateOrder(t *testing.T) {
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}
+}
+
+func TestMapRequestToGetOrderStatus(t *testing.T) {
+	orderID := uuid.New()
+
+	req := httpdto.GetOrderStatusRequest{OrderID: orderID.String()}
+	expected := appdto.GetOrderStatusInput{OrderID: orderID}
+
+	result := mapper.MapRequestToGetOrderStatus(req)
+	assert.Equal(t, expected.OrderID, result.OrderID)
+}
+
+func TestMapOutputToGetOrderStatus(t *testing.T) {
+	status := "PAID"
+
+	out := appdto.GetOrderStatusOutput{Status: status}
+	expected := httpdto.GetOrderStatusResponse{Status: status}
+
+	result := mapper.MapOutputToGetOrderStatus(out)
+	assert.Equal(t, expected.Status, result.Status)
 }
 
 // --- LOCATIONS ---

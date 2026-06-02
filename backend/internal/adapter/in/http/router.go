@@ -79,6 +79,7 @@ func (r *Router) InitRoutes() *echo.Echo {
 		clientOrders := client.Group("/orders")
 		{
 			clientOrders.POST("", r.Client.CreateOrder)
+			clientOrders.GET("/:id/status", r.Client.GetOrderStatus)
 		}
 
 		// --- ADMIN ---

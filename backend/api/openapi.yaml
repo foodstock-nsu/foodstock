@@ -45,6 +45,14 @@ components:
         type: string
         format: uuid
       description: Идентификатор товара
+    OrderIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор заказа
 
   schemas:
     SystemInfoResponse:
@@ -183,6 +191,13 @@ components:
           format: uri
           description: "Сгенерированная ссылка на оплату"
           example: "https://yoomoney.ru/checkout/payments/v2/contract?orderId=250270ad-000f-5000-8000-117600"
+
+    GetOrderStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "PAID"
 
     LocationResponse:
       type: object
@@ -487,6 +502,14 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             error: "location item not found"
+    OrderNotFoundError:
+      description: Заказ не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: "order not found"
 
     LocationIsNotAvailableError:
       description: Торговая точка недоступна
@@ -648,6 +671,32 @@ paths:
           $ref: "#/components/responses/LocationIsNotAvailableError"
         '422':
           $ref: "#/components/responses/LocationIsNotOperationalError"
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/client/orders/{id}/status:
+    get:
+      tags: [ Client ]
+      summary: Получить статус заказа по ID
+      parameters:
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses:
+        '200':
+          description: Статус заказа
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GetOrderStatusResponse"
+        '400':
+          description: Некорректный идентификатор
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "invalid identifier format"
+        '404':
+          $ref: '#/components/responses/OrderNotFoundError'
         '500':
           $ref: "#/components/responses/InternalError"
 
