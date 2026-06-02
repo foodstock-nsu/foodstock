@@ -58,7 +58,7 @@ func (uc *GetOrderStatusUC) Execute(ctx context.Context, in dto.GetOrderStatusIn
 	}
 
 	// Check for a discrepancy and fix if there is
-	if err = uc.recoverDiscrepancy(ctx, order, transaction); err != nil {
+	if err = uc.recoverLocalDiscrepancy(ctx, order, transaction); err != nil {
 		return dto.GetOrderStatusOutput{}, err
 	}
 
@@ -87,7 +87,7 @@ func (uc *GetOrderStatusUC) Execute(ctx context.Context, in dto.GetOrderStatusIn
 		}
 
 		// !! ALERT !!
-		// Case №3: The order is CANCELLED, but the transaction is CONFIRMED.
+		// Case №4: The order is CANCELLED, but the transaction is CONFIRMED.
 		if order.IsCancelled() {
 			if err = uc.updateEntities(ctx, order, transaction); err != nil {
 				return dto.GetOrderStatusOutput{}, err
@@ -122,7 +122,7 @@ func (uc *GetOrderStatusUC) Execute(ctx context.Context, in dto.GetOrderStatusIn
 }
 
 // Fix the discrepancy between order and transaction
-func (uc *GetOrderStatusUC) recoverDiscrepancy(
+func (uc *GetOrderStatusUC) recoverLocalDiscrepancy(
 	ctx context.Context,
 	order *model.Order,
 	transaction *model.Transaction,
@@ -133,26 +133,37 @@ func (uc *GetOrderStatusUC) recoverDiscrepancy(
 			slog.String("order_id", order.ID().String()),
 		)
 
-		return uc.trManager.Do(ctx, func(txCtx context.Context) error {
-			if payErr := order.Pay(); payErr != nil {
-				return ucerrs.Wrap(ucerrs.ErrInvalidInput, payErr)
-			}
+		if payErr := order.Pay(); payErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, payErr)
+		}
 
-			if updErr := uc.order.Update(txCtx, order); updErr != nil {
-				if errors.Is(updErr, pkgerrs.ErrObjectNotFound) {
-					return ucerrs.ErrOrderNotFound
-				}
-				return ucerrs.Wrap(ucerrs.ErrUpdateOrderDB, updErr)
+		if updErr := uc.order.Update(ctx, order); updErr != nil {
+			if errors.Is(updErr, pkgerrs.ErrObjectNotFound) {
+				return ucerrs.ErrOrderNotFound
 			}
-			return nil
-		})
+			return ucerrs.Wrap(ucerrs.ErrUpdateOrderDB, updErr)
+		}
 	}
 
 	// !! ALERT !!
-	// Case №2: the order is cancelled but the transaction is succeeded (локальное несовпадение после сбоев)
+	// Case №2: the order is cancelled but the transaction is succeeded
 	if order.IsCancelled() && transaction.IsConfirmed() {
 		if refundErr := uc.refundMoney(ctx, order, transaction); refundErr != nil {
 			return refundErr
+		}
+	}
+
+	// Case №3: the order is paid but the transaction is pending (soft discrepancy)
+	if order.IsPaid() && transaction.IsPending() {
+		if confirmErr := transaction.Confirm(); confirmErr != nil {
+			return ucerrs.Wrap(ucerrs.ErrInvalidInput, confirmErr)
+		}
+
+		if updErr := uc.transaction.Update(ctx, transaction); updErr != nil {
+			if errors.Is(updErr, pkgerrs.ErrObjectNotFound) {
+				return ucerrs.ErrTransactionNotFound
+			}
+			return ucerrs.Wrap(ucerrs.ErrUpdateTransactionDB, updErr)
 		}
 	}
 
@@ -175,6 +186,7 @@ func (uc *GetOrderStatusUC) refundMoney(
 	return nil
 }
 
+// Updates order and transaction in database
 func (uc *GetOrderStatusUC) updateEntities(
 	ctx context.Context,
 	order *model.Order,
