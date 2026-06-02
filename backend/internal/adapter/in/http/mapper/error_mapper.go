@@ -15,7 +15,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 	switch {
 	case errors.Is(err, pkgerrs.ErrInvalidJSON),
 		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
-		errors.Is(err, pkgerrs.ErrInvalidSlug):
+		errors.Is(err, pkgerrs.ErrInvalidSlug),
+		errors.Is(err, pkgerrs.ErrValueIsInvalid):
 		return pkgerrs.NewOutError(
 			http.StatusBadRequest,
 			err.Error(),
@@ -48,11 +49,16 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrDeleteLocationItemByLocationIDDB),
 			errors.Is(err, ucerrs.ErrListLocationItemsDB),
 			errors.Is(err, ucerrs.ErrCreateOrderDB),
+			errors.Is(err, ucerrs.ErrGetOrderByIDDB),
+			errors.Is(err, ucerrs.ErrUpdateOrderDB),
 			errors.Is(err, ucerrs.ErrCreateOrderItemsDB),
+			errors.Is(err, ucerrs.ErrCreateTransactionDB),
+			errors.Is(err, ucerrs.ErrGetLatestTransactionByOrderIDDB),
+			errors.Is(err, ucerrs.ErrUpdateTransactionDB),
 			errors.Is(err, ucerrs.ErrGenerateToken),
 			errors.Is(err, ucerrs.ErrGenerateQRCode),
 			errors.Is(err, ucerrs.ErrCreatePayment),
-			errors.Is(err, ucerrs.ErrCreateTransactionDB):
+			errors.Is(err, ucerrs.ErrGetPaymentStatus):
 			return pkgerrs.NewOutError(
 				http.StatusInternalServerError,
 				"internal error",
@@ -85,7 +91,9 @@ func HttpError(err error) *pkgerrs.OutErr {
 
 	case errors.Is(err, ucerrs.ErrLocationNotFound),
 		errors.Is(err, ucerrs.ErrItemNotFound),
-		errors.Is(err, ucerrs.ErrLocationItemNotFound):
+		errors.Is(err, ucerrs.ErrLocationItemNotFound),
+		errors.Is(err, ucerrs.ErrOrderNotFound),
+		errors.Is(err, ucerrs.ErrTransactionNotFound):
 		return pkgerrs.NewOutError(
 			http.StatusNotFound,
 			err.Error(),

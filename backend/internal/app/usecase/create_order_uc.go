@@ -12,6 +12,7 @@ import (
 	"github.com/avito-tech/go-transaction-manager/trm/v2"
 )
 
+// TODO: Вместо hardcode лучше вынести в конфиг
 const returnURL = "http://localhost:3000"
 
 type CreateOrderUC struct {

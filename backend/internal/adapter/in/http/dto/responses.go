@@ -91,6 +91,10 @@ type CreateOrderResponse struct {
 	PaymentURL string `json:"payment_url"`
 }
 
+type GetOrderStatusResponse struct {
+	Status string `json:"status"`
+}
+
 type InventoryItemResponse struct {
 	ItemID      string `json:"item_id"`
 	Price       int64  `json:"price"`

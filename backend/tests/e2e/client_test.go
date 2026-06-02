@@ -18,6 +18,8 @@ func TestClient_AllEndpoints(t *testing.T) {
 	app := setupE2E(t)
 	slug, itemIDs := app.seedInventoryData(t, 3)
 
+	var orderID string
+
 	t.Run("Get Catalog", func(t *testing.T) {
 		path := fmt.Sprintf("/api/v1/client/locations/%s/catalog", slug)
 
@@ -102,10 +104,10 @@ func TestClient_AllEndpoints(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check the order id
-		id := orderData["order_id"].(string)
-		assert.NotEmpty(t, id)
+		orderID = orderData["order_id"].(string)
+		assert.NotEmpty(t, orderID)
 
-		_, err = uuid.Parse(id)
+		_, err = uuid.Parse(orderID)
 		assert.NoError(t, err)
 
 		// Check the total price
@@ -113,6 +115,25 @@ func TestClient_AllEndpoints(t *testing.T) {
 
 		// Check the payment url
 		assert.NotEmpty(t, orderData["payment_url"])
+	})
+
+	t.Run("Get Order Status", func(t *testing.T) {
+		path := fmt.Sprintf("/api/v1/client/orders/%s/status", orderID)
+
+		resp, err := app.doRequest("GET", path, nil)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		defer func() { _ = resp.Body.Close() }()
+
+		var orderStatus map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&orderStatus)
+		require.NoError(t, err)
+
+		// Check the order status
+		status := orderStatus["status"].(string)
+		assert.NotEmpty(t, orderID)
+		assert.Equal(t, status, "PENDING")
 	})
 }
 
@@ -122,7 +143,8 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 	/*
 		Prepare the test catalog:
 			1) Create a location and some items
-			2)
+			2) Create the second location and delete it
+			3) Create the third location and inactivate it
 	*/
 	baseSlug, itemIDs := app.seedInventoryData(t, 1)
 
@@ -304,6 +326,46 @@ func TestClient_ValidateAndConflicts(t *testing.T) {
 				defer func() { _ = resp.Body.Close() }()
 
 				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				var errResp map[string]string
+				_ = json.NewDecoder(resp.Body).Decode(&errResp)
+				assert.Contains(t, errResp["error"], tt.expectedError)
+			})
+		}
+	})
+
+	t.Run("Get Order Status - Bad Cases", func(t *testing.T) {
+		type testCase struct {
+			name           string
+			orderID        string
+			expectedStatus int
+			expectedError  string
+		}
+
+		tests := []testCase{
+			{
+				name:           "Bad Request - Invalid Order ID",
+				orderID:        "invalid-uuid",
+				expectedStatus: http.StatusBadRequest,
+				expectedError:  "invalid identifier format",
+			},
+			{
+				name:           "Not Found - Random Order ID",
+				orderID:        uuid.New().String(),
+				expectedStatus: http.StatusNotFound,
+				expectedError:  "order not found",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				path := fmt.Sprintf("/api/v1/client/orders/%s/status", tt.orderID)
+
+				resp, err := app.doRequest("GET", path, nil)
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+				defer func() { _ = resp.Body.Close() }()
 
 				var errResp map[string]string
 				_ = json.NewDecoder(resp.Body).Decode(&errResp)

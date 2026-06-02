@@ -91,6 +91,12 @@ func (t *Transaction) Status() TransactionStatus { return t.status }
 func (t *Transaction) PaidAt() *time.Time        { return t.paidAt }
 func (t *Transaction) CreatedAt() time.Time      { return t.createdAt }
 
+// ================ Business Logic ================
+
+func (t *Transaction) IsPending() bool   { return t.status == TransactionPending && t.paidAt == nil }
+func (t *Transaction) IsConfirmed() bool { return t.status == TransactionSuccess && t.paidAt != nil }
+func (t *Transaction) IsDenied() bool    { return t.status == TransactionFailed && t.paidAt == nil }
+
 // ================ Mutation ================
 
 func (t *Transaction) Confirm() error {

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewTransaction(t *testing.T) {
+func TestNewTransactionAndIsPending(t *testing.T) {
 	var (
 		testOrderID = uuid.New()
 		testSBP     = "aerfqw12348789asdfasd"
@@ -72,6 +72,7 @@ func TestNewTransaction(t *testing.T) {
 				assert.Equal(t, tt.sbpTransactionID, tr.SBPTransactionID())
 				assert.Equal(t, tt.amount, tr.Amount())
 				assert.Equal(t, model.TransactionPending, tr.Status())
+				assert.True(t, tr.IsPending())
 				assert.Nil(t, tr.PaidAt())
 				assert.False(t, tr.CreatedAt().After(time.Now().UTC()))
 			}
@@ -79,7 +80,7 @@ func TestNewTransaction(t *testing.T) {
 	}
 }
 
-func TestTransaction_Confirm(t *testing.T) {
+func TestTransaction_ConfirmAndIsConfirmed(t *testing.T) {
 	tr := model.RestoreTransaction(
 		uuid.New(),
 		uuid.New(),
@@ -90,9 +91,11 @@ func TestTransaction_Confirm(t *testing.T) {
 		time.Now().UTC(),
 	)
 
+	assert.False(t, tr.IsConfirmed())
+
 	err := tr.Confirm()
 	assert.NoError(t, err)
-	assert.Equal(t, model.TransactionSuccess, tr.Status())
+	assert.True(t, tr.IsConfirmed())
 
 	err = tr.Confirm()
 	assert.Error(t, err)
@@ -109,9 +112,11 @@ func TestTransaction_Deny(t *testing.T) {
 		time.Now().UTC(),
 	)
 
+	assert.False(t, tr.IsDenied())
+
 	err := tr.Deny()
 	assert.NoError(t, err)
-	assert.Equal(t, model.TransactionFailed, tr.Status())
+	assert.True(t, tr.IsDenied())
 
 	err = tr.Deny()
 	assert.Error(t, err)

@@ -46,18 +46,18 @@ services:
     ports:
       - "${HTTP_PORT}:8080"
 
-  foodstock-frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: foodstock-frontend
-    depends_on:
-      foodstock-server:
-        condition: service_started
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
+#  foodstock-frontend:
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    container_name: foodstock-frontend
+#    depends_on:
+#      foodstock-server:
+#        condition: service_started
+#    env_file:
+#      - .env
+#    ports:
+#      - "3000:3000"
 
 volumes:
   foodstock_db_data:

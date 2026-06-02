@@ -173,6 +173,10 @@ func (o *Order) AddItem(locationItem *LocationItem, quantity int) error {
 	return nil
 }
 
+func (o *Order) IsPending() bool   { return o.status == OrderPending && o.paidAt == nil }
+func (o *Order) IsPaid() bool      { return o.status == OrderPaid && o.paidAt != nil }
+func (o *Order) IsCancelled() bool { return o.status == OrderCancelled && o.paidAt == nil }
+
 // ================ Mutation ================
 
 func (o *Order) Pay() error {

@@ -54,6 +54,36 @@ func (q *Queries) CreateTransaction(ctx context.Context, db DBTX, arg CreateTran
 	return err
 }
 
+const getLatestTransactionByOrderID = `-- name: GetLatestTransactionByOrderID :one
+SELECT
+    id,
+    order_id,
+    sbp_transaction_id,
+    amount,
+    status,
+    paid_at,
+    created_at
+FROM transactions
+WHERE order_id = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLatestTransactionByOrderID(ctx context.Context, db DBTX, orderID pgtype.UUID) (Transaction, error) {
+	row := db.QueryRow(ctx, getLatestTransactionByOrderID, orderID)
+	var i Transaction
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.SbpTransactionID,
+		&i.Amount,
+		&i.Status,
+		&i.PaidAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getTransactionByID = `-- name: GetTransactionByID :one
 SELECT
     id,

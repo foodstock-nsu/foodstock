@@ -53,17 +53,21 @@ var (
 	ErrDeleteLocationItemByLocationIDDB   = errors.New("failed to delete location items by location id using db")
 	ErrListLocationItemsDB                = errors.New("failed to get a list of location items using db")
 
-	ErrCreateOrderDB = errors.New("failed to create order using db")
+	ErrCreateOrderDB  = errors.New("failed to create order using db")
+	ErrGetOrderByIDDB = errors.New("failed to get order by id using db")
+	ErrUpdateOrderDB  = errors.New("failed to update order using db")
 
 	ErrCreateOrderItemsDB = errors.New("failed to create order items using db")
 
-	ErrCreateTransactionDB = errors.New("failed to create transaction using db")
+	ErrCreateTransactionDB             = errors.New("failed to create transaction using db")
+	ErrGetLatestTransactionByOrderIDDB = errors.New("failed to get latest transaction by order id using db")
+	ErrUpdateTransactionDB             = errors.New("failed to update transaction using db")
 
 	ErrLocationNotFound     = errors.New("location not found")
 	ErrItemNotFound         = errors.New("item not found")
 	ErrLocationItemNotFound = errors.New("location item not found")
-	ErrSlotNotFound         = errors.New("slot not found")
-	ErrBookingNotFound      = errors.New("booking not found")
+	ErrOrderNotFound        = errors.New("order not found")
+	ErrTransactionNotFound  = errors.New("transaction not found")
 
 	ErrLocationAlreadyExists    = errors.New("location with given slug already exists")
 	ErrOrderAlreadyExists       = errors.New("order already exists")
@@ -75,5 +79,6 @@ var (
 */
 
 var (
-	ErrCreatePayment = errors.New("failed to create a payment")
+	ErrCreatePayment    = errors.New("failed to create a payment")
+	ErrGetPaymentStatus = errors.New("failed to get payment status")
 )

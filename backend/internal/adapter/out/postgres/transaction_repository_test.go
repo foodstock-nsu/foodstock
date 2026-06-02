@@ -120,6 +120,23 @@ func (s *TransactionRepoSuite) TestGetByID_NotFound() {
 	s.Require().Nil(tx)
 }
 
+func (s *TransactionRepoSuite) TestGetLatestByOrderID() {
+	err := s.repo.Create(s.ctx, s.testTx)
+	s.Require().NoError(err)
+
+	tx, err := s.repo.GetLatestByOrderID(s.ctx, s.testTx.OrderID())
+	s.Require().NoError(err)
+	s.Require().NotNil(tx)
+	s.Require().Equal(s.testTx.ID(), tx.ID())
+}
+
+func (s *TransactionRepoSuite) TestGetLatestByOrderID_NotFound() {
+	tx, err := s.repo.GetLatestByOrderID(s.ctx, uuid.New())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+	s.Require().Nil(tx)
+}
+
 func (s *TransactionRepoSuite) TestGetBySbpID() {
 	err := s.repo.Create(s.ctx, s.testTx)
 	s.Require().NoError(err)

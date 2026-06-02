@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	apiVersion      = "v1"
+	apiVersion      = "v0.9"
 	shutdownTimeout = 10 * time.Second
 	cleanupDelay    = 10 * time.Minute
 )
@@ -169,6 +169,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	updateInventoryUC := usecase.NewUpdateInventoryUC(
 		trManager, locationRepo, locationItemRepo,
 	)
+	getOrderStatusUC := usecase.NewGetOrderStatusUC(
+		trManager, orderRepo, transactionRepo, paymentGateway,
+	)
 
 	// Services
 	orderCleaner := service.NewExpirationService(
@@ -178,7 +181,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	// Handlers
 	systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 	authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
-	clientHandler := adapterhttp.NewClientHandler(logger, getCatalogUC, createOrderUC)
+	clientHandler := adapterhttp.NewClientHandler(
+		logger, getCatalogUC, createOrderUC, getOrderStatusUC,
+	)
 	locationsHandler := adapterhttp.NewLocationHandler(
 		logger, createLocationUC, getLocationUC, updateLocationUC,
 		deleteLocationUC, listLocationsUC, getQRCodeUC,

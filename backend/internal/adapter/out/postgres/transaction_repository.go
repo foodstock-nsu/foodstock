@@ -74,6 +74,27 @@ func (r *TransactionRepository) GetByID(ctx context.Context, id uuid.UUID) (*mod
 	return mapper.MapSQLCToTransaction(rawTransaction), nil
 }
 
+func (r *TransactionRepository) GetLatestByOrderID(ctx context.Context, orderID uuid.UUID) (*model.Transaction, error) {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	rawTransaction, err := r.q.GetLatestTransactionByOrderID(
+		ctx,
+		db,
+		pgtype.UUID{
+			Bytes: orderID,
+			Valid: true,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, pkgerrs.NewObjectNotFoundError("transaction", orderID)
+		}
+		return nil, err
+	}
+
+	return mapper.MapSQLCToTransaction(rawTransaction), nil
+}
+
 func (r *TransactionRepository) GetBySbpID(ctx context.Context, sbpID string) (*model.Transaction, error) {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 

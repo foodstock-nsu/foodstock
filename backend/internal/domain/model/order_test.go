@@ -76,7 +76,7 @@ func TestNewOrderItem(t *testing.T) {
 	}
 }
 
-func TestNewOrder(t *testing.T) {
+func TestNewOrderAndIsPending(t *testing.T) {
 	var (
 		testLocID = uuid.New()
 		testPrice = int64(10000)
@@ -155,6 +155,7 @@ func TestNewOrder(t *testing.T) {
 				assert.Equal(t, tt.locID, order.LocationID())
 				assert.ElementsMatch(t, tt.items, order.Items())
 				assert.Equal(t, model.OrderPending, order.Status())
+				assert.True(t, order.IsPending())
 				assert.Equal(t, string(model.OrderPending), order.Status().String())
 				assert.Equal(t, tt.totalPrice, order.TotalPrice())
 				assert.False(t, order.CreatedAt().After(time.Now().UTC()))
@@ -244,7 +245,7 @@ func TestOrder_AddItem(t *testing.T) {
 	assert.Len(t, order.Items(), currLen)
 }
 
-func TestOrder_Pay(t *testing.T) {
+func TestOrder_PayAndIsPaid(t *testing.T) {
 	// Successful case firstly
 	order, _ := model.NewOrder(
 		uuid.New(),
@@ -259,16 +260,20 @@ func TestOrder_Pay(t *testing.T) {
 		int64(0),
 	)
 
+	assert.False(t, order.IsPaid())
+
 	err := order.Pay()
 	assert.NoError(t, err)
 	assert.Equal(t, model.OrderPaid, order.Status())
+
+	assert.True(t, order.IsPaid())
 
 	// Try to pay again
 	err = order.Pay()
 	assert.Error(t, err)
 }
 
-func TestOrder_Cancel(t *testing.T) {
+func TestOrder_CancelAndIsCancelled(t *testing.T) {
 	// Successful case firstly
 	order, _ := model.NewOrder(
 		uuid.New(),
@@ -283,9 +288,13 @@ func TestOrder_Cancel(t *testing.T) {
 		int64(0),
 	)
 
+	assert.False(t, order.IsCancelled())
+
 	err := order.Cancel()
 	assert.NoError(t, err)
 	assert.Equal(t, model.OrderCancelled, order.Status())
+
+	assert.True(t, order.IsCancelled())
 
 	// Try to cancel again
 	err = order.Cancel()
