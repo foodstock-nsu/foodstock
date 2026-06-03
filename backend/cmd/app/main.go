@@ -4,6 +4,7 @@ import (
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
+	adapteryacloud "backend/internal/adapter/out/yacloud"
 	adapteryookassa "backend/internal/adapter/out/yookassa"
 	"backend/internal/app/service"
 	"backend/internal/app/usecase"
@@ -24,6 +25,10 @@ import (
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	s3Cfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 const (
@@ -78,6 +83,27 @@ func closePostgresClient(
 	pgClient.Close()
 }
 
+func newS3Client(ctx context.Context, internalCfg *config.Config) (*s3.Client, error) {
+	cred := credentials.NewStaticCredentialsProvider(
+		internalCfg.S3AccessKey,
+		internalCfg.S3SecretKey,
+		"",
+	)
+
+	cfg, err := s3Cfg.LoadDefaultConfig(
+		ctx,
+		s3Cfg.WithRegion(internalCfg.S3Region),
+		s3Cfg.WithCredentialsProvider(cred),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load s3 storage config: %w", err)
+	}
+
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(internalCfg.S3Endpoint)
+	}), nil
+}
+
 // Fill database with seed data
 func seedAdmins(
 	ctx context.Context,
@@ -129,6 +155,18 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	// Payment Gateway
 	paymentGateway := adapteryookassa.NewPaymentGateway(
 		cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout,
+	)
+
+	// S3 Client
+	s3Client, err := newS3Client(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("failed to init s3 client: %w", err)
+	}
+
+	// Media Storage Gateway
+	mediaStorageGateway := adapteryacloud.NewYandexS3Storage(
+		s3Client,
+		cfg.S3BucketName,
 	)
 
 	// Fill database with seed data
