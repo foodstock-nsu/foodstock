@@ -184,10 +184,13 @@ func setupE2E(t *testing.T) *testApp {
 		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
 		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
+		mediaHandler := &adapterhttp.MediaHandler{}
 
 		router := adapterhttp.NewRouter(
-			tokenGen, systemHandler, authHandler, clientHandler,
-			locationsHandler, itemHandler, inventoryHandler,
+			tokenGen, systemHandler,
+			authHandler, clientHandler,
+			locationsHandler, itemHandler,
+			inventoryHandler, mediaHandler,
 		).InitRoutes()
 
 		ts := httptest.NewServer(router)

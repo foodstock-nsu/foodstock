@@ -33,7 +33,9 @@ func (h *MediaHandler) Upload(c echo.Context) error {
 	if err != nil {
 		return h.returnErr(c, "failed to open uploaded file", pkgerrs.ErrInvalidImage)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	out, err := h.uploadMediaUC.Execute(
 		c.Request().Context(),
