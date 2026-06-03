@@ -13,6 +13,7 @@ tags:
   - name: Admin Locations
   - name: Admin Inventory
   - name: Admin Items
+  - name: Admin Media
 
 components:
   securitySchemes:
@@ -451,6 +452,14 @@ components:
           description: "Список обновлённых товаров на точке"
           items:
             $ref: "#/components/schemas/InventoryItemResponse"
+
+    UploadMediaResponse:
+      type: object
+      properties:
+        image_key:
+          type: string
+          example: "items/b3d538c5-3680-5bd1-b784-cebb32b29d6c.png"
+          description: "Уникальный ключ файла в S3-хранилище, который нужно передавать при создании/обновлении товара"
 
   responses:
     BadRequestError:
@@ -1262,5 +1271,56 @@ paths:
           $ref: '#/components/responses/ItemNotFoundError'
         '410':
           $ref: "#/components/responses/ItemIsNotAvailableError"
+        '500':
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/admin/media/upload:
+    post:
+      tags: [ Admin Media ]
+      summary: Загрузить изображение товара
+      description: Принимает бинарный файл картинки через multipart/form-data, валидирует его на бэкенде и проксирует в Яндекс.Облако S3.
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: "Файл изображения (разрешены только jpeg, png, webp. Макс. размер 5МБ)"
+              required:
+                - image
+      responses:
+        '201':
+          description: Изображение успешно загружено в хранилище
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadMediaResponse'
+        '400':
+          description: Некорректный запрос или ошибка валидации файла
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missing_field:
+                  summary: Отсутствует поле image
+                  value:
+                    error: "missing image field in form-data"
+                invalid_type:
+                  summary: Неподдерживаемый тип файла
+                  value:
+                    error: "invalid file type: application/pdf, allowed only jpeg, png, webp"
+                file_too_large:
+                  summary: Превышен лимит размера
+                  value:
+                    error: "file size exceeds maximum limit of 5242880 bytes"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: "#/components/responses/InternalError"
