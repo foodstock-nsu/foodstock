@@ -264,6 +264,8 @@ func MapOutputToListItems(out appdto.ListItemsOutput) httpdto.ListItemsResponse 
 	return httpdto.ListItemsResponse{Items: arr}
 }
 
+// --- INVENTORY ---
+
 func MapRequestToGetInventory(req httpdto.GetInventoryRequest) appdto.GetInventoryInput {
 	return appdto.GetInventoryInput{Slug: req.Slug}
 }
@@ -313,4 +315,12 @@ func MapOutputToUpdateInventory(out appdto.UpdateInventoryOutput) httpdto.Update
 		arr[i] = mapOutputToInventoryItem(out.Inventory[i])
 	}
 	return httpdto.UpdateInventoryResponse{Inventory: arr}
+}
+
+// --- MEDIA ---
+
+func MapOutputToUploadMedia(out appdto.UploadMediaOutput) httpdto.UploadMediaResponse {
+	return httpdto.UploadMediaResponse{
+		MediaKey: out.MediaKey,
+	}
 }

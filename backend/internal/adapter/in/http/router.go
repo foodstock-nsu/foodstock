@@ -18,6 +18,7 @@ type Router struct {
 	Location  *LocationHandler
 	Item      *ItemHandler
 	Inventory *InventoryHandler
+	Media     *MediaHandler
 }
 
 func NewRouter(
@@ -28,6 +29,7 @@ func NewRouter(
 	location *LocationHandler,
 	item *ItemHandler,
 	inventory *InventoryHandler,
+	media *MediaHandler,
 ) *Router {
 	return &Router{
 		tokenGen:  tokenGen,
@@ -37,6 +39,7 @@ func NewRouter(
 		Location:  location,
 		Item:      item,
 		Inventory: inventory,
+		Media:     media,
 	}
 }
 
@@ -115,6 +118,13 @@ func (r *Router) InitRoutes() *echo.Echo {
 			adminItems.PATCH("/:id", r.Item.Update)
 			adminItems.DELETE("/:id", r.Item.Delete)
 			adminItems.GET("", r.Item.List)
+		}
+
+		// --- MEDIA ---
+		adminMedia := admin.Group("/media")
+		adminMedia.Use(r.withAuth(r.tokenGen))
+		{
+			adminMedia.POST("/upload", r.Media.Upload)
 		}
 	}
 

@@ -82,3 +82,9 @@ var (
 	ErrCreatePayment    = errors.New("failed to create a payment")
 	ErrGetPaymentStatus = errors.New("failed to get payment status")
 )
+
+/*
+================ Media Storage Gateway failures ================
+*/
+
+var ErrUploadMedia = errors.New("failed to upload media")

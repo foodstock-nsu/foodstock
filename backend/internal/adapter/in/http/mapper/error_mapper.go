@@ -16,7 +16,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 	case errors.Is(err, pkgerrs.ErrInvalidJSON),
 		errors.Is(err, pkgerrs.ErrInvalidIdentifier),
 		errors.Is(err, pkgerrs.ErrInvalidSlug),
-		errors.Is(err, pkgerrs.ErrValueIsInvalid):
+		errors.Is(err, pkgerrs.ErrValueIsInvalid),
+		errors.Is(err, pkgerrs.ErrInvalidImage):
 		return pkgerrs.NewOutError(
 			http.StatusBadRequest,
 			err.Error(),
@@ -58,7 +59,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrGenerateToken),
 			errors.Is(err, ucerrs.ErrGenerateQRCode),
 			errors.Is(err, ucerrs.ErrCreatePayment),
-			errors.Is(err, ucerrs.ErrGetPaymentStatus):
+			errors.Is(err, ucerrs.ErrGetPaymentStatus),
+			errors.Is(err, ucerrs.ErrUploadMedia):
 			return pkgerrs.NewOutError(
 				http.StatusInternalServerError,
 				"internal error",

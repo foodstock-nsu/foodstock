@@ -6,6 +6,7 @@ var (
 	ErrInvalidJSON       = errors.New("invalid json")
 	ErrInvalidIdentifier = errors.New("invalid identifier format")
 	ErrInvalidSlug       = errors.New("invalid slug")
+	ErrInvalidImage      = errors.New("invalid image")
 )
 
 type OutErr struct {
