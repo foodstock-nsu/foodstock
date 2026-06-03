@@ -5,6 +5,7 @@ import (
 	"backend/internal/adapter/in/http/mapper"
 	appdto "backend/internal/app/dto"
 	"backend/pkg/utils"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -520,4 +521,16 @@ func TestMapOutputToListItems(t *testing.T) {
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected %v, got %v", expected, result)
 	}
+}
+
+// --- MEDIA ---
+
+func TestMapOutputToUploadMedia(t *testing.T) {
+	key := fmt.Sprintf("items/%s", uuid.New().String())
+
+	out := appdto.UploadMediaOutput{MediaKey: key}
+	expected := httpdto.UploadMediaResponse{MediaKey: key}
+
+	result := mapper.MapOutputToUploadMedia(out)
+	assert.Equal(t, expected.MediaKey, result.MediaKey)
 }

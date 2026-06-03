@@ -210,6 +210,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	getOrderStatusUC := usecase.NewGetOrderStatusUC(
 		trManager, orderRepo, transactionRepo, paymentGateway,
 	)
+	uploadMediaUC := usecase.NewUploadMediaUC(mediaStorageGateway)
 
 	// Services
 	orderCleaner := service.NewExpirationService(
@@ -233,6 +234,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 	inventoryHandler := adapterhttp.NewInventoryHandler(
 		logger, getInventoryUC, updateInventoryUC,
 	)
+	mediaHandler := adapterhttp.NewMediaHandler(logger, uploadMediaUC)
 
 	// Router
 	router := adapterhttp.NewRouter(
@@ -243,6 +245,7 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		locationsHandler,
 		itemHandler,
 		inventoryHandler,
+		mediaHandler,
 	).InitRoutes()
 
 	// Launch background job - cleaning expired orders

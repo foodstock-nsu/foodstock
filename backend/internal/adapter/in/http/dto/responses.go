@@ -109,3 +109,7 @@ type GetInventoryResponse struct {
 type UpdateInventoryResponse struct {
 	Inventory []InventoryItemResponse `json:"inventory"`
 }
+
+type UploadMediaResponse struct {
+	MediaKey string `json:"media_key"`
+}
