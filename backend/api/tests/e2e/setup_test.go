@@ -1,4 +1,4 @@
-///go:build e2e
+//go:build e2e
 
 package e2e
 
@@ -18,8 +18,8 @@ import (
 	"backend/cmd/app/config"
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
-	adapteryookassa "backend/internal/adapter/out/yookassa"
 	adapteryacloud "backend/internal/adapter/out/yacloud"
+	adapteryookassa "backend/internal/adapter/out/yookassa"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
 	infrapass "backend/internal/infrastructure/password"
