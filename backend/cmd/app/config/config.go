@@ -37,6 +37,13 @@ type Config struct {
 	YookassaAPIKey  string        `env:"YOOKASSA_API_KEY,required"`
 	YookassaTimeout time.Duration `env:"YOOKASSA_TIMEOUT" envDefault:"1m"`
 
+	// Media storage secrets
+	S3BucketName string `env:"S3_BUCKET_NAME,required"`
+	S3AccessKey  string `env:"S3_ACCESS_KEY,required"`
+	S3SecretKey  string `env:"S3_SECRET_KEY,required"`
+	S3Endpoint   string `env:"S3_ENDPOINT,required"`
+	S3Region     string `env:"S3_REGION"`
+
 	// Password hasher
 	PasswordCost int `env:"PASSWORD_COST" envDefault:"10"`
 
