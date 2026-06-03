@@ -58,7 +58,8 @@ func HttpError(err error) *pkgerrs.OutErr {
 			errors.Is(err, ucerrs.ErrGenerateToken),
 			errors.Is(err, ucerrs.ErrGenerateQRCode),
 			errors.Is(err, ucerrs.ErrCreatePayment),
-			errors.Is(err, ucerrs.ErrGetPaymentStatus):
+			errors.Is(err, ucerrs.ErrGetPaymentStatus),
+			errors.Is(err, ucerrs.ErrUploadMedia):
 			return pkgerrs.NewOutError(
 				http.StatusInternalServerError,
 				"internal error",
