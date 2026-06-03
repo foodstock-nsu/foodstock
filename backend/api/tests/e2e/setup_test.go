@@ -1,4 +1,4 @@
-//go:build e2e
+///go:build e2e
 
 package e2e
 
@@ -19,6 +19,7 @@ import (
 	adapterhttp "backend/internal/adapter/in/http"
 	adapterpg "backend/internal/adapter/out/postgres"
 	adapteryookassa "backend/internal/adapter/out/yookassa"
+	adapteryacloud "backend/internal/adapter/out/yacloud"
 	"backend/internal/app/usecase"
 	infrajwt "backend/internal/infrastructure/jwt"
 	infrapass "backend/internal/infrastructure/password"
@@ -28,6 +29,10 @@ import (
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	s3Cfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -84,6 +89,27 @@ func newPostgresClient(ctx context.Context, cfg *config.Config) (*pkgpostgres.Cl
 	return pkgpostgres.NewClient(ctx, pgConfig)
 }
 
+func newS3Client(ctx context.Context, internalCfg *config.Config) (*s3.Client, error) {
+	cred := credentials.NewStaticCredentialsProvider(
+		internalCfg.S3AccessKey,
+		internalCfg.S3SecretKey,
+		"",
+	)
+
+	cfg, err := s3Cfg.LoadDefaultConfig(
+		ctx,
+		s3Cfg.WithRegion(internalCfg.S3Region),
+		s3Cfg.WithCredentialsProvider(cred),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load s3 storage config: %w", err)
+	}
+
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(internalCfg.S3Endpoint)
+	}), nil
+}
+
 func seedAdmins(
 	ctx context.Context,
 	cfg *config.Config,
@@ -122,6 +148,12 @@ func setupE2E(t *testing.T) *testApp {
 		_ = os.Setenv("YOOKASSA_API_KEY", "test_ivvXDKubIzQ-vo5_RMv5Z9a4zSQ9BHfhr7VybxhzabE")
 		_ = os.Setenv("QR_CODE_BASE_URL", "http://localhost:8080")
 
+		_ = os.Setenv("S3_BUCKET_NAME", "foodstock-test")
+		_ = os.Setenv("S3_ACCESS_KEY", "YCAJEArxLfMxD5DYKG-b-6lSs")
+		_ = os.Setenv("S3_SECRET_KEY", "YCOWxXBb6v21R6SDYw_wyn20iKLDg632t8jBxa6s")
+		_ = os.Setenv("S3_ENDPOINT", "https://storage.yandexcloud.net")
+		_ = os.Setenv("S3_REGION", "ru-central1")
+
 		cfg, err := config.Load()
 		require.NoError(t, err)
 
@@ -157,6 +189,10 @@ func setupE2E(t *testing.T) *testApp {
 		qrCodeGen := infraqrcode.NewGenerator(cfg.QRCodeBaseURL, cfg.QRCodeSize)
 		paymentGateway := adapteryookassa.NewPaymentGateway(cfg.YookassaShopID, cfg.YookassaAPIKey, cfg.YookassaTimeout)
 
+		s3Client, err := newS3Client(ctx, cfg)
+		require.NoError(t, err)
+		mediaStorageGateway := adapteryacloud.NewYandexS3Storage(s3Client, cfg.S3BucketName)
+
 		err = seedAdmins(ctx, cfg, adminRepo, passHasher)
 		require.NoError(t, err)
 
@@ -177,6 +213,7 @@ func setupE2E(t *testing.T) *testApp {
 		getInventoryUC := usecase.NewGetInventoryUC(locationRepo, locationItemRepo)
 		updateInventoryUC := usecase.NewUpdateInventoryUC(trManager, locationRepo, locationItemRepo)
 		getOrderStatusUC := usecase.NewGetOrderStatusUC(trManager, orderRepo, transactionRepo, paymentGateway)
+		uploadMediaUC := usecase.NewUploadMediaUC(mediaStorageGateway)
 
 		systemHandler := adapterhttp.NewSystemHandler(cfg.Environment, apiVersion)
 		authHandler := adapterhttp.NewAuthHandler(logger, adminAuthUC)
@@ -184,7 +221,7 @@ func setupE2E(t *testing.T) *testApp {
 		locationsHandler := adapterhttp.NewLocationHandler(logger, createLocationUC, getLocationUC, updateLocationUC, deleteLocationUC, listLocationsUC, getQRCodeUC)
 		itemHandler := adapterhttp.NewItemHandler(logger, createItemUC, getItemUC, updateItemUC, deleteItemUC, listItemsUC)
 		inventoryHandler := adapterhttp.NewInventoryHandler(logger, getInventoryUC, updateInventoryUC)
-		mediaHandler := &adapterhttp.MediaHandler{}
+		mediaHandler := adapterhttp.NewMediaHandler(logger, uploadMediaUC)
 
 		router := adapterhttp.NewRouter(
 			tokenGen, systemHandler,
