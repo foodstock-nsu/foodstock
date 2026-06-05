@@ -81,6 +81,7 @@ var (
 var (
 	ErrCreatePayment    = errors.New("failed to create a payment")
 	ErrGetPaymentStatus = errors.New("failed to get payment status")
+	ErrRefundMoney      = errors.New("failed to refund money")
 )
 
 /*

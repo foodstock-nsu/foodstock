@@ -25,3 +25,11 @@ type paymentResponse struct {
 		ConfirmationURL string `json:"confirmation_url"`
 	} `json:"confirmation"`
 }
+
+type refundRequest struct {
+	Amount struct {
+		Value    string `json:"value"`
+		Currency string `json:"currency"`
+	} `json:"amount"`
+	PaymentID string `json:"payment_id"`
+}

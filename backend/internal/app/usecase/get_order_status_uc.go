@@ -170,7 +170,6 @@ func (uc *GetOrderStatusUC) recoverLocalDiscrepancy(
 	return nil
 }
 
-// TODO: Implement the correct refund of money
 func (uc *GetOrderStatusUC) refundMoney(
 	ctx context.Context,
 	order *model.Order,
@@ -181,7 +180,24 @@ func (uc *GetOrderStatusUC) refundMoney(
 		slog.String("sbp_tx_id", transaction.SBPTransactionID()),
 	)
 
-	// ...
+	err := uc.payment.Refund(
+		ctx, transaction.SBPTransactionID(),
+		order.TotalPrice(), order.ID().String(),
+	)
+	if err != nil {
+		slog.ErrorContext(ctx, "FAILED TO REFUND MONEY VIA YOOKASSA",
+			slog.String("order_id", order.ID().String()),
+			slog.Any("err", err),
+		)
+		return ucerrs.Wrap(ucerrs.ErrRefundMoney, err)
+	}
+
+	slog.InfoContext(ctx, "AUTOMATIC REFUND SUCCESSFUL",
+		slog.String("order_id", order.ID().String()),
+		slog.Float64("amount", float64(order.TotalPrice()/100)),
+	)
+
+	// TODO: Implement a new state for transaction - REFUNDED
 
 	return nil
 }
