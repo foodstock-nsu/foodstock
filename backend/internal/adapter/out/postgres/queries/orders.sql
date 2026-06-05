@@ -80,5 +80,5 @@ SELECT
     paid_at
 FROM orders
 WHERE status = 'PENDING'
-  AND created_at < (NOW() AT TIME ZONE 'utc') - INTERVAL '15 minutes'
+  AND created_at < (NOW() AT TIME ZONE 'utc') - INTERVAL '10 minutes'
     FOR UPDATE SKIP LOCKED;

@@ -32,19 +32,31 @@ func NewExpirationService(
 	}
 }
 
-func (s *ExpirationService) Cleanup(ctx context.Context) error {
+// Cleanup cleans the orders table once in a period to remove pending orders
+func (s *ExpirationService) Cleanup(ctx context.Context) (int, error) {
 	expiredOrders, err := s.orderRepo.ListExpired(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	errs := make([]error, 0) // Append each error into array
+	cleanCounter := 0
 
 	for _, order := range expiredOrders {
 		err = s.trManager.Do(ctx, func(txCtx context.Context) error {
+			actualOrder, getErr := s.orderRepo.GetForUpdate(txCtx, order.ID())
+			if getErr != nil {
+				return getErr
+			}
+
+			// Defence against race-condition
+			if !actualOrder.IsPending() {
+				return nil
+			}
+
 			var updErr error
 
-			orderItems, getErr := s.orderItemRepo.List(txCtx, order.ID())
+			orderItems, getErr := s.orderItemRepo.List(txCtx, actualOrder.ID())
 			if getErr != nil {
 				return getErr
 			}
@@ -52,7 +64,7 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 			// Restore stocks in location
 			for _, orderItem := range orderItems {
 				locationItem, getLocItemErr := s.locationItemRepo.GetByLocationAndItem(
-					txCtx, order.LocationID(), orderItem.ItemID(),
+					txCtx, actualOrder.LocationID(), orderItem.ItemID(),
 				)
 				if getLocItemErr != nil {
 					return getLocItemErr
@@ -73,10 +85,10 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 				Cancel the order
 				Update it in database
 			*/
-			if updErr = order.Cancel(); updErr != nil {
+			if updErr = actualOrder.Cancel(); updErr != nil {
 				return updErr
 			}
-			if updErr = s.orderRepo.Update(txCtx, order); updErr != nil {
+			if updErr = s.orderRepo.Update(txCtx, actualOrder); updErr != nil {
 				return updErr
 			}
 
@@ -85,7 +97,7 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 				Deny them as well (if can)
 				Update them in database
 			*/
-			transactions, getErr := s.transactionRepo.List(txCtx, order.ID())
+			transactions, getErr := s.transactionRepo.List(txCtx, actualOrder.ID())
 			if getErr != nil {
 				return getErr
 			}
@@ -106,8 +118,10 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 
 		if err != nil {
 			errs = append(errs, err)
+		} else {
+			cleanCounter += 1
 		}
 	}
 
-	return errors.Join(errs...)
+	return cleanCounter, errors.Join(errs...)
 }

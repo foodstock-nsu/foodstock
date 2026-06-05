@@ -1,4 +1,4 @@
-//go:build integration
+///go:build integration
 
 package postgres_test
 
@@ -100,7 +100,7 @@ func (s *OrderRepoSuite) SetupTest() {
 	s.Require().NoError(err)
 }
 
-func (s *OrderRepoSuite) TestCreateGet() {
+func (s *OrderRepoSuite) TestCreateGetGetForUpdate() {
 	err := s.repo.Create(s.ctx, s.testOrder)
 	s.Require().NoError(err)
 
@@ -112,6 +112,11 @@ func (s *OrderRepoSuite) TestCreateGet() {
 	s.Require().Equal(s.testOrder.Status(), order.Status())
 	s.Require().Equal(s.testOrder.TotalPrice(), order.TotalPrice())
 	s.Require().Nil(order.PaidAt())
+
+	order, err = s.repo.GetForUpdate(s.ctx, s.testOrder.ID())
+	s.Require().NoError(err)
+	s.Require().NotNil(order)
+	s.Require().Equal(s.testOrder.LocationID(), order.LocationID())
 }
 
 func (s *OrderRepoSuite) TestCreate_AlreadyExists() {
@@ -125,6 +130,11 @@ func (s *OrderRepoSuite) TestCreate_AlreadyExists() {
 
 func (s *OrderRepoSuite) TestGet_NotFound() {
 	order, err := s.repo.Get(s.ctx, uuid.New())
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
+	s.Require().Nil(order)
+
+	order, err = s.repo.GetForUpdate(s.ctx, uuid.New())
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, pkgerrs.ErrObjectNotFound)
 	s.Require().Nil(order)
