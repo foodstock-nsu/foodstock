@@ -150,12 +150,15 @@ func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (mode
 	return status, nil
 }
 
-func (p *PaymentGateway) Refund(ctx context.Context, externalID string, amount float64, idempotencyKey string) error {
+func (p *PaymentGateway) Refund(
+	ctx context.Context, externalID string,
+	amount int64, idempotencyKey string,
+) error {
 	const apiURL = "https://api.yookassa.ru/v3/refunds"
 
 	var reqBody refundRequest
 	reqBody.PaymentID = externalID
-	reqBody.Amount.Value = fmt.Sprintf("%.2f", amount)
+	reqBody.Amount.Value = fmt.Sprintf("%.2f", float64(amount)/100)
 	reqBody.Amount.Currency = "RUB"
 
 	jsonData, err := json.Marshal(reqBody)
