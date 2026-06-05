@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -185,7 +186,11 @@ func (p *PaymentGateway) Refund(
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("yookassa returned bad status: %d", resp.StatusCode)
+		errorBody, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return fmt.Errorf("yookassa returned bad status %d, and failed to read body: %v", resp.StatusCode, readErr)
+		}
+		return fmt.Errorf("yookassa returned bad status %d. Response: %s", resp.StatusCode, string(errorBody))
 	}
 
 	return nil

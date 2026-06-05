@@ -1,4 +1,4 @@
-//go:build integration
+///go:build integration
 
 package yookassa_test
 
@@ -26,8 +26,11 @@ func TestPaymentGateway_Integration(t *testing.T) {
 
 	gateway := yookassa.NewPaymentGateway(shopID, apiKey, 15*time.Second)
 
+	var externalID string
+
 	t.Run("Create Payment Success", func(t *testing.T) {
 		paymentID, payURL, err := gateway.Create(ctx, amount, returnURL, orderID)
+		externalID = paymentID
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, paymentID)
@@ -35,12 +38,12 @@ func TestPaymentGateway_Integration(t *testing.T) {
 
 		t.Logf("Payment ID: %s", paymentID)
 		t.Logf("Pay URL: %s", payURL)
+	})
 
-		t.Run("Get Status Success", func(t *testing.T) {
-			status, err := gateway.GetStatus(ctx, paymentID)
-			require.NoError(t, err)
-			assert.Equal(t, model.TransactionPending, status)
-		})
+	t.Run("Get Status Success", func(t *testing.T) {
+		status, err := gateway.GetStatus(ctx, externalID)
+		require.NoError(t, err)
+		assert.Equal(t, model.TransactionPending, status)
 	})
 
 	t.Run("Auth Error", func(t *testing.T) {
