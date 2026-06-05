@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	apiVersion      = "v0.9"
+	apiVersion      = "v0.95"
 	shutdownTimeout = 10 * time.Second
 	cleanupDelay    = 10 * time.Minute
 )
@@ -123,6 +123,36 @@ func seedAdmins(
 		}
 	}
 	return nil
+}
+
+func cleanupExpiredOrders(
+	ctx context.Context,
+	logger *slog.Logger,
+	cleaner *service.ExpirationService,
+) {
+	time.Sleep(20 * time.Second) // Wait until the server wakes up
+
+	ticker := time.NewTicker(cleanupDelay)
+	defer ticker.Stop()
+
+	logger.InfoContext(ctx, "background worker started", slog.Duration("delay", cleanupDelay))
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("stopping background cleanup worker...")
+			return
+		case <-ticker.C:
+			logger.InfoContext(ctx, "Background job: cleaning expired orders and transactions...")
+
+			cnt, err := cleaner.Cleanup(ctx)
+			if err != nil {
+				logger.ErrorContext(ctx, "Background job errors", slog.Any("err", err))
+			}
+
+			logger.InfoContext(ctx, fmt.Sprintf("Background job: cleaned %d orders", cnt))
+		}
+	}
 }
 
 func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) error {
@@ -291,32 +321,6 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 
 	logger.Info("server exited properly")
 	return nil
-}
-
-func cleanupExpiredOrders(
-	ctx context.Context,
-	logger *slog.Logger,
-	cleaner *service.ExpirationService,
-) {
-	time.Sleep(20 * time.Second) // Wait until the server wakes up
-
-	ticker := time.NewTicker(cleanupDelay)
-	defer ticker.Stop()
-
-	logger.InfoContext(ctx, "background worker started", slog.Duration("delay", cleanupDelay))
-
-	for {
-		select {
-		case <-ctx.Done():
-			logger.Info("stopping background cleanup worker...")
-			return
-		case <-ticker.C:
-			logger.InfoContext(ctx, "Background job: cleaning expired orders and transactions...")
-			if err := cleaner.Cleanup(ctx); err != nil {
-				logger.ErrorContext(ctx, "Background job errors", slog.Any("err", err))
-			}
-		}
-	}
 }
 
 func main() {

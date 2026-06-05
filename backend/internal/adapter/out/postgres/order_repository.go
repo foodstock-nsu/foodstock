@@ -74,6 +74,27 @@ func (r *OrderRepository) Get(ctx context.Context, id uuid.UUID) (*model.Order, 
 	return mapper.MapSQLCToOrder(rawOrder), nil
 }
 
+func (r *OrderRepository) GetForUpdate(ctx context.Context, id uuid.UUID) (*model.Order, error) {
+	db := r.getter.DefaultTrOrDB(ctx, r.pool)
+
+	rawOrder, err := r.q.GetOrderForUpdate(
+		ctx,
+		db,
+		pgtype.UUID{
+			Bytes: id,
+			Valid: true,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, pkgerrs.NewObjectNotFoundError("order", id)
+		}
+		return nil, err
+	}
+
+	return mapper.MapSQLCToOrder(rawOrder), nil
+}
+
 func (r *OrderRepository) Update(ctx context.Context, order *model.Order) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 	params := mapper.MapOrderToSQLCUpdate(order)
