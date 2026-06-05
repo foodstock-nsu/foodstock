@@ -93,7 +93,6 @@ func (p *PaymentGateway) Create(
 
 	httpReq.SetBasicAuth(p.shopID, p.apiKey)
 	httpReq.Header.Set("Content-Type", "application/json")
-
 	httpReq.Header.Set("Idempotence-Key", uuid.New().String())
 
 	resp, err := p.httpClient.Do(httpReq)
@@ -107,7 +106,7 @@ func (p *PaymentGateway) Create(
 	}
 
 	var result paymentResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -149,4 +148,42 @@ func (p *PaymentGateway) GetStatus(ctx context.Context, externalID string) (mode
 	}
 
 	return status, nil
+}
+
+func (p *PaymentGateway) Refund(ctx context.Context, externalID string, amount float64, idempotencyKey string) error {
+	const apiURL = "https://api.yookassa.ru/v3/refunds"
+
+	var reqBody refundRequest
+	reqBody.PaymentID = externalID
+	reqBody.Amount.Value = fmt.Sprintf("%.2f", amount)
+	reqBody.Amount.Currency = "RUB"
+
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return fmt.Errorf("failed to marshal refund request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodPost,
+		apiURL, bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create http request: %w", err)
+	}
+
+	req.SetBasicAuth(p.shopID, p.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Idempotence-Key", idempotencyKey)
+
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute refund request: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("yookassa returned bad status: %d", resp.StatusCode)
+	}
+
+	return nil
 }
