@@ -49,9 +49,7 @@ func (s *ExpirationService) Cleanup(ctx context.Context) error {
 				return getErr
 			}
 
-			/*
-				Restore stocks in location
-			*/
+			// Restore stocks in location
 			for _, orderItem := range orderItems {
 				locationItem, getLocItemErr := s.locationItemRepo.GetByLocationAndItem(
 					txCtx, order.LocationID(), orderItem.ItemID(),

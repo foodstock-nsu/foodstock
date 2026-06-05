@@ -76,6 +76,33 @@ func (q *Queries) GetOrder(ctx context.Context, db DBTX, id pgtype.UUID) (Order,
 	return i, err
 }
 
+const getOrderForUpdate = `-- name: GetOrderForUpdate :one
+SELECT
+    id,
+    location_id,
+    status,
+    total_price,
+    created_at,
+    paid_at
+FROM orders
+WHERE id = $1
+    FOR UPDATE
+`
+
+func (q *Queries) GetOrderForUpdate(ctx context.Context, db DBTX, id pgtype.UUID) (Order, error) {
+	row := db.QueryRow(ctx, getOrderForUpdate, id)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.LocationID,
+		&i.Status,
+		&i.TotalPrice,
+		&i.CreatedAt,
+		&i.PaidAt,
+	)
+	return i, err
+}
+
 const listExpiredOrders = `-- name: ListExpiredOrders :many
 SELECT
     id,

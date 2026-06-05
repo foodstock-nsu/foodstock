@@ -26,6 +26,18 @@ SELECT
 FROM orders
 WHERE id = @id;
 
+-- name: GetOrderForUpdate :one
+SELECT
+    id,
+    location_id,
+    status,
+    total_price,
+    created_at,
+    paid_at
+FROM orders
+WHERE id = @id
+    FOR UPDATE;
+
 -- name: UpdateOrder :exec
 UPDATE orders
 SET
