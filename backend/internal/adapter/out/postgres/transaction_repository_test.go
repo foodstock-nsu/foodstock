@@ -77,6 +77,7 @@ func (s *TransactionRepoSuite) SetupSuite() {
 		1000,
 		model.TransactionPending,
 		nil,
+		nil,
 		time.Now().UTC().Truncate(time.Microsecond),
 	)
 }
@@ -159,13 +160,15 @@ func (s *TransactionRepoSuite) TestUpdate() {
 	s.Require().NoError(err)
 
 	paidAt := time.Now().UTC().Truncate(time.Microsecond)
+	refundedAt := paidAt.Add(time.Second)
 	updatedTx := model.RestoreTransaction(
 		s.testTx.ID(),
 		s.testTx.OrderID(),
 		s.testTx.SBPTransactionID(),
 		s.testTx.Amount(),
-		model.TransactionSuccess,
+		model.TransactionRefunded,
 		&paidAt,
+		&refundedAt,
 		s.testTx.CreatedAt(),
 	)
 
@@ -174,9 +177,11 @@ func (s *TransactionRepoSuite) TestUpdate() {
 
 	res, err := s.repo.GetByID(s.ctx, s.testTx.ID())
 	s.Require().NoError(err)
-	s.Require().Equal(model.TransactionSuccess, res.Status())
+	s.Require().Equal(model.TransactionRefunded, res.Status())
 	s.Require().NotNil(res.PaidAt())
 	s.Require().True(paidAt.Equal(*res.PaidAt()))
+	s.Require().NotNil(res.RefundedAt())
+	s.Require().True(refundedAt.Equal(*res.RefundedAt()))
 }
 
 func (s *TransactionRepoSuite) TestList() {
@@ -189,6 +194,7 @@ func (s *TransactionRepoSuite) TestList() {
 		"sbp-id-2",
 		2000,
 		model.TransactionFailed,
+		nil,
 		nil,
 		time.Now().UTC(),
 	)

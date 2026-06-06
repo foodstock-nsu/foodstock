@@ -116,10 +116,18 @@ func (r *TransactionRepository) GetBySbpID(ctx context.Context, sbpID string) (*
 func (r *TransactionRepository) Update(ctx context.Context, transaction *model.Transaction) error {
 	db := r.getter.DefaultTrOrDB(ctx, r.pool)
 
-	var paidAt pgtype.Timestamptz
+	var paidAt, refundedAt pgtype.Timestamptz
+
 	if transaction.PaidAt() != nil {
 		paidAt = pgtype.Timestamptz{
 			Time:             *transaction.PaidAt(),
+			InfinityModifier: 0,
+			Valid:            true,
+		}
+	}
+	if transaction.RefundedAt() != nil {
+		refundedAt = pgtype.Timestamptz{
+			Time:             *transaction.RefundedAt(),
 			InfinityModifier: 0,
 			Valid:            true,
 		}
@@ -130,15 +138,12 @@ func (r *TransactionRepository) Update(ctx context.Context, transaction *model.T
 			Bytes: transaction.ID(),
 			Valid: true,
 		},
-		Status: sqlc.TransactionStatus(transaction.Status()),
-		PaidAt: paidAt,
+		Status:     sqlc.TransactionStatus(transaction.Status()),
+		PaidAt:     paidAt,
+		RefundedAt: refundedAt,
 	}
 
-	return r.q.UpdateTransaction(
-		ctx,
-		db,
-		params,
-	)
+	return r.q.UpdateTransaction(ctx, db, params)
 }
 
 func (r *TransactionRepository) List(ctx context.Context, orderID uuid.UUID) ([]*model.Transaction, error) {
