@@ -1,4 +1,4 @@
-CREATE TYPE transaction_status AS ENUM('PENDING', 'SUCCESS', 'FAILED');
+CREATE TYPE transaction_status AS ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED');
 
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     amount NUMERIC(10, 2) NOT NULL,   
     status transaction_status NOT NULL DEFAULT 'PENDING',
     paid_at TIMESTAMP WITH TIME ZONE,
+    refunded_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL 
         DEFAULT CURRENT_TIMESTAMP
 ); 

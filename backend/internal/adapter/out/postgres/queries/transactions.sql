@@ -6,6 +6,7 @@ INSERT INTO transactions (
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 ) VALUES (
     @id,
@@ -14,6 +15,7 @@ INSERT INTO transactions (
     @amount,
     @status,
     @paid_at,
+    @refunded_at,
     @created_at
 );
 
@@ -25,6 +27,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE id = @id;
@@ -37,6 +40,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE order_id = @order_id
@@ -51,6 +55,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE sbp_transaction_id = @sbp_id;
@@ -59,7 +64,8 @@ WHERE sbp_transaction_id = @sbp_id;
 UPDATE transactions
 SET
     status = @status,
-    paid_at = @paid_at
+    paid_at = @paid_at,
+    refunded_at = @refunded_at
 WHERE id = @id;
 
 -- name: ListTransactions :many
@@ -70,6 +76,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE order_id = @order_id;

@@ -22,6 +22,7 @@ func TestMapTransactionToSQLCCreate(t *testing.T) {
 	status := model.TransactionSuccess
 	createdAt := time.Now().UTC()
 	paidAt := createdAt.Add(time.Minute)
+	refundedAt := paidAt.Add(time.Minute)
 
 	tx := model.RestoreTransaction(
 		id,
@@ -30,6 +31,7 @@ func TestMapTransactionToSQLCCreate(t *testing.T) {
 		amount,
 		status,
 		&paidAt,
+		&refundedAt,
 		createdAt,
 	)
 
@@ -42,16 +44,19 @@ func TestMapTransactionToSQLCCreate(t *testing.T) {
 	assert.Equal(t, sqlc.TransactionStatus(status), mapped.Status)
 	assert.True(t, mapped.PaidAt.Valid)
 	assert.True(t, paidAt.Equal(mapped.PaidAt.Time))
+	assert.True(t, mapped.RefundedAt.Valid)
+	assert.True(t, refundedAt.Equal(mapped.RefundedAt.Time))
 	assert.True(t, createdAt.Equal(mapped.CreatedAt.Time))
 }
 
-func TestMapTransactionToSQLCCreate_NilPaidAt(t *testing.T) {
+func TestMapTransactionToSQLCCreate_NilPaidAtAndRefundedAt(t *testing.T) {
 	tx := model.RestoreTransaction(
 		uuid.New(),
 		uuid.New(),
 		"sbp-id",
 		1000,
 		model.TransactionPending,
+		nil,
 		nil,
 		time.Now().UTC(),
 	)
@@ -73,6 +78,7 @@ func TestMapSQLCToTransaction(t *testing.T) {
 		Amount:           pkgpostgres.Int64ToNumeric(250000, -2),
 		Status:           sqlc.TransactionStatusFAILED,
 		PaidAt:           pgtype.Timestamptz{Time: now.Add(time.Second), Valid: true},
+		RefundedAt:       pgtype.Timestamptz{Time: now.Add(2 * time.Second), Valid: true},
 		CreatedAt:        pgtype.Timestamptz{Time: now, Valid: true},
 	}
 
@@ -85,6 +91,8 @@ func TestMapSQLCToTransaction(t *testing.T) {
 	assert.Equal(t, model.TransactionFailed, mapped.Status())
 	assert.NotNil(t, mapped.PaidAt())
 	assert.True(t, now.Add(time.Second).Equal(*mapped.PaidAt()))
+	assert.NotNil(t, mapped.RefundedAt())
+	assert.True(t, now.Add(2*time.Second).Equal(*mapped.RefundedAt()))
 	assert.True(t, now.Equal(mapped.CreatedAt()))
 }
 

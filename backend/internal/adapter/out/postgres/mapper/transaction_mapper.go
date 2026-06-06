@@ -12,10 +12,18 @@ import (
 func MapTransactionToSQLCCreate(transaction *model.Transaction) sqlc.CreateTransactionParams {
 	amount := pkgpostgres.Int64ToNumeric(transaction.Amount(), -2)
 
-	var paidAt pgtype.Timestamptz
+	var paidAt, refundedAt pgtype.Timestamptz
+
 	if transaction.PaidAt() != nil {
 		paidAt = pgtype.Timestamptz{
 			Time:             *transaction.PaidAt(),
+			InfinityModifier: 0,
+			Valid:            true,
+		}
+	}
+	if transaction.RefundedAt() != nil {
+		refundedAt = pgtype.Timestamptz{
+			Time:             *transaction.RefundedAt(),
 			InfinityModifier: 0,
 			Valid:            true,
 		}
@@ -34,6 +42,7 @@ func MapTransactionToSQLCCreate(transaction *model.Transaction) sqlc.CreateTrans
 		Amount:           amount,
 		Status:           sqlc.TransactionStatus(transaction.Status()),
 		PaidAt:           paidAt,
+		RefundedAt:       refundedAt,
 		CreatedAt: pgtype.Timestamptz{
 			Time:             transaction.CreatedAt(),
 			InfinityModifier: 0,
@@ -45,9 +54,13 @@ func MapTransactionToSQLCCreate(transaction *model.Transaction) sqlc.CreateTrans
 func MapSQLCToTransaction(raw sqlc.Transaction) *model.Transaction {
 	amount, _ := pkgpostgres.NumericToInt64(raw.Amount, -2)
 
-	var paidAt *time.Time
+	var paidAt, refundedAt *time.Time
+
 	if raw.PaidAt.Valid {
 		paidAt = &raw.PaidAt.Time
+	}
+	if raw.RefundedAt.Valid {
+		refundedAt = &raw.RefundedAt.Time
 	}
 
 	return model.RestoreTransaction(
@@ -57,6 +70,7 @@ func MapSQLCToTransaction(raw sqlc.Transaction) *model.Transaction {
 		amount,
 		model.TransactionStatus(raw.Status),
 		paidAt,
+		refundedAt,
 		raw.CreatedAt.Time,
 	)
 }

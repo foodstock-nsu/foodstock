@@ -103,9 +103,10 @@ func (ns NullOrderStatus) Value() (driver.Value, error) {
 type TransactionStatus string
 
 const (
-	TransactionStatusPENDING TransactionStatus = "PENDING"
-	TransactionStatusSUCCESS TransactionStatus = "SUCCESS"
-	TransactionStatusFAILED  TransactionStatus = "FAILED"
+	TransactionStatusPENDING  TransactionStatus = "PENDING"
+	TransactionStatusSUCCESS  TransactionStatus = "SUCCESS"
+	TransactionStatusFAILED   TransactionStatus = "FAILED"
+	TransactionStatusREFUNDED TransactionStatus = "REFUNDED"
 )
 
 func (e *TransactionStatus) Scan(src interface{}) error {
@@ -207,5 +208,6 @@ type Transaction struct {
 	Amount           pgtype.Numeric
 	Status           TransactionStatus
 	PaidAt           pgtype.Timestamptz
+	RefundedAt       pgtype.Timestamptz
 	CreatedAt        pgtype.Timestamptz
 }

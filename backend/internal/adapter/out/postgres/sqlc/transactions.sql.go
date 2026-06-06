@@ -19,6 +19,7 @@ INSERT INTO transactions (
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 ) VALUES (
     $1,
@@ -27,7 +28,8 @@ INSERT INTO transactions (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8
 )
 `
 
@@ -38,6 +40,7 @@ type CreateTransactionParams struct {
 	Amount           pgtype.Numeric
 	Status           TransactionStatus
 	PaidAt           pgtype.Timestamptz
+	RefundedAt       pgtype.Timestamptz
 	CreatedAt        pgtype.Timestamptz
 }
 
@@ -49,6 +52,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, db DBTX, arg CreateTran
 		arg.Amount,
 		arg.Status,
 		arg.PaidAt,
+		arg.RefundedAt,
 		arg.CreatedAt,
 	)
 	return err
@@ -62,6 +66,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE order_id = $1
@@ -79,6 +84,7 @@ func (q *Queries) GetLatestTransactionByOrderID(ctx context.Context, db DBTX, or
 		&i.Amount,
 		&i.Status,
 		&i.PaidAt,
+		&i.RefundedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -92,6 +98,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE id = $1
@@ -107,6 +114,7 @@ func (q *Queries) GetTransactionByID(ctx context.Context, db DBTX, id pgtype.UUI
 		&i.Amount,
 		&i.Status,
 		&i.PaidAt,
+		&i.RefundedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -120,6 +128,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE sbp_transaction_id = $1
@@ -135,6 +144,7 @@ func (q *Queries) GetTransactionBySbpID(ctx context.Context, db DBTX, sbpID stri
 		&i.Amount,
 		&i.Status,
 		&i.PaidAt,
+		&i.RefundedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -148,6 +158,7 @@ SELECT
     amount,
     status,
     paid_at,
+    refunded_at,
     created_at
 FROM transactions
 WHERE order_id = $1
@@ -169,6 +180,7 @@ func (q *Queries) ListTransactions(ctx context.Context, db DBTX, orderID pgtype.
 			&i.Amount,
 			&i.Status,
 			&i.PaidAt,
+			&i.RefundedAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -185,17 +197,24 @@ const updateTransaction = `-- name: UpdateTransaction :exec
 UPDATE transactions
 SET
     status = $1,
-    paid_at = $2
-WHERE id = $3
+    paid_at = $2,
+    refunded_at = $3
+WHERE id = $4
 `
 
 type UpdateTransactionParams struct {
-	Status TransactionStatus
-	PaidAt pgtype.Timestamptz
-	ID     pgtype.UUID
+	Status     TransactionStatus
+	PaidAt     pgtype.Timestamptz
+	RefundedAt pgtype.Timestamptz
+	ID         pgtype.UUID
 }
 
 func (q *Queries) UpdateTransaction(ctx context.Context, db DBTX, arg UpdateTransactionParams) error {
-	_, err := db.Exec(ctx, updateTransaction, arg.Status, arg.PaidAt, arg.ID)
+	_, err := db.Exec(ctx, updateTransaction,
+		arg.Status,
+		arg.PaidAt,
+		arg.RefundedAt,
+		arg.ID,
+	)
 	return err
 }
