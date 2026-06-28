@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	migrationVersion = 7 // Убедись, что тут актуальная версия
+	migrationVersion = 7
 	apiVersion       = "v1"
 )
 
